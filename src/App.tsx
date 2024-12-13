@@ -4,28 +4,31 @@ import { ZOOM, zoomMax, zoomMin } from './utils'
 import HQ from './components/HQ'
 import Timeline from './components/Timeline'
 
+const STARTING_ZOOM = 1
 
 function App() {
-  const [zoom, setZoom] = useState<keyof typeof ZOOM>(1)
   const [now, setNow] = useState(new Date())
-  const [firstTick, setFirstTick] = useState(now)
+  const [zoom, setZoom] = useState<keyof typeof ZOOM>(STARTING_ZOOM)
+  const [firstTick, setFirstTick] = useState(ZOOM[zoom].firstTickFunc(now))
 
   // update now every second
   setInterval(() => {
     setNow(new Date())
   }, 1000)
 
-  const handlezoom = (direction: '+' | '-') => {
-    if (direction === '+') {
-      setZoom((zoom) => zoom < zoomMax ? zoom + 1 : zoom)
-    } else {
-      setZoom((zoom) => zoom > zoomMin ? zoom - 1 : zoom)
-    }
+  const handleZoom = (direction: '+' | '-') => {
+    setZoom((prevZoom) => {
+      const newZoom = direction === '+' 
+        ? Math.min(prevZoom + 1, zoomMax) 
+        : Math.max(prevZoom - 1, zoomMin)
+      setFirstTick(ZOOM[newZoom].firstTickFunc(now))
+      return newZoom
+    })
   }
 
   return (
     <>
-      <HQ now={now} zoom={zoom} handlezoom={handlezoom} />
+      <HQ now={now} zoom={zoom} handlezoom={handleZoom} />
       <Timeline zoom={zoom} firstTick={firstTick} />
     </>
   )
