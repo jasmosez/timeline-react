@@ -1,5 +1,5 @@
 
-import { ZOOM, zoomMax, zoomMin } from './utils';
+import { ZOOM, zoomMax, zoomMin } from '../utils';
 
 interface HQProps {
     now: Date;
