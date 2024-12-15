@@ -29,7 +29,7 @@ function App() {
   return (
     <>
       <HQ now={now} zoom={zoom} handlezoom={handleZoom} />
-      <Timeline zoom={zoom} firstTick={firstTick} />
+      <Timeline now={now} zoom={zoom} firstTick={firstTick} />
     </>
   )
   
