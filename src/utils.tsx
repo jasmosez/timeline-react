@@ -6,6 +6,7 @@
  * @property {string} label - The label for the zoom level.
  * @property {number} visibleTicks - The number of visible ticks for the zoom level.
  * @property {'minute' | 'hour' | 'day' | 'month' | 'year'} unit - The unit of time for the zoom level.
+ * @property {number} screenSpan - The span of time in milliseconds for the screen.
  * @property {(firstTick: Date, addedUnits: number) => number} calculateTickTimeFunc - A function to calculate the time of a tick. The return number represents the calculated time in milliseconds.
  * @property {(date: Date) => Date} firstTickDateFunc - A function to determine the date of the first tick.
  */
@@ -14,15 +15,20 @@ type zoomLevel = {
     label: string,
     visibleTicks: number,
     unit: 'minute' | 'hour' | 'day' | 'month' | 'year'
+    screenSpan: number
     calculateTickTimeFunc: (firstTick: Date, addedUnits: number) => number
     firstTickDateFunc: (date: Date) => Date
   }
-  
-const addMinutes = (date: Date, minutes: number) => date.getTime() + minutes * 60 * 1000
 
-const addHours = (date: Date, hours: number) => date.getTime() + hours * 60 * 60 * 1000
+const MINUTE = 60 * 1000
+const HOUR = 60 * MINUTE
+const DAY = 24 * HOUR
 
-const addDays = (date: Date, days: number) => date.getTime() + days * 24 * 60 * 60 * 1000
+const addMinutes = (date: Date, minutes: number) => date.getTime() + minutes * MINUTE
+
+const addHours = (date: Date, hours: number) => date.getTime() + hours * HOUR
+
+const addDays = (date: Date, days: number) => date.getTime() + days * DAY
 
 const addMonths = (date: Date, months: number) => {
   const newDate = new Date(date)
@@ -139,6 +145,7 @@ export const ZOOM: Record<number, zoomLevel> = {
     label: 'Hour',
     visibleTicks: 61,
     unit: 'minute',
+    screenSpan: 61 * MINUTE,
     calculateTickTimeFunc: addMinutes,
     firstTickDateFunc: startOfHour
   },
@@ -147,6 +154,7 @@ export const ZOOM: Record<number, zoomLevel> = {
     label: 'Day',
     visibleTicks: 25,
     unit: 'hour',
+    screenSpan: 25 * HOUR,
     calculateTickTimeFunc: addHours,
     firstTickDateFunc: startOfDay
   },
@@ -155,6 +163,7 @@ export const ZOOM: Record<number, zoomLevel> = {
     label: 'Week',
     visibleTicks: 8,
     unit: 'day',
+    screenSpan: 8 * DAY,
     calculateTickTimeFunc: addDays,
     firstTickDateFunc: startOfWeek
   },
@@ -163,6 +172,7 @@ export const ZOOM: Record<number, zoomLevel> = {
     label: 'Month',
     visibleTicks: 32,
     unit: 'day',
+    screenSpan: 32 * DAY,
     calculateTickTimeFunc: addDays,
     firstTickDateFunc: startOfMonth
   },
@@ -171,6 +181,7 @@ export const ZOOM: Record<number, zoomLevel> = {
     label: 'Quarter',
     visibleTicks: 4,
     unit: 'month',
+    screenSpan: 120 * DAY,
     calculateTickTimeFunc: addMonths,
     firstTickDateFunc: startOfQuarter
   },
@@ -179,6 +190,7 @@ export const ZOOM: Record<number, zoomLevel> = {
     label: 'Year',
     visibleTicks: 13,
     unit: 'month',
+    screenSpan: 400 * DAY,
     calculateTickTimeFunc: addMonths,
     firstTickDateFunc: startOfYear
   },
@@ -187,6 +199,7 @@ export const ZOOM: Record<number, zoomLevel> = {
     label: 'Shmita Cycle',
     visibleTicks: 8,
     unit: 'year',
+    screenSpan: 2920 * DAY,
     calculateTickTimeFunc: addYears,
     firstTickDateFunc: startOfShmitaFudged
   },
@@ -195,6 +208,7 @@ export const ZOOM: Record<number, zoomLevel> = {
     label: 'Decade',
     visibleTicks: 11,
     unit: 'year',
+    screenSpan: 4015 * DAY,
     calculateTickTimeFunc: addYears,
     firstTickDateFunc: startOfDecade
   }

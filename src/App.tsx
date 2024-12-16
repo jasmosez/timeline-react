@@ -10,7 +10,7 @@ const STARTING_ZOOM = 1
 function App() {
   const [now, setNow] = useState(new Date())
   const [zoom, setZoom] = useState<keyof typeof ZOOM>(STARTING_ZOOM)
-  const [firstTick, setFirstTick] = useState(ZOOM[zoom].firstTickDateFunc(now))
+  const [firstTickDate, setFirstTickDate] = useState(ZOOM[zoom].firstTickDateFunc(now))
 
   // update now every second
   setInterval(() => {
@@ -22,7 +22,7 @@ function App() {
       const newZoom = direction === '+' 
         ? Math.min(prevZoom + 1, zoomMax) 
         : Math.max(prevZoom - 1, zoomMin)
-      setFirstTick(ZOOM[newZoom].firstTickDateFunc(now))
+      setFirstTickDate(ZOOM[newZoom].firstTickDateFunc(now))
       return newZoom
     })
   }
@@ -30,8 +30,8 @@ function App() {
   return (
     <>
       <HQ now={now} zoom={zoom} handlezoom={handleZoom} />
-      <Timeline zoom={zoom} firstTick={firstTick} />
-      <NowTick now={now} zoom={zoom} firstTick={firstTick} />
+      <Timeline zoom={zoom} firstTickDate={firstTickDate} />
+      <NowTick now={now} zoom={zoom} firstTickDate={firstTickDate} />
     </>
   )
   
