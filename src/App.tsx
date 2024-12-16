@@ -3,6 +3,7 @@ import './App.css'
 import { ZOOM, zoomMax, zoomMin } from './utils'
 import HQ from './components/HQ'
 import Timeline from './components/Timeline'
+import NowTick from './components/NowTick'
 
 const STARTING_ZOOM = 1
 
@@ -29,7 +30,8 @@ function App() {
   return (
     <>
       <HQ now={now} zoom={zoom} handlezoom={handleZoom} />
-      <Timeline now={now} zoom={zoom} firstTick={firstTick} />
+      <Timeline zoom={zoom} firstTick={firstTick} />
+      <NowTick now={now} zoom={zoom} firstTick={firstTick} />
     </>
   )
   
