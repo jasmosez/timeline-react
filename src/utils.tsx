@@ -136,9 +136,6 @@ const startOfDecade = (date: Date) => {
 }
 
 
-
-
-
 export const ZOOM: Record<number, zoomLevel> = {
   0: {
     key: 'hour',
@@ -217,3 +214,14 @@ export const ZOOM: Record<number, zoomLevel> = {
 export const zoomMax = Math.max(...Object.keys(ZOOM).map(Number))
 
 export const zoomMin = Math.min(...Object.keys(ZOOM).map(Number))
+
+export const getPointPercent = (pointTime: number, zoom: keyof typeof ZOOM, firstTickDate: Date) => {
+  const {calculateTickTimeFunc, screenSpan, visibleTicks} = ZOOM[zoom]
+  
+  const firstTickOffsetPecentage = (100/visibleTicks)/2
+  const firstTickOffsetMs = screenSpan * firstTickOffsetPecentage/100
+  const screenStartTime = calculateTickTimeFunc(firstTickDate, 0) - firstTickOffsetMs
+  const timeSinceStart = pointTime - screenStartTime;
+  const percentageOfScreenSpan = (timeSinceStart / screenSpan) * 100;
+  return `${percentageOfScreenSpan}%`
+}
