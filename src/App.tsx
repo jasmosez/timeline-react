@@ -9,7 +9,7 @@ const STARTING_ZOOM = 1
 function App() {
   const [now, setNow] = useState(new Date())
   const [zoom, setZoom] = useState<keyof typeof ZOOM>(STARTING_ZOOM)
-  const [firstTick, setFirstTick] = useState(ZOOM[zoom].firstTickFunc(now))
+  const [firstTick, setFirstTick] = useState(ZOOM[zoom].firstTickDateFunc(now))
 
   // update now every second
   setInterval(() => {
@@ -21,7 +21,7 @@ function App() {
       const newZoom = direction === '+' 
         ? Math.min(prevZoom + 1, zoomMax) 
         : Math.max(prevZoom - 1, zoomMin)
-      setFirstTick(ZOOM[newZoom].firstTickFunc(now))
+      setFirstTick(ZOOM[newZoom].firstTickDateFunc(now))
       return newZoom
     })
   }

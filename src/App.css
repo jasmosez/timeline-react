@@ -18,6 +18,42 @@
   filter: drop-shadow(0 0 2em #61dafbaa);
 }
 
+.timeline {
+ position: absolute; 
+}
+
+.line {
+  background-color: black;
+  height: 100%;
+  width: 1px;
+  left: 50%;
+  top: 0;
+}
+
+.tick {
+  background-color: black;
+  height: 1px;
+  width: 10px;
+  transform: translateX(-50%);
+}
+
+.tick-label {
+  left: 15px;
+  transform: translateY(-50%);
+  white-space: nowrap;
+}
+
+.now-tick {
+  background-color: red;
+}
+
+.now-tick-label {
+  left:auto;
+  right: 15px;
+  text-align: right;
+  color: red;
+}
+
 @keyframes logo-spin {
   from {
     transform: rotate(0deg);

@@ -1,10 +1,21 @@
+/**
+ * Represents a zoom level configuration.
+ * 
+ * @typedef {Object} zoomLevel
+ * @property {'hour' | 'day' | 'week' | 'month' | 'quarter' | 'year' | 'shmita' | 'decade'} key - The key representing the zoom level.
+ * @property {string} label - The label for the zoom level.
+ * @property {number} visibleTicks - The number of visible ticks for the zoom level.
+ * @property {'minute' | 'hour' | 'day' | 'month' | 'year'} unit - The unit of time for the zoom level.
+ * @property {(firstTick: Date, addedUnits: number) => number} calculateTickTimeFunc - A function to calculate the time of a tick. The return number represents the calculated time in milliseconds.
+ * @property {(date: Date) => Date} firstTickDateFunc - A function to determine the date of the first tick.
+ */
 type zoomLevel = {
     key: 'hour' | 'day' | 'week' | 'month' | 'quarter' | 'year' | 'shmita' | 'decade',
     label: string,
     visibleTicks: number,
     unit: 'minute' | 'hour' | 'day' | 'month' | 'year'
-    incrementFunc: (firstTick: Date, i: number) => number
-    firstTickFunc: (date: Date) => Date
+    calculateTickTimeFunc: (firstTick: Date, addedUnits: number) => number
+    firstTickDateFunc: (date: Date) => Date
   }
   
 const addMinutes = (date: Date, minutes: number) => date.getTime() + minutes * 60 * 1000
@@ -128,64 +139,64 @@ export const ZOOM: Record<number, zoomLevel> = {
     label: 'Hour',
     visibleTicks: 61,
     unit: 'minute',
-    incrementFunc: addMinutes,
-    firstTickFunc: startOfHour
+    calculateTickTimeFunc: addMinutes,
+    firstTickDateFunc: startOfHour
   },
   1: {
     key: 'day',
     label: 'Day',
     visibleTicks: 25,
     unit: 'hour',
-    incrementFunc: addHours,
-    firstTickFunc: startOfDay
+    calculateTickTimeFunc: addHours,
+    firstTickDateFunc: startOfDay
   },
   2: {
     key: 'week',
     label: 'Week',
     visibleTicks: 8,
     unit: 'day',
-    incrementFunc: addDays,
-    firstTickFunc: startOfWeek
+    calculateTickTimeFunc: addDays,
+    firstTickDateFunc: startOfWeek
   },
   3: {
     key: 'month',
     label: 'Month',
     visibleTicks: 32,
     unit: 'day',
-    incrementFunc: addDays,
-    firstTickFunc: startOfMonth
+    calculateTickTimeFunc: addDays,
+    firstTickDateFunc: startOfMonth
   },
   4: {
     key: 'quarter',
     label: 'Quarter',
     visibleTicks: 4,
     unit: 'month',
-    incrementFunc: addMonths,
-    firstTickFunc: startOfQuarter
+    calculateTickTimeFunc: addMonths,
+    firstTickDateFunc: startOfQuarter
   },
   5: {
     key: 'year',
     label: 'Year',
     visibleTicks: 13,
     unit: 'month',
-    incrementFunc: addMonths,
-    firstTickFunc: startOfYear
+    calculateTickTimeFunc: addMonths,
+    firstTickDateFunc: startOfYear
   },
   6: {
     key: 'shmita',
     label: 'Shmita Cycle',
     visibleTicks: 8,
     unit: 'year',
-    incrementFunc: addYears,
-    firstTickFunc: startOfShmitaFudged
+    calculateTickTimeFunc: addYears,
+    firstTickDateFunc: startOfShmitaFudged
   },
   7: {
     key: 'decade',
     label: 'Decade',
     visibleTicks: 11,
     unit: 'year',
-    incrementFunc: addYears,
-    firstTickFunc: startOfDecade
+    calculateTickTimeFunc: addYears,
+    firstTickDateFunc: startOfDecade
   }
 }
 
