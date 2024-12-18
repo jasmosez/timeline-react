@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import './App.css'
 import { ZOOM, zoomMax, zoomMin } from './utils'
 import HQ from './components/HQ'
@@ -13,9 +13,12 @@ function App() {
   const [firstTickDate, setFirstTickDate] = useState(ZOOM[zoom].firstTickDateFunc(now))
 
   // update now every second
-  setInterval(() => {
-    setNow(new Date())
-  }, 1000)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setNow(new Date())
+    }, 5000)
+    return () => clearInterval(interval)
+  }, [])
 
   const handleZoom = (direction: '+' | '-') => {
     setZoom((prevZoom) => {

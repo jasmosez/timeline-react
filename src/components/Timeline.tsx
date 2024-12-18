@@ -1,3 +1,4 @@
+import React from 'react';
 import { ZOOM, getPointPercent } from '../utils';
 
 interface TimelineProps {
@@ -31,4 +32,4 @@ function Timeline({zoom, firstTickDate}: TimelineProps) {
 
 }
 
-export default Timeline;
+export default React.memo(Timeline);
