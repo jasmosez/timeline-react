@@ -25,18 +25,25 @@
 }
 
 .tick-label {
+  font-size: .5rem;
   left: 15px;
   transform: translateY(-50%);
   white-space: nowrap;
 }
 
 .now-tick {
+  height: 1px;
+  width: 50px;
+  transform: translateX(-90%);
   background-color: red;
 }
 
 .now-tick-label {
   left:auto;
-  right: 15px;
+  right: 65px;
   text-align: right;
+}
+
+.now-tick-label, .now {
   color: red;
 }

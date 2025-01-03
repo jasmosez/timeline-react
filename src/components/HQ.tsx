@@ -28,7 +28,7 @@ export default function HQ({now, zoom, handlezoom}: HQProps) {
             <p>Viewing one {ZOOM[zoom].key}</p>
             <p>Each tick is the start of a {ZOOM[zoom].unit}</p>
             <p>Each span between ticks represents one whole {ZOOM[zoom].unit}</p>
-            <p>Now: {now.toLocaleString()}</p>
+            <p className='now'>Now: {now.toLocaleString()}</p>
           </div>
       </div>
   )

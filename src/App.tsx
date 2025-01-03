@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+// import { HDate, HebrewCalendar } from '@hebcal/core'
+
 import './App.css'
 import { ZOOM, zoomMax, zoomMin } from './utils'
 import HQ from './components/HQ'
@@ -16,7 +18,7 @@ function App() {
   useEffect(() => {
     const interval = setInterval(() => {
       setNow(new Date())
-    }, 5000)
+    }, 1000)
     return () => clearInterval(interval)
   }, [])
 
