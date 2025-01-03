@@ -16,7 +16,7 @@ function Timeline({zoom, firstTickDate}: TimelineProps) {
     const tickTime = calculateTickTimeFunc(firstTickDate, i)
     ticks.push(
       <Tick
-        key={i}
+        key={tickTime}
         tickTime={tickTime}
         zoom={zoom}
         firstTickDate={firstTickDate}
