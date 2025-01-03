@@ -6,8 +6,7 @@ import { ZOOM, zoomMax, zoomMin } from './utils'
 import HQ from './components/HQ'
 import Timeline from './components/Timeline'
 import NowTick from './components/NowTick'
-
-const STARTING_ZOOM = 1
+import { STARTING_ZOOM } from './config'
 
 function App() {
   const [now, setNow] = useState(new Date())
