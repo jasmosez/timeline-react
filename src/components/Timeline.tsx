@@ -20,13 +20,13 @@ function Timeline({zoom, firstTickDate}: TimelineProps) {
       setTicks(createTicks());
       
       // Allow initial render at old positions
-      // requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           setPrevZoom(zoom);
           setPrevFirstTickDate(firstTickDate);
           setTicks(createTicks());
         });
-      // });
+      });
 
       const timer = setTimeout(() => {
         setIsTransitioning(false);
