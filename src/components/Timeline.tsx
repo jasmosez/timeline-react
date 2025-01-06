@@ -18,6 +18,7 @@ function Timeline({zoom, firstTickDate}: TimelineProps) {
   useEffect(() => {
     setTicks(createTicks());
     if (zoom !== timelineZoom || firstTickDate !== timelineFirstTickDate) {
+      console.log('if')
       setPrevZoom(timelineZoom);
       setPrevFirstTickDate(timelineFirstTickDate);
 
@@ -56,10 +57,17 @@ function Timeline({zoom, firstTickDate}: TimelineProps) {
       }
     }
 
-    // Add or update ticks from the previous zoom level
-    const { calculateTickTimeFunc, visibleTicks } = ZOOM[timelineZoom];
+
+    // On initial render, previous zoom is undefined. Use timelineZoom as the prior zoom is a no-op
+    // On the first pass of a zoom transition, all three are different and timelineZoom is the prior zoom
+    // On the second pass of a zoom transition, timelineZoom is the new zoom and prevZoom is the prior zoom
+    const priorZoom = !!prevZoom && timelineZoom === zoom ? prevZoom : timelineZoom;
+    const priorFirstTickDate = !!prevFirstTickDate && timelineFirstTickDate === firstTickDate ? prevFirstTickDate : timelineFirstTickDate;
+
+    // Create ticks for the prior zoom level
+    const { calculateTickTimeFunc, visibleTicks } = ZOOM[priorZoom];
     for (let i = 0; i < visibleTicks; i++) {
-      const tickTime = calculateTickTimeFunc(timelineFirstTickDate, i);
+      const tickTime = calculateTickTimeFunc(priorFirstTickDate, i);
       const existingTickIndex = allTicks.findIndex(t => t.tickTime === tickTime);
       if (existingTickIndex < 0) {
         allTicks.push({
@@ -67,12 +75,26 @@ function Timeline({zoom, firstTickDate}: TimelineProps) {
           element: <Tick
             key={tickTime}
             tickTime={tickTime}
-            zoom={true ? zoom : timelineZoom}
-            firstTickDate={true ? firstTickDate : timelineFirstTickDate}
+            zoom={priorZoom}
+            firstTickDate={priorFirstTickDate}
             index={i}
           />
         });
       }
+    }
+
+    if (timelineZoom !== zoom || timelineFirstTickDate !== firstTickDate) {
+      console.log('update ticks for the new zoom level');
+      // update ticks for the new zoom level
+      allTicks.forEach(t => {
+        t.element = <Tick
+          key={t.tickTime}
+          tickTime={t.tickTime}
+          zoom={zoom}
+          firstTickDate={firstTickDate}
+          index={t.element.props.index}
+        />
+      });
     }
 
     return allTicks.map(t => t.element);
