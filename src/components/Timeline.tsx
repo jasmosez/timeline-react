@@ -8,33 +8,25 @@ interface TimelineProps {
     firstTickDate: Date;
 }
 
-function usePrevious<T>(value: T): T | undefined {
-  const ref = useRef<T>();
-  
-  useEffect(() => {
-    ref.current = value;
-  }, [value]);
-  
-  return ref.current;
-}
-
 function Timeline({zoom, firstTickDate}: TimelineProps) {
-  const prevZoom = usePrevious(zoom);
-  const prevFirstTickDate = usePrevious(firstTickDate);
   const [timelineZoom, setTimelineZoom] = useState<keyof typeof ZOOM>(zoom);
   const [timelineFirstTickDate, setTimelineFirstTickDate] = useState<Date>(firstTickDate);
+  const [prevZoom, setPrevZoom] = useState<keyof typeof ZOOM>();
+  const [prevFirstTickDate, setPrevFirstTickDate] = useState<Date>();
   const [ticks, setTicks] = useState<React.ReactElement[]>([]);
 
   useEffect(() => {
     setTicks(createTicks());
     if (zoom !== timelineZoom || firstTickDate !== timelineFirstTickDate) {
-      
+      setPrevZoom(timelineZoom);
+      setPrevFirstTickDate(timelineFirstTickDate);
+
       // Allow initial render at old positions
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           setTimelineZoom(zoom);
           setTimelineFirstTickDate(firstTickDate);
-          // setTicks(createTicks());
+
         });
       });
 
@@ -43,6 +35,7 @@ function Timeline({zoom, firstTickDate}: TimelineProps) {
 
   // Create ticks for both current and previous zoom levels during transition
   const createTicks = () => {
+    console.log('createTicks', {prevZoom, timelineZoom, zoom});
     const allTicks: { tickTime: number; element: React.ReactElement }[] = [];
     
     // Create ticks for the target zoom level first
@@ -68,21 +61,7 @@ function Timeline({zoom, firstTickDate}: TimelineProps) {
     for (let i = 0; i < visibleTicks; i++) {
       const tickTime = calculateTickTimeFunc(timelineFirstTickDate, i);
       const existingTickIndex = allTicks.findIndex(t => t.tickTime === tickTime);
-      
-      if (existingTickIndex >= 0) {
-        // Update existing tick to animate from current position
-        allTicks[existingTickIndex] = {
-          tickTime,
-          element: <Tick
-            key={tickTime}
-            tickTime={tickTime}
-            zoom={true ? zoom : timelineZoom}
-            firstTickDate={true ? firstTickDate : timelineFirstTickDate}
-            index={i}
-          />
-        };
-      } else {
-        // Add new tick
+      if (existingTickIndex < 0) {
         allTicks.push({
           tickTime,
           element: <Tick
@@ -119,7 +98,7 @@ function Timeline({zoom, firstTickDate}: TimelineProps) {
     <>
       {/* {spans} */}
       <div className='timeline line' />
-      {createTicks()}
+      {ticks}
     </>
   );
 }
