@@ -48,8 +48,7 @@ function App() {
   return (
     <>
       <HQ now={now} zoom={zoom} firstTickDate={firstTickDate} handleZoom={handleZoom} handlePan={handlePan} />
-      <Timeline zoom={zoom} firstTickDate={firstTickDate} />
-      <NowTick now={now} zoom={zoom} firstTickDate={firstTickDate} />
+      <Timeline now={now} zoom={zoom} firstTickDate={firstTickDate}/>
     </>
   )
   

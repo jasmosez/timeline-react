@@ -1,14 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ZOOM } from '../utils';
 import Tick from './Tick';
+import NowTick from './NowTick';
 import Span from './Span';
 
 interface TimelineProps {
     zoom: keyof typeof ZOOM;
     firstTickDate: Date;
+    now: Date;
 }
 
-function Timeline({zoom, firstTickDate}: TimelineProps) {
+function Timeline({zoom, firstTickDate, now}: TimelineProps) {
   const [timelineZoom, setTimelineZoom] = useState<keyof typeof ZOOM>(zoom);
   const [timelineFirstTickDate, setTimelineFirstTickDate] = useState<Date>(firstTickDate);
   const [prevZoom, setPrevZoom] = useState<keyof typeof ZOOM>();
@@ -99,6 +101,7 @@ function Timeline({zoom, firstTickDate}: TimelineProps) {
       {/* {spans} */}
       <div className='timeline line' />
       {ticks}
+      <NowTick now={now} zoom={zoom} firstTickDate={firstTickDate} />
     </>
   );
 }
