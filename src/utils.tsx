@@ -1,3 +1,5 @@
+import { LOCALE } from './config'
+
 /**
  * Represents a zoom level configuration.
  * 
@@ -23,16 +25,16 @@ type zoomLevel = {
   }
 
 // Constants for time in milliseconds
-const MINUTE = 60 * 1000
-const HOUR = 60 * MINUTE
-const DAY = 24 * HOUR
+const MINUTE_IN_MS = 60 * 1000
+const HOUR_IN_MS = 60 * MINUTE_IN_MS
+const DAY_IN_MS = 24 * HOUR_IN_MS
 
 // Functions to add time to a date
-const addMinutes = (date: Date, minutes: number) => date.getTime() + minutes * MINUTE
+const addMinutes = (date: Date, minutes: number) => date.getTime() + minutes * MINUTE_IN_MS
 
-const addHours = (date: Date, hours: number) => date.getTime() + hours * HOUR
+const addHours = (date: Date, hours: number) => date.getTime() + hours * HOUR_IN_MS
 
-const addDays = (date: Date, days: number) => date.getTime() + days * DAY
+const addDays = (date: Date, days: number) => date.getTime() + days * DAY_IN_MS
 
 const addMonths = (date: Date, months: number) => {
   const newDate = new Date(date)
@@ -135,44 +137,46 @@ const startOfDecade = (date: Date) => {
 }
 
 // Constants for rendering tick labels
-const LOCALE: Intl.LocalesArgument = 'US-en'
-const MINUTE_OPTIONS: Intl.DateTimeFormatOptions = { minute: '2-digit' }
-const HOUR_OPTIONS: Intl.DateTimeFormatOptions = { hour: 'numeric', hour12: true }
-const DAY_OPTIONS: Intl.DateTimeFormatOptions = { day: 'numeric' }
-const WEEKDAY_OPTIONS: Intl.DateTimeFormatOptions = { weekday: 'short' }
-const MONTH_OPTIONS: Intl.DateTimeFormatOptions = { month: 'short' }
-const YEAR_OPTIONS: Intl.DateTimeFormatOptions = { year: 'numeric' }
+const MINUTE: Intl.DateTimeFormatOptions = { minute: '2-digit' }
+const HOUR: Intl.DateTimeFormatOptions = { hour: 'numeric', hour12: true }
+const DAY: Intl.DateTimeFormatOptions = { day: 'numeric' }
+const WEEKDAY: Intl.DateTimeFormatOptions = { weekday: 'short' }
+const MONTH: Intl.DateTimeFormatOptions = { month: 'short' }
+const YEAR: Intl.DateTimeFormatOptions = { year: 'numeric' }
 
-const WEEKDAY_HOUR_OPTIONS = {...WEEKDAY_OPTIONS, ...DAY_OPTIONS, ...HOUR_OPTIONS}
-const MONTH_WEEKDAY_HOUR_OPTIONS = {...MONTH_OPTIONS, ...WEEKDAY_OPTIONS, ...DAY_OPTIONS, ...HOUR_OPTIONS}
+const MONTH_WEEKDAY_DAY = {...MONTH, ...WEEKDAY, ...DAY}
+export const FULL_DATE_FORMAT = {...YEAR, ...MONTH, ...WEEKDAY, ...DAY, ...HOUR, ...MINUTE}
 
 const isMidnight = (tickDate: Date) => tickDate.getHours() === 0 && tickDate.getMinutes() === 0
 const isTopOfHour = (tickDate: Date) => tickDate.getMinutes() === 0
 const is3rdHour = (tickDate: Date) => tickDate.getHours() % 3 === 0
 const is5thMin = (tickDate: Date) => tickDate.getMinutes() % 5 === 0
-
+const is1stOfMonth = (tickDate: Date) => tickDate.getDate() === 1
+const isSunday = (tickDate: Date) => tickDate.getDay() === 0
+const isSaturday = (tickDate: Date) => tickDate.getDay() === 6
+const is1stOfYear = (tickDate: Date) => tickDate.getMonth() === 0 && tickDate.getDate() === 1
 // Functions to render tick labels
 const renderTickLabelHour = (tickTime: number, _isFirstTick: boolean) => {
   const tickDate = new Date(tickTime)
 
   if (isMidnight(tickDate)) {
-    return tickDate.toLocaleDateString(LOCALE, MONTH_WEEKDAY_HOUR_OPTIONS)
+    return `${tickDate.toLocaleDateString(LOCALE, MONTH_WEEKDAY_DAY)} ${(isSaturday(tickDate) ? "✨" : "")}`
   }
   if (isTopOfHour(tickDate)) {
-    return tickDate.toLocaleTimeString('US-en', HOUR_OPTIONS)
+    return tickDate.toLocaleTimeString(LOCALE, HOUR)
   }
   if (is5thMin(tickDate)) {
-    return tickDate.toLocaleTimeString('US-en', MINUTE_OPTIONS)
+    return `:${String(tickDate.getMinutes()).padStart(2, '0')}`
   }
 }
 
 const renderTickLabelDay = (tickTime: number, _isFirstTick: boolean) => {
   const tickDate = new Date(tickTime)
   if (isMidnight(tickDate)) {
-    return tickDate.toLocaleDateString(LOCALE, MONTH_WEEKDAY_HOUR_OPTIONS)
+    return `${tickDate.toLocaleDateString(LOCALE, MONTH_WEEKDAY_DAY)} ${(isSaturday(tickDate) ? "✨" : "")}`
   }
   if (is3rdHour(tickDate)) {
-    return tickDate.toLocaleTimeString('US-en', HOUR_OPTIONS)
+    return tickDate.toLocaleTimeString(LOCALE, HOUR)
   }
 
 }
@@ -180,36 +184,35 @@ const renderTickLabelDay = (tickTime: number, _isFirstTick: boolean) => {
 // TODO: only render the month if it's the first day of the month or its the first tick
 const renderTickLabelWeek = (tickTime: number, _isFirstTick: boolean) => {
   const tickDate = new Date(tickTime)
-  const showMonth = _isFirstTick || tickDate.getDay() === 0
-
-  return tickDate.toLocaleDateString(LOCALE, (showMonth ? MONTH_WEEKDAY_HOUR_OPTIONS : WEEKDAY_HOUR_OPTIONS))
+  const showMonth = is1stOfMonth(tickDate)
+  return `${tickDate.toLocaleDateString(LOCALE, (showMonth ? MONTH_WEEKDAY_DAY : {...WEEKDAY, ...DAY}))} ${(isSaturday(tickDate) ? "✨" : "")}`
 }
 
 // TODO: only render the month if it's the first day of the month or its the first tick
 const renderTickLabelMonth = (tickTime: number, _isFirstTick: boolean) => {
   const tickDate = new Date(tickTime)
-  return tickDate.toLocaleDateString('US-en', {...MONTH_OPTIONS, ...(tickDate.getDay() === 0 ? WEEKDAY_OPTIONS : DAY_OPTIONS) })
+  return `${tickDate.toLocaleDateString(LOCALE, {...DAY, ...(_isFirstTick || is1stOfMonth(tickDate) ? MONTH : ""), ...is1stOfYear(tickDate) ? YEAR : "" })} ${(isSaturday(tickDate) ? "✨" : "")}`
 }
 
 // TODO: only render year if it's the first day of the year or its the first tick
 const renderTickLabelQuarter = (tickTime: number, _isFirstTick: boolean) => {
   const tickDate = new Date(tickTime)
-  return tickDate.toLocaleDateString(LOCALE, MONTH_OPTIONS)
+  return tickDate.toLocaleDateString(LOCALE, _isFirstTick ? {...MONTH, ...YEAR} : MONTH)
 }
 
 const renderTickLabelYear = (tickTime: number, _isFirstTick: boolean) => {
   const tickDate = new Date(tickTime)
-  return tickDate.toLocaleDateString(LOCALE, MONTH_OPTIONS)
+  return tickDate.toLocaleDateString(LOCALE, _isFirstTick || is1stOfYear(tickDate) ? {...MONTH, ...YEAR} : MONTH)
 }
 
 const renderTickLabelShmita = (tickTime: number, _isFirstTick: boolean) => {
   const tickDate = new Date(tickTime)
-  return tickDate.toLocaleDateString(LOCALE, {...MONTH_OPTIONS, ...YEAR_OPTIONS})
+  return tickDate.toLocaleDateString(LOCALE, {...MONTH, ...YEAR})
 }
 
 const renderTickLabelDecade = (tickTime: number, _isFirstTick: boolean) => {
   const tickDate = new Date(tickTime)
-  return tickDate.toLocaleDateString(LOCALE, YEAR_OPTIONS)
+  return tickDate.toLocaleDateString(LOCALE, YEAR)
 }
 
 
@@ -220,7 +223,7 @@ export const ZOOM: Record<number, zoomLevel> = {
     label: 'Hour',
     visibleTicks: 61,
     unit: 'minute',
-    screenSpan: 61 * MINUTE,
+    screenSpan: 61 * MINUTE_IN_MS,
     calculateTickTimeFunc: addMinutes,
     firstTickDateFunc: startOfHour,
     renderTickLabel: renderTickLabelHour
@@ -230,7 +233,7 @@ export const ZOOM: Record<number, zoomLevel> = {
     label: 'Day',
     visibleTicks: 25,
     unit: 'hour',
-    screenSpan: 25 * HOUR,
+    screenSpan: 25 * HOUR_IN_MS,
     calculateTickTimeFunc: addHours,
     firstTickDateFunc: startOfDay,
     renderTickLabel: renderTickLabelDay
@@ -240,7 +243,7 @@ export const ZOOM: Record<number, zoomLevel> = {
     label: 'Week',
     visibleTicks: 8,
     unit: 'day',
-    screenSpan: 8 * DAY,
+    screenSpan: 8 * DAY_IN_MS,
     calculateTickTimeFunc: addDays,
     firstTickDateFunc: startOfWeek,
     renderTickLabel: renderTickLabelWeek
@@ -250,7 +253,7 @@ export const ZOOM: Record<number, zoomLevel> = {
     label: 'Month',
     visibleTicks: 32,
     unit: 'day',
-    screenSpan: 32 * DAY,
+    screenSpan: 32 * DAY_IN_MS,
     calculateTickTimeFunc: addDays,
     firstTickDateFunc: startOfMonth,
     renderTickLabel: renderTickLabelMonth
@@ -260,7 +263,7 @@ export const ZOOM: Record<number, zoomLevel> = {
     label: 'Quarter',
     visibleTicks: 4,
     unit: 'month',
-    screenSpan: 120 * DAY,
+    screenSpan: 120 * DAY_IN_MS,
     calculateTickTimeFunc: addMonths,
     firstTickDateFunc: startOfQuarter,
     renderTickLabel: renderTickLabelQuarter
@@ -270,27 +273,27 @@ export const ZOOM: Record<number, zoomLevel> = {
     label: 'Year',
     visibleTicks: 13,
     unit: 'month',
-    screenSpan: 400 * DAY,
+    screenSpan: 400 * DAY_IN_MS,
     calculateTickTimeFunc: addMonths,
     firstTickDateFunc: startOfYear,
     renderTickLabel: renderTickLabelYear
   },
+  // 6: {
+  //   key: 'shmita',
+  //   label: 'Shmita Cycle',
+  //   visibleTicks: 8,
+  //   unit: 'year',
+  //   screenSpan: 2920 * DAY_IN_MS,
+  //   calculateTickTimeFunc: addYears,
+  //   firstTickDateFunc: startOfShmitaFudged,
+  //   renderTickLabel: renderTickLabelShmita
+  // },
   6: {
-    key: 'shmita',
-    label: 'Shmita Cycle',
-    visibleTicks: 8,
-    unit: 'year',
-    screenSpan: 2920 * DAY,
-    calculateTickTimeFunc: addYears,
-    firstTickDateFunc: startOfShmitaFudged,
-    renderTickLabel: renderTickLabelShmita
-  },
-  7: {
     key: 'decade',
     label: 'Decade',
     visibleTicks: 11,
     unit: 'year',
-    screenSpan: 4015 * DAY,
+    screenSpan: 4015 * DAY_IN_MS,
     calculateTickTimeFunc: addYears,
     firstTickDateFunc: startOfDecade,
     renderTickLabel: renderTickLabelDecade

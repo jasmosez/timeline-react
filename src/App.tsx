@@ -6,7 +6,7 @@ import { ZOOM, zoomMax, zoomMin } from './utils'
 import HQ from './components/HQ'
 import Timeline from './components/Timeline'
 import NowTick from './components/NowTick'
-import { STARTING_ZOOM } from './config'
+import { STARTING_ZOOM, PAN_AMOUNT } from './config'
 
 function App() {
   const [now, setNow] = useState(new Date())
@@ -21,6 +21,8 @@ function App() {
     return () => clearInterval(interval)
   }, [])
 
+  // + is zoom out, counter-intuitively. That is because it is a larger amount of time.
+  // TODO: make this more intuitive
   const handleZoom = (direction: '+' | '-') => {
     setZoom((prevZoom) => {
       const newZoom = direction === '+' 
@@ -31,9 +33,21 @@ function App() {
     })
   }
 
+  const handlePan = (direction: '+' | '-' | 'reset') => {
+    setFirstTickDate((prevFirstTickDate) => {
+      if (direction === 'reset') {
+        return ZOOM[zoom].firstTickDateFunc(now)
+      } else {
+        return direction === '+' 
+          ? new Date(ZOOM[zoom].calculateTickTimeFunc(prevFirstTickDate, PAN_AMOUNT))
+          : new Date(ZOOM[zoom].calculateTickTimeFunc(prevFirstTickDate, -PAN_AMOUNT))
+      }
+    })
+  }
+
   return (
     <>
-      <HQ now={now} zoom={zoom} handlezoom={handleZoom} />
+      <HQ now={now} zoom={zoom} firstTickDate={firstTickDate} handleZoom={handleZoom} handlePan={handlePan} />
       <Timeline zoom={zoom} firstTickDate={firstTickDate} />
       <NowTick now={now} zoom={zoom} firstTickDate={firstTickDate} />
     </>

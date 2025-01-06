@@ -8,3 +8,5 @@ if (PAUSED_TIME) {
 }
 
 export const STARTING_ZOOM = 1 
+export const LOCALE: Intl.LocalesArgument = 'en-US'
+export const PAN_AMOUNT = 1 // 1 time unit
