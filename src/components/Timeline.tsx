@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ZOOM } from '../utils';
 import Tick from './Tick';
 import Span from './Span';
@@ -8,42 +8,45 @@ interface TimelineProps {
     firstTickDate: Date;
 }
 
+function usePrevious<T>(value: T): T | undefined {
+  const ref = useRef<T>();
+  
+  useEffect(() => {
+    ref.current = value;
+  }, [value]);
+  
+  return ref.current;
+}
+
 function Timeline({zoom, firstTickDate}: TimelineProps) {
-  const [prevZoom, setPrevZoom] = useState<keyof typeof ZOOM>(zoom);
-  const [prevFirstTickDate, setPrevFirstTickDate] = useState<Date>(firstTickDate);
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const prevZoom = usePrevious(zoom);
+  const prevFirstTickDate = usePrevious(firstTickDate);
+  const [timelineZoom, setTimelineZoom] = useState<keyof typeof ZOOM>(zoom);
+  const [timelineFirstTickDate, setTimelineFirstTickDate] = useState<Date>(firstTickDate);
   const [ticks, setTicks] = useState<React.ReactElement[]>([]);
 
   useEffect(() => {
-    if (zoom !== prevZoom || firstTickDate !== prevFirstTickDate) {
-      setIsTransitioning(true);
-      setTicks(createTicks());
+    setTicks(createTicks());
+    if (zoom !== timelineZoom || firstTickDate !== timelineFirstTickDate) {
       
       // Allow initial render at old positions
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          setPrevZoom(zoom);
-          setPrevFirstTickDate(firstTickDate);
-          setTicks(createTicks());
+          setTimelineZoom(zoom);
+          setTimelineFirstTickDate(firstTickDate);
+          // setTicks(createTicks());
         });
       });
 
-      const timer = setTimeout(() => {
-        setIsTransitioning(false);
-        // setTicks(createTicks());
-      }, 1000);
-      return () => clearTimeout(timer);
-    } else {
-      setTicks(createTicks());
     }
-  }, [zoom, prevZoom, firstTickDate, prevFirstTickDate]);
+  }, [zoom, timelineZoom, firstTickDate, timelineFirstTickDate]);
 
   // Create ticks for both current and previous zoom levels during transition
   const createTicks = () => {
     const allTicks: { tickTime: number; element: React.ReactElement }[] = [];
     
     // Create ticks for the target zoom level first
-    if (isTransitioning) {
+    if (true) {
       const { calculateTickTimeFunc, visibleTicks } = ZOOM[zoom];
       for (let i = 0; i < visibleTicks; i++) {
         const tickTime = calculateTickTimeFunc(firstTickDate, i);
@@ -52,8 +55,8 @@ function Timeline({zoom, firstTickDate}: TimelineProps) {
           element: <Tick
             key={tickTime}
             tickTime={tickTime}
-            zoom={prevZoom}
-            firstTickDate={prevFirstTickDate}
+            zoom={timelineZoom}
+            firstTickDate={timelineFirstTickDate}
             index={i}
           />
         });
@@ -61,9 +64,9 @@ function Timeline({zoom, firstTickDate}: TimelineProps) {
     }
 
     // Add or update ticks from the previous zoom level
-    const { calculateTickTimeFunc, visibleTicks } = ZOOM[prevZoom];
+    const { calculateTickTimeFunc, visibleTicks } = ZOOM[timelineZoom];
     for (let i = 0; i < visibleTicks; i++) {
-      const tickTime = calculateTickTimeFunc(prevFirstTickDate, i);
+      const tickTime = calculateTickTimeFunc(timelineFirstTickDate, i);
       const existingTickIndex = allTicks.findIndex(t => t.tickTime === tickTime);
       
       if (existingTickIndex >= 0) {
@@ -73,8 +76,8 @@ function Timeline({zoom, firstTickDate}: TimelineProps) {
           element: <Tick
             key={tickTime}
             tickTime={tickTime}
-            zoom={isTransitioning ? zoom : prevZoom}
-            firstTickDate={isTransitioning ? firstTickDate : prevFirstTickDate}
+            zoom={true ? zoom : timelineZoom}
+            firstTickDate={true ? firstTickDate : timelineFirstTickDate}
             index={i}
           />
         };
@@ -85,8 +88,8 @@ function Timeline({zoom, firstTickDate}: TimelineProps) {
           element: <Tick
             key={tickTime}
             tickTime={tickTime}
-            zoom={isTransitioning ? zoom : prevZoom}
-            firstTickDate={isTransitioning ? firstTickDate : prevFirstTickDate}
+            zoom={true ? zoom : timelineZoom}
+            firstTickDate={true ? firstTickDate : timelineFirstTickDate}
             index={i}
           />
         });

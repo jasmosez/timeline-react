@@ -288,6 +288,7 @@ export const ZOOM: Record<number, zoomLevel> = {
   //   firstTickDateFunc: startOfShmitaFudged,
   //   renderTickLabel: renderTickLabelShmita
   // },
+  // TODO: show quarter ticks in decade view
   6: {
     key: 'decade',
     label: 'Decade',
