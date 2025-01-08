@@ -38,46 +38,50 @@ function Timeline({zoom, firstTickDate, now}: TimelineProps) {
   // Create ticks for both current and previous zoom levels during transition
   const createTicks = () => {
     console.log('createTicks', {prevZoom, timelineZoom, zoom});
-    const allTicks: { tickTime: number; element: React.ReactElement }[] = [];
+    const allTicks = new Map<number, React.ReactElement>();
     
-    // Create ticks for the target zoom level first
-    if (true) {
-      const { calculateTickTimeFunc, visibleTicks } = ZOOM[zoom];
+    // Helper function to create or update a tick element
+    const createOrUpdateTickElement = (
+      tickTime: number, 
+      index: number,
+      existingElement?: React.ReactElement
+    ) => {
+      const newProps = {
+        tickTime,
+        zoom: timelineZoom, // Use timelineZoom for initial positioning of all ticks
+        firstTickDate: timelineFirstTickDate, // Use timelineFirstTickDate for initial positioning of all ticks
+        index
+      };
+
+      // If we have an existing element and it's a Tick component, update its props
+      if (existingElement && React.isValidElement(existingElement)) {
+        return React.cloneElement(existingElement, newProps);
+      }
+      
+      // Otherwise create a new Tick
+      return <Tick {...newProps} key={tickTime} />;
+    };
+
+    // Function to add ticks for a specific zoom level
+    const addTicksForZoom = (zoomLevel: keyof typeof ZOOM, baseDate: Date) => {
+      const { calculateTickTimeFunc, visibleTicks } = ZOOM[zoomLevel];
       for (let i = 0; i < visibleTicks; i++) {
-        const tickTime = calculateTickTimeFunc(firstTickDate, i);
-        allTicks.push({
-          tickTime,
-          element: <Tick
-            key={tickTime}
-            tickTime={tickTime}
-            zoom={timelineZoom}
-            firstTickDate={timelineFirstTickDate}
-            index={i}
-          />
-        });
+        // Calculate tick time based on the target zoom level's function and base date
+        const tickTime = calculateTickTimeFunc(baseDate, i);
+        const existingTick = allTicks.get(tickTime);
+        allTicks.set(
+          tickTime, 
+          createOrUpdateTickElement(tickTime, i, existingTick)
+        );
       }
-    }
+    };
 
-    // Add or update ticks from the previous zoom level
-    const { calculateTickTimeFunc, visibleTicks } = ZOOM[timelineZoom];
-    for (let i = 0; i < visibleTicks; i++) {
-      const tickTime = calculateTickTimeFunc(timelineFirstTickDate, i);
-      const existingTickIndex = allTicks.findIndex(t => t.tickTime === tickTime);
-      if (existingTickIndex < 0) {
-        allTicks.push({
-          tickTime,
-          element: <Tick
-            key={tickTime}
-            tickTime={tickTime}
-            zoom={true ? zoom : timelineZoom}
-            firstTickDate={true ? firstTickDate : timelineFirstTickDate}
-            index={i}
-          />
-        });
-      }
-    }
+    // Add ticks for both zoom levels - this creates the ticks at their target positions
+    // but they will all initially render using timelineZoom for positioning
+    addTicksForZoom(zoom, firstTickDate);
+    addTicksForZoom(timelineZoom, timelineFirstTickDate);
 
-    return allTicks.map(t => t.element);
+    return Array.from(allTicks.values());
   };
 
 

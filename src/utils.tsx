@@ -305,6 +305,11 @@ export const ZOOM: Record<number, zoomLevel> = {
 export const zoomMax = Math.max(...Object.keys(ZOOM).map(Number))
 export const zoomMin = Math.min(...Object.keys(ZOOM).map(Number))
 
+export const getTickLabel = (tickTime: number, zoom: keyof typeof ZOOM, firstTickDate: Date) => {
+  const {renderTickLabel} = ZOOM[zoom]
+  return renderTickLabel(tickTime, tickTime === ZOOM[zoom].calculateTickTimeFunc(firstTickDate, 0))
+}
+
 // Get the percentage of the screen for a point in time
 export const getPointPercent = (pointTime: number, zoom: keyof typeof ZOOM, firstTickDate: Date) => {
   const {calculateTickTimeFunc, screenSpan, visibleTicks} = ZOOM[zoom]

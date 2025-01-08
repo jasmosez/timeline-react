@@ -14,7 +14,6 @@ function NowTick({now, zoom, firstTickDate}: NowTickProps) {
             tickTime={now.getTime()}
             zoom={zoom}
             firstTickDate={firstTickDate}
-            index={0}
             className="now-tick"
             labelClassName="now-tick-label"
             renderLabel={() => now.toLocaleString(LOCALE, FULL_DATE_FORMAT)}
