@@ -1,8 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ZOOM } from '../utils';
 import Tick from './Tick';
 import NowTick from './NowTick';
-import Span from './Span';
+// import Span from './Span';
 
 interface TimelineProps {
     zoom: keyof typeof ZOOM;
@@ -14,7 +14,7 @@ function Timeline({zoom, firstTickDate, now}: TimelineProps) {
   const [timelineZoom, setTimelineZoom] = useState<keyof typeof ZOOM>(zoom);
   const [timelineFirstTickDate, setTimelineFirstTickDate] = useState<Date>(firstTickDate);
   const [prevZoom, setPrevZoom] = useState<keyof typeof ZOOM>();
-  const [prevFirstTickDate, setPrevFirstTickDate] = useState<Date>();
+  const [, setPrevFirstTickDate] = useState<Date>();
   const [ticks, setTicks] = useState<React.ReactElement[]>([]);
 
   useEffect(() => {

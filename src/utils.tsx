@@ -111,18 +111,18 @@ const startOfYear = (date: Date) => {
 }
 
 // for our purposes, we'll fudge it and define the shmita cycle as starting on the October 1st the year prior years divisible by 7
-const startOfShmitaFudged = (date: Date) => {
-  const newDate = new Date(date)
-  newDate.setHours(0)
-  newDate.setMinutes(0)
-  newDate.setSeconds(0)
-  newDate.setMilliseconds(0)
-  const year = date.getFullYear()
-  newDate.setFullYear(year - (year % 7) - 1)
-  newDate.setMonth(9)
-  newDate.setDate(1)
-  return newDate
-} 
+// const startOfShmitaFudged = (date: Date) => {
+//   const newDate = new Date(date)
+//   newDate.setHours(0)
+//   newDate.setMinutes(0)
+//   newDate.setSeconds(0)
+//   newDate.setMilliseconds(0)
+//   const year = date.getFullYear()
+//   newDate.setFullYear(year - (year % 7) - 1)
+//   newDate.setMonth(9)
+//   newDate.setDate(1)
+//   return newDate
+// } 
 
 const startOfDecade = (date: Date) => {
   const newDate = new Date(date)
@@ -152,7 +152,7 @@ const isTopOfHour = (tickDate: Date) => tickDate.getMinutes() === 0
 const is3rdHour = (tickDate: Date) => tickDate.getHours() % 3 === 0
 const is5thMin = (tickDate: Date) => tickDate.getMinutes() % 5 === 0
 const is1stOfMonth = (tickDate: Date) => tickDate.getDate() === 1
-const isSunday = (tickDate: Date) => tickDate.getDay() === 0
+// const isSunday = (tickDate: Date) => tickDate.getDay() === 0
 const isSaturday = (tickDate: Date) => tickDate.getDay() === 6
 const is1stOfYear = (tickDate: Date) => tickDate.getMonth() === 0 && tickDate.getDate() === 1
 // Functions to render tick labels
@@ -205,10 +205,10 @@ const renderTickLabelYear = (tickTime: number, _isFirstTick: boolean) => {
   return tickDate.toLocaleDateString(LOCALE, _isFirstTick || is1stOfYear(tickDate) ? {...MONTH, ...YEAR} : MONTH)
 }
 
-const renderTickLabelShmita = (tickTime: number, _isFirstTick: boolean) => {
-  const tickDate = new Date(tickTime)
-  return tickDate.toLocaleDateString(LOCALE, {...MONTH, ...YEAR})
-}
+// const renderTickLabelShmita = (tickTime: number, _isFirstTick: boolean) => {
+//   const tickDate = new Date(tickTime)
+//   return tickDate.toLocaleDateString(LOCALE, {...MONTH, ...YEAR})
+// }
 
 const renderTickLabelDecade = (tickTime: number, _isFirstTick: boolean) => {
   const tickDate = new Date(tickTime)

@@ -5,7 +5,6 @@ import './App.css'
 import { ZOOM, zoomMax, zoomMin } from './utils'
 import HQ from './components/HQ'
 import Timeline from './components/Timeline'
-import NowTick from './components/NowTick'
 import { STARTING_ZOOM, PAN_AMOUNT } from './config'
 
 function App() {
