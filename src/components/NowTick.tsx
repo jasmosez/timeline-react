@@ -1,5 +1,6 @@
 import { LOCALE } from '../config';
-import { FULL_DATE_FORMAT, getPointPercent, ZOOM } from '../utils';
+import { FULL_DATE_FORMAT, ZOOM } from '../utils';
+import Tick from './Tick';
 
 interface NowTickProps {
     now: Date;
@@ -9,12 +10,16 @@ interface NowTickProps {
 
 function NowTick({now, zoom, firstTickDate}: NowTickProps) {
     return (
-        <div className='timeline tick now-tick' style={{ top: getPointPercent(now.getTime(), zoom, firstTickDate) }} >
-            <div className='timeline tick-label now-tick-label'>
-                {now.toLocaleString(LOCALE, FULL_DATE_FORMAT)}
-            </div>
-        </div>
-    )
+        <Tick
+            tickTime={now.getTime()}
+            zoom={zoom}
+            firstTickDate={firstTickDate}
+            index={0}
+            className="now-tick"
+            labelClassName="now-tick-label"
+            renderLabel={() => now.toLocaleString(LOCALE, FULL_DATE_FORMAT)}
+        />
+    );
 }
 
 export default NowTick;

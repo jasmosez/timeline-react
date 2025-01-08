@@ -30,17 +30,21 @@ export default function HQ({now, zoom, firstTickDate, handleZoom, handlePan}: HQ
               <div>Zoom</div>
 
               {/* TODO: see comment on handlezoom definition */}
-              <button disabled={zoom === zoomMax} onClick={() => handleZoom('+')}>-</button>
-              <button disabled={zoom === zoomMin} onClick={() => handleZoom('-')}>+</button>
+              <div style={{ display: 'flex', flexDirection: 'row', gap: '5px' }}>
+                <button disabled={zoom === zoomMax} onClick={() => handleZoom('+')}>-</button>
+                <button disabled={zoom === zoomMin} onClick={() => handleZoom('-')}>+</button>
+              </div>
               
             </div>
             <div style={{border: '1px solid black', padding: '5px', borderRadius: '5px' }}>
               <div>Pan</div>
 
               {/* TODO: see comment on handlezoom definition */}
-              <button onClick={() => handlePan('-')}>-</button>
-              <button onClick={() => handlePan('+')}>+</button>
-              <button onClick={() => handlePan('reset')}>{'<>'}</button>
+              <div style={{ display: 'flex', flexDirection: 'row', gap: '5px' }}>
+                <button onClick={() => handlePan('-')}>-</button>
+                <button onClick={() => handlePan('+')}>+</button>
+                <button onClick={() => handlePan('reset')}>{'<>'}</button>
+              </div>
               
             </div>
           </div>
