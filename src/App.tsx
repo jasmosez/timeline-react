@@ -13,6 +13,7 @@ function App() {
   const [firstTickDate, setFirstTickDate] = useState(ZOOM[zoom].firstTickDateFunc(now))
 
   // update now every second
+  // TODO: minute view ticks show a second behind because it takes 1 second to animate to the current time, by which point the second has already passed.
   useEffect(() => {
     const ms = 1000 - now.getMilliseconds()
     const timeout = setTimeout(() => {

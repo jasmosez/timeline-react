@@ -4,20 +4,20 @@ import { LOCALE } from './config'
  * Represents a zoom level configuration.
  * 
  * @typedef {Object} zoomLevel
- * @property {'hour' | 'day' | 'week' | 'month' | 'quarter' | 'year' | 'shmita' | 'decade'} key - The key representing the zoom level.
+ * @property {'minute' | 'hour' | 'day' | 'week' | 'month' | 'quarter' | 'year' | 'shmita' | 'decade'} key - The key representing the zoom level.
  * @property {string} label - The label for the zoom level.
  * @property {number} visibleTicks - The number of visible ticks for the zoom level.
- * @property {'minute' | 'hour' | 'day' | 'month' | 'year'} unit - The unit of time for the zoom level.
+ * @property {'second' | 'minute' | 'hour' | 'day' | 'month' | 'year'} unit - The unit of time for the zoom level.
  * @property {number} screenSpan - The span of time in milliseconds for the screen.
  * @property {(firstTick: Date, addedUnits: number) => number} calculateTickTimeFunc - A function to calculate the time of a tick. The return number represents the calculated time in milliseconds.
  * @property {(date: Date) => Date} firstTickDateFunc - A function to determine the date of the first tick.
  * @property {number} renderTickLabel - A function to render the label for a tick at that level of zoom.
  */
 type zoomLevel = {
-    key: 'hour' | 'day' | 'week' | 'month' | 'quarter' | 'year' | 'shmita' | 'decade',
+    key: 'minute' | 'hour' | 'day' | 'week' | 'month' | 'quarter' | 'year' | 'shmita' | 'decade',
     label: string,
     visibleTicks: number,
-    unit: 'minute' | 'hour' | 'day' | 'month' | 'year'
+    unit: 'second' | 'minute' | 'hour' | 'day' | 'month' | 'quarter' | 'year'
     screenSpan: number
     calculateTickTimeFunc: (firstTick: Date, addedUnits: number) => number
     firstTickDateFunc: (date: Date) => Date
@@ -25,11 +25,14 @@ type zoomLevel = {
   }
 
 // Constants for time in milliseconds
-const MINUTE_IN_MS = 60 * 1000
+const SECOND_IN_MS = 1000
+const MINUTE_IN_MS = 60 * SECOND_IN_MS
 const HOUR_IN_MS = 60 * MINUTE_IN_MS
 const DAY_IN_MS = 24 * HOUR_IN_MS
 
 // Functions to add time to a date
+const addSeconds = (date: Date, seconds: number) => date.getTime() + seconds * SECOND_IN_MS
+
 const addMinutes = (date: Date, minutes: number) => date.getTime() + minutes * MINUTE_IN_MS
 
 const addHours = (date: Date, hours: number) => date.getTime() + hours * HOUR_IN_MS
@@ -50,6 +53,13 @@ const addYears = (date: Date, years: number) => {
 
 
 // Functions to get the start of a time period for a date
+const startOfMinute = (date: Date) => {
+  const newDate = new Date(date)
+  newDate.setSeconds(0)
+  newDate.setMilliseconds(0)
+  return newDate
+}
+
 const startOfHour = (date: Date) => {
   const newDate = new Date(date)
   newDate.setMinutes(0)
@@ -137,6 +147,7 @@ const startOfDecade = (date: Date) => {
 }
 
 // Constants for rendering tick labels
+const SECOND: Intl.DateTimeFormatOptions = { second: '2-digit' }
 const MINUTE: Intl.DateTimeFormatOptions = { minute: '2-digit' }
 const HOUR: Intl.DateTimeFormatOptions = { hour: 'numeric', hour12: true }
 const DAY: Intl.DateTimeFormatOptions = { day: 'numeric' }
@@ -156,6 +167,29 @@ const is1stOfMonth = (tickDate: Date) => tickDate.getDate() === 1
 const isSaturday = (tickDate: Date) => tickDate.getDay() === 6
 const is1stOfYear = (tickDate: Date) => tickDate.getMonth() === 0 && tickDate.getDate() === 1
 // Functions to render tick labels
+const is15thSec = (tickDate: Date) => tickDate.getSeconds() % 15 === 0
+const isTopOfMinute = (tickDate: Date) => tickDate.getSeconds() === 0
+const renderTickLabelMinute = (tickTime: number, _isFirstTick: boolean) => {
+  const tickDate = new Date(tickTime)
+  
+  if (isMidnight(tickDate)) {
+    return tickDate.toLocaleDateString(LOCALE, {...WEEKDAY, ...DAY, ...HOUR})
+  }
+  if (isTopOfHour(tickDate)) {
+    return tickDate.toLocaleTimeString(LOCALE, HOUR)
+  }
+  if (isTopOfMinute(tickDate)) {
+    return `${tickDate.toLocaleTimeString(LOCALE, {...HOUR, ...MINUTE})}`
+  }
+  if (_isFirstTick) {
+    return `${tickDate.toLocaleTimeString(LOCALE, {...HOUR, ...MINUTE, ...SECOND})}`
+  }
+  if (is15thSec(tickDate)) {
+    return `:${String(tickDate.getSeconds()).padStart(2, '0')}`
+    return `${String(tickDate.getSeconds()).padStart(2, '0')}s`
+  }
+}
+
 const renderTickLabelHour = (tickTime: number, _isFirstTick: boolean) => {
   const tickDate = new Date(tickTime)
 
@@ -181,20 +215,17 @@ const renderTickLabelDay = (tickTime: number, _isFirstTick: boolean) => {
 
 }
 
-// TODO: only render the month if it's the first day of the month or its the first tick
 const renderTickLabelWeek = (tickTime: number, _isFirstTick: boolean) => {
   const tickDate = new Date(tickTime)
   const showMonth = is1stOfMonth(tickDate)
   return `${tickDate.toLocaleDateString(LOCALE, (showMonth ? MONTH_WEEKDAY_DAY : {...WEEKDAY, ...DAY}))} ${(isSaturday(tickDate) ? "✨" : "")}`
 }
 
-// TODO: only render the month if it's the first day of the month or its the first tick
 const renderTickLabelMonth = (tickTime: number, _isFirstTick: boolean) => {
   const tickDate = new Date(tickTime)
   return `${tickDate.toLocaleDateString(LOCALE, {...DAY, ...(_isFirstTick || is1stOfMonth(tickDate) ? MONTH : ""), ...is1stOfYear(tickDate) ? YEAR : "" })} ${(isSaturday(tickDate) ? "✨" : "")}`
 }
 
-// TODO: only render year if it's the first day of the year or its the first tick
 const renderTickLabelQuarter = (tickTime: number, _isFirstTick: boolean) => {
   const tickDate = new Date(tickTime)
   return tickDate.toLocaleDateString(LOCALE, _isFirstTick ? {...MONTH, ...YEAR} : MONTH)
@@ -218,6 +249,16 @@ const renderTickLabelDecade = (tickTime: number, _isFirstTick: boolean) => {
 
 
 export const ZOOM: Record<number, zoomLevel> = {
+  [-1]: {
+    key: 'minute',
+    label: 'Minute',
+    visibleTicks: 61,
+    unit: 'second',
+    screenSpan: 61 * SECOND_IN_MS,
+    calculateTickTimeFunc: addSeconds,
+    firstTickDateFunc: startOfMinute,
+    renderTickLabel: renderTickLabelMinute
+  },
   0: {
     key: 'hour',
     label: 'Hour',
@@ -288,7 +329,6 @@ export const ZOOM: Record<number, zoomLevel> = {
   //   firstTickDateFunc: startOfShmitaFudged,
   //   renderTickLabel: renderTickLabelShmita
   // },
-  // TODO: show quarter ticks in decade view
   6: {
     key: 'decade',
     label: 'Decade',
