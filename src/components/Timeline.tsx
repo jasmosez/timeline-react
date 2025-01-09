@@ -14,7 +14,7 @@ function Timeline({zoom, firstTickDate, now}: TimelineProps) {
   const [timelineZoom, setTimelineZoom] = useState<keyof typeof ZOOM>(zoom);
   const [timelineFirstTickDate, setTimelineFirstTickDate] = useState<Date>(firstTickDate);
   const [prevZoom, setPrevZoom] = useState<keyof typeof ZOOM>();
-  const [, setPrevFirstTickDate] = useState<Date>();
+  const [prevFirstTickDate, setPrevFirstTickDate] = useState<Date>();
   const [ticks, setTicks] = useState<React.ReactElement[]>([]);
 
   useEffect(() => {
@@ -78,8 +78,17 @@ function Timeline({zoom, firstTickDate, now}: TimelineProps) {
 
     // Add ticks for both zoom levels - this creates the ticks at their target positions
     // but they will all initially render using timelineZoom for positioning
+    console.log('addTicksForZoom zoom', zoom);
     addTicksForZoom(zoom, firstTickDate);
-    addTicksForZoom(timelineZoom, timelineFirstTickDate);
+    
+    // If we're transitioning between zoom levels, also add ticks from the previous level
+    if (prevZoom !== undefined && prevFirstTickDate !== undefined && timelineZoom == zoom) {
+      console.log('addTicksForZoom prevZoom', prevZoom);
+      addTicksForZoom(prevZoom, prevFirstTickDate);
+    } else if (timelineZoom !== zoom) {
+      console.log('addTicksForZoom timelineZoom', timelineZoom);
+      addTicksForZoom(timelineZoom, timelineFirstTickDate);
+    }
 
     return Array.from(allTicks.values());
   };

@@ -16,7 +16,7 @@ function NowTick({now, zoom, firstTickDate}: NowTickProps) {
             firstTickDate={firstTickDate}
             className="now-tick"
             labelClassName="now-tick-label"
-            renderLabel={() => now.toLocaleString(LOCALE, FULL_DATE_FORMAT)}
+            renderLabel={() => now.toLocaleString(LOCALE, {...FULL_DATE_FORMAT, second: '2-digit'})}
         />
     );
 }

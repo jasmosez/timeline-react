@@ -321,3 +321,9 @@ export const getPointPercent = (pointTime: number, zoom: keyof typeof ZOOM, firs
   const percentageOfScreenSpan = (timeSinceStart / screenSpan) * 100;
   return `${percentageOfScreenSpan}%`
 }
+
+export const getNow = () => {
+  const d = new Date()
+  d.setMilliseconds(Math.round(d.getMilliseconds() / 1000) * 1000)
+  return d
+}

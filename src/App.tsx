@@ -2,22 +2,30 @@ import { useEffect, useState } from 'react'
 // import { HDate, HebrewCalendar } from '@hebcal/core'
 
 import './App.css'
-import { ZOOM, zoomMax, zoomMin } from './utils'
+import { getNow, ZOOM, zoomMax, zoomMin } from './utils'
 import HQ from './components/HQ'
 import Timeline from './components/Timeline'
 import { STARTING_ZOOM, PAN_AMOUNT } from './config'
 
 function App() {
-  const [now, setNow] = useState(new Date())
+  const [now, setNow] = useState(getNow)
   const [zoom, setZoom] = useState<keyof typeof ZOOM>(STARTING_ZOOM)
   const [firstTickDate, setFirstTickDate] = useState(ZOOM[zoom].firstTickDateFunc(now))
 
   // update now every second
   useEffect(() => {
-    const interval = setInterval(() => {
-      setNow(new Date())
-    }, 1000)
-    return () => clearInterval(interval)
+    const ms = 1000 - now.getMilliseconds()
+    const timeout = setTimeout(() => {
+      setNow(getNow())
+      
+      const interval = setInterval(() => {
+        setNow(getNow())
+      }, 1000)
+      
+      return () => clearInterval(interval)
+    }, ms)
+    
+    return () => clearTimeout(timeout)
   }, [])
 
   // + is zoom out, counter-intuitively. That is because it is a larger amount of time.
