@@ -37,20 +37,21 @@ function Timeline({zoom, firstTickDate, now}: TimelineProps) {
 
   // Create ticks for both current and previous zoom levels during transition
   const createTicks = () => {
-    console.log('createTicks', {prevZoom, timelineZoom, zoom});
     const allTicks = new Map<number, React.ReactElement>();
     
     // Helper function to create or update a tick element
     const createOrUpdateTickElement = (
       tickTime: number, 
       index: number,
-      existingElement?: React.ReactElement
+      existingElement?: React.ReactElement,
+      fadeOut: boolean = false
     ) => {
       const newProps = {
         tickTime,
-        zoom: timelineZoom, // Use timelineZoom for initial positioning of all ticks
-        firstTickDate: timelineFirstTickDate, // Use timelineFirstTickDate for initial positioning of all ticks
-        index
+        zoom: timelineZoom,
+        firstTickDate: timelineFirstTickDate,
+        index,
+        fadeOut
       };
 
       // If we have an existing element and it's a Tick component, update its props
@@ -63,7 +64,7 @@ function Timeline({zoom, firstTickDate, now}: TimelineProps) {
     };
 
     // Function to add ticks for a specific zoom level
-    const addTicksForZoom = (zoomLevel: keyof typeof ZOOM, baseDate: Date) => {
+    const addTicksForZoom = (zoomLevel: keyof typeof ZOOM, baseDate: Date, fadeOut: boolean = false) => {
       const { calculateTickTimeFunc, visibleTicks } = ZOOM[zoomLevel];
       for (let i = 0; i < visibleTicks; i++) {
         // Calculate tick time based on the target zoom level's function and base date
@@ -71,24 +72,19 @@ function Timeline({zoom, firstTickDate, now}: TimelineProps) {
         const existingTick = allTicks.get(tickTime);
         allTicks.set(
           tickTime, 
-          createOrUpdateTickElement(tickTime, i, existingTick)
+          createOrUpdateTickElement(tickTime, i, existingTick, fadeOut)
         );
       }
     };
 
     // Add ticks for both zoom levels - this creates the ticks at their target positions
     // but they will all initially render using timelineZoom for positioning
-    console.log('addTicksForZoom zoom', zoom);
-    addTicksForZoom(zoom, firstTickDate);
-    
-    // If we're transitioning between zoom levels, also add ticks from the previous level
     if (prevZoom !== undefined && prevFirstTickDate !== undefined && timelineZoom == zoom) {
-      console.log('addTicksForZoom prevZoom', prevZoom);
-      addTicksForZoom(prevZoom, prevFirstTickDate);
+      addTicksForZoom(prevZoom, prevFirstTickDate, true);
     } else if (timelineZoom !== zoom) {
-      console.log('addTicksForZoom timelineZoom', timelineZoom);
-      addTicksForZoom(timelineZoom, timelineFirstTickDate);
+      addTicksForZoom(timelineZoom, timelineFirstTickDate, false);
     }
+    addTicksForZoom(zoom, firstTickDate, false);
 
     return Array.from(allTicks.values());
   };
