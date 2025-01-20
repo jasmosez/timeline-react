@@ -1,4 +1,4 @@
-import { LOCALE } from './config'
+import { LOCALE, birthDate } from './config'
 
 /**
  * Represents a zoom level configuration.
@@ -29,6 +29,13 @@ const SECOND_IN_MS = 1000
 const MINUTE_IN_MS = 60 * SECOND_IN_MS
 const HOUR_IN_MS = 60 * MINUTE_IN_MS
 const DAY_IN_MS = 24 * HOUR_IN_MS
+
+const DAY_1 = new Date(birthDate.getFullYear(), birthDate.getMonth(), birthDate.getDate())
+const msSinceDay1 = (date: Date) => date.getTime() - DAY_1.getTime()
+export const dayNumber = (date: Date) => Math.ceil((msSinceDay1(date) + 1) / DAY_IN_MS)
+export const birthdayBasedWeekNumber = (date: Date) => Math.ceil((msSinceDay1(date) + 1) / (7 * DAY_IN_MS))
+export const sundayBasedWeekNumber = (date: Date) => Math.ceil((msSinceDay1(date) + DAY_1.getDay() * DAY_IN_MS + 1) / (7 * DAY_IN_MS))
+
 
 // Functions to add time to a date
 const addSeconds = (date: Date, seconds: number) => date.getTime() + seconds * SECOND_IN_MS
@@ -158,8 +165,8 @@ const YEAR: Intl.DateTimeFormatOptions = { year: 'numeric' }
 const MONTH_WEEKDAY_DAY = {...MONTH, ...WEEKDAY, ...DAY}
 export const FULL_DATE_FORMAT = {...YEAR, ...MONTH, ...WEEKDAY, ...DAY, ...HOUR, ...MINUTE}
 
-const isMidnight = (tickDate: Date) => tickDate.getHours() === 0 && tickDate.getMinutes() === 0
-const isTopOfHour = (tickDate: Date) => tickDate.getMinutes() === 0
+const isMidnight = (tickDate: Date) => tickDate.getHours() === 0 && tickDate.getMinutes() === 0 && tickDate.getSeconds() === 0
+const isTopOfHour = (tickDate: Date) => tickDate.getMinutes() === 0 && tickDate.getSeconds() === 0
 const is3rdHour = (tickDate: Date) => tickDate.getHours() % 3 === 0
 const is5thMin = (tickDate: Date) => tickDate.getMinutes() % 5 === 0
 const is1stOfMonth = (tickDate: Date) => tickDate.getDate() === 1

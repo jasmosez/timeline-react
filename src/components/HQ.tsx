@@ -1,5 +1,6 @@
-import { LOCALE } from '../config';
-import { ZOOM, zoomMax, zoomMin, FULL_DATE_FORMAT } from '../utils';
+
+import { LOCALE, } from '../config';
+import { ZOOM, zoomMax, zoomMin, FULL_DATE_FORMAT, dayNumber, birthdayBasedWeekNumber, sundayBasedWeekNumber } from '../utils';
 
 
 interface HQProps {
@@ -10,48 +11,52 @@ interface HQProps {
     handlePan: (direction: '+' | '-' | 'reset') => void;
 }
 
+
+
 export default function HQ({now, zoom, firstTickDate, handleZoom, handlePan}: HQProps) {
+  
+  console.log(firstTickDate, dayNumber(firstTickDate), birthdayBasedWeekNumber(firstTickDate), sundayBasedWeekNumber(firstTickDate))
+
   return (
-      <div style={{
-          position: 'fixed',
-          top: '25px',
-          left: '25px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'flex-start',
-          alignItems: 'flex-start',
-          gap: '5px',
-        }}>
-          <div style={{ fontWeight: 'bold' }}>{ZOOM[zoom].label} View</div>
-          <div>Starting at {firstTickDate.toLocaleString(LOCALE, FULL_DATE_FORMAT)}</div>
-          <div className='now'>Currently, {now.toLocaleString(LOCALE, FULL_DATE_FORMAT)}</div>
-          <div style={{ display: 'flex', flexDirection: 'row', gap: '10px', marginTop: '20px'}}>
-            <div style={{ border: '1px solid black', padding: '5px', borderRadius: '5px' }}>
-              <div>Zoom</div>
+    // TODO: abstract styles to css file
+      <div className='hq-container'>
+          <div className='hq-title'>{ZOOM[zoom].label} View</div>
+          <div className='hq-controls-container'>
+            <div className='hq-controls'>
+              <div className='hq-control'>
+                <div>Zoom</div>
 
-              {/* TODO: see comment on handlezoom definition */}
-              <div style={{ display: 'flex', flexDirection: 'row', gap: '5px' }}>
-                <button disabled={zoom === zoomMax} onClick={() => handleZoom('+')}>-</button>
-                <button disabled={zoom === zoomMin} onClick={() => handleZoom('-')}>+</button>
+                {/* TODO: see comment on handlezoom definition */}
+                <div className='hq-control-buttons'>
+                  <button disabled={zoom === zoomMax} onClick={() => handleZoom('+')}>-</button>
+                  <button disabled={zoom === zoomMin} onClick={() => handleZoom('-')}>+</button>
+                </div>
+                
               </div>
-              
-            </div>
-            <div style={{border: '1px solid black', padding: '5px', borderRadius: '5px' }}>
-              <div>Pan</div>
+              <div className='hq-control'>
+                <div>Pan</div>
 
-              {/* TODO: see comment on handlezoom definition */}
-              <div style={{ display: 'flex', flexDirection: 'row', gap: '5px' }}>
-                <button onClick={() => handlePan('-')}>-</button>
-                <button onClick={() => handlePan('+')}>+</button>
-                <button onClick={() => handlePan('reset')}>{'<>'}</button>
+                {/* TODO: see comment on handlezoom definition */}
+                <div className='hq-control-buttons'>
+                  <button onClick={() => handlePan('-')}>-</button>
+                  <button onClick={() => handlePan('+')}>+</button>
+                  <button onClick={() => handlePan('reset')}>{'<>'}</button>
+                </div>
+                
               </div>
-              
             </div>
-          </div>
-          <div style={{ padding: '5px', textAlign: 'left', fontSize: '.75rem' }}>
-            <div>Viewing one {ZOOM[zoom].key}</div>
-            <div>Each tick is the start of a {ZOOM[zoom].unit}</div>
-            <div>Each span between ticks represents one whole {ZOOM[zoom].unit}</div>
+            <div className='hq-controls-info'>
+              <div style={{fontWeight: 'bold'}}>First tick</div>
+              <div>{firstTickDate.toLocaleString(LOCALE, zoom === -1 ? {...FULL_DATE_FORMAT, ...{second: '2-digit'}} : FULL_DATE_FORMAT)}</div>
+              {/* <div className='now'>Currently, {now.toLocaleString(LOCALE, FULL_DATE_FORMAT)}</div> */}
+              {/* <div>Viewing one {ZOOM[zoom].key}</div> */}
+              {/* <div>Each tick is the start of a {ZOOM[zoom].unit}</div> */}
+              {/* <div>Each span between ticks represents one whole {ZOOM[zoom].unit}</div> */}
+              
+              <div>Day {dayNumber(firstTickDate)}</div>
+              {/* <div>Birthday-based Week {birthdayBasedWeekNumber(firstTickDate)}</div> */}
+              <div>Week {sundayBasedWeekNumber(firstTickDate)}</div>
+            </div>
           </div>
       </div>
   )
