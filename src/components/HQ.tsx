@@ -46,13 +46,15 @@ export default function HQ({now, zoom, firstTickDate, handleZoom, handlePan}: HQ
               </div>
             </div>
             <div className='hq-controls-info'>
-              <div style={{fontWeight: 'bold'}}>First tick</div>
+              <div className='now' style={{fontWeight: 'bold', marginTop: '10px'}}>Currently</div>
+              <div className='now'>{now.toLocaleString(LOCALE, FULL_DATE_FORMAT)}</div>
+              <div style={{fontWeight: 'bold', marginTop: '10px'}}>First tick</div>
               <div>{firstTickDate.toLocaleString(LOCALE, zoom === -1 ? {...FULL_DATE_FORMAT, ...{second: '2-digit'}} : FULL_DATE_FORMAT)}</div>
-              {/* <div className='now'>Currently, {now.toLocaleString(LOCALE, FULL_DATE_FORMAT)}</div> */}
               {/* <div>Viewing one {ZOOM[zoom].key}</div> */}
               {/* <div>Each tick is the start of a {ZOOM[zoom].unit}</div> */}
               {/* <div>Each span between ticks represents one whole {ZOOM[zoom].unit}</div> */}
               
+              <div style={{fontWeight: 'bold', marginTop: '10px'}}>Birthday-based</div>
               <div>Day {dayNumber(firstTickDate)}</div>
               {/* <div>Birthday-based Week {birthdayBasedWeekNumber(firstTickDate)}</div> */}
               <div>Week {sundayBasedWeekNumber(firstTickDate)}</div>
