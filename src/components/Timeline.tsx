@@ -37,6 +37,8 @@ function Timeline({zoom, firstTickDate, now}: TimelineProps) {
 
   // Create ticks for both current and previous zoom levels during transition
   const createTicks = () => {
+    // TODO: fix this so panning animates properly
+    
     const allTicks = new Map<number, React.ReactElement>();
     
     // Helper function to create or update a tick element

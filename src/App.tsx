@@ -5,12 +5,14 @@ import './App.css'
 import { getNow, ZOOM, zoomMax, zoomMin } from './utils'
 import HQ from './components/HQ'
 import Timeline from './components/Timeline'
-import { STARTING_ZOOM, PAN_AMOUNT } from './config'
+import Settings from './components/Settings'
+import { STARTING_ZOOM, PAN_AMOUNT, DEFAULT_BIRTH_DATE } from './config'
 
 function App() {
   const [now, setNow] = useState(getNow)
   const [zoom, setZoom] = useState<keyof typeof ZOOM>(STARTING_ZOOM)
   const [firstTickDate, setFirstTickDate] = useState(ZOOM[zoom].firstTickDateFunc(now))
+  const [birthDate, setBirthDate] = useState(DEFAULT_BIRTH_DATE)
 
   // update now every second
   // TODO: minute view ticks show a second behind because it takes 1 second to animate to the current time, by which point the second has already passed.
@@ -55,11 +57,11 @@ function App() {
 
   return (
     <>
-      <HQ now={now} zoom={zoom} firstTickDate={firstTickDate} handleZoom={handleZoom} handlePan={handlePan} />
+      <Settings birthDate={birthDate} onBirthDateChange={setBirthDate} />
+      <HQ now={now} zoom={zoom} firstTickDate={firstTickDate} handleZoom={handleZoom} handlePan={handlePan} birthDate={birthDate} />
       <Timeline now={now} zoom={zoom} firstTickDate={firstTickDate}/>
     </>
   )
-  
 }
 
 export default App

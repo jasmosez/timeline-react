@@ -9,14 +9,12 @@ interface HQProps {
     firstTickDate: Date;
     handleZoom: (direction: '+' | '-') => void;
     handlePan: (direction: '+' | '-' | 'reset') => void;
+    birthDate: Date;
 }
 
 
 
-export default function HQ({now, zoom, firstTickDate, handleZoom, handlePan}: HQProps) {
-  
-  console.log(firstTickDate, dayNumber(firstTickDate), birthdayBasedWeekNumber(firstTickDate), sundayBasedWeekNumber(firstTickDate))
-
+export default function HQ({now, zoom, firstTickDate, handleZoom, handlePan, birthDate}: HQProps) {
   return (
     // TODO: abstract styles to css file
       <div className='hq-container'>
@@ -46,18 +44,20 @@ export default function HQ({now, zoom, firstTickDate, handleZoom, handlePan}: HQ
               </div>
             </div>
             <div className='hq-controls-info'>
-              <div className='now' style={{fontWeight: 'bold', marginTop: '10px'}}>Currently</div>
-              <div className='now'>{now.toLocaleString(LOCALE, FULL_DATE_FORMAT)}</div>
               <div style={{fontWeight: 'bold', marginTop: '10px'}}>First tick</div>
               <div>{firstTickDate.toLocaleString(LOCALE, zoom === -1 ? {...FULL_DATE_FORMAT, ...{second: '2-digit'}} : FULL_DATE_FORMAT)}</div>
+              
+              <div className='now' style={{fontWeight: 'bold', marginTop: '10px'}}>Currently</div>
+              <div className='now'>{now.toLocaleString(LOCALE, FULL_DATE_FORMAT)}</div>
+              
+              <div className='now' style={{fontWeight: 'bold', marginTop: '10px'}}>1-indexed since {birthDate.toLocaleString(LOCALE, {month: 'long', day: 'numeric', year: 'numeric'})}</div>
+              <div className='now'>Day {dayNumber(now, birthDate)}</div>
+              <div className='now'>Week {sundayBasedWeekNumber(now, birthDate)}</div>
               {/* <div>Viewing one {ZOOM[zoom].key}</div> */}
               {/* <div>Each tick is the start of a {ZOOM[zoom].unit}</div> */}
               {/* <div>Each span between ticks represents one whole {ZOOM[zoom].unit}</div> */}
               
-              <div style={{fontWeight: 'bold', marginTop: '10px'}}>Birthday-based</div>
-              <div>Day {dayNumber(firstTickDate)}</div>
               {/* <div>Birthday-based Week {birthdayBasedWeekNumber(firstTickDate)}</div> */}
-              <div>Week {sundayBasedWeekNumber(firstTickDate)}</div>
             </div>
           </div>
       </div>

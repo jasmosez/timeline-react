@@ -1,4 +1,4 @@
-import { LOCALE, birthDate } from './config'
+import { LOCALE } from './config'
 
 /**
  * Represents a zoom level configuration.
@@ -30,11 +30,11 @@ const MINUTE_IN_MS = 60 * SECOND_IN_MS
 const HOUR_IN_MS = 60 * MINUTE_IN_MS
 const DAY_IN_MS = 24 * HOUR_IN_MS
 
-const DAY_1 = new Date(birthDate.getFullYear(), birthDate.getMonth(), birthDate.getDate())
-const msSinceDay1 = (date: Date) => date.getTime() - DAY_1.getTime()
-export const dayNumber = (date: Date) => Math.ceil((msSinceDay1(date) + 1) / DAY_IN_MS)
-export const birthdayBasedWeekNumber = (date: Date) => Math.ceil((msSinceDay1(date) + 1) / (7 * DAY_IN_MS))
-export const sundayBasedWeekNumber = (date: Date) => Math.ceil((msSinceDay1(date) + DAY_1.getDay() * DAY_IN_MS + 1) / (7 * DAY_IN_MS))
+const getDayOne = (birthDate: Date) => new Date(birthDate.getFullYear(), birthDate.getMonth(), birthDate.getDate())
+const getMsSinceDay1 = (date: Date, birthDate: Date) => date.getTime() - getDayOne(birthDate).getTime()
+export const dayNumber = (date: Date, birthDate: Date) => Math.ceil((getMsSinceDay1(date, birthDate) + 1) / DAY_IN_MS)
+export const birthdayBasedWeekNumber = (date: Date, birthDate: Date) => Math.ceil((getMsSinceDay1(date, birthDate) + 1) / (7 * DAY_IN_MS))
+export const sundayBasedWeekNumber = (date: Date, birthDate: Date) => Math.ceil((getMsSinceDay1(date, birthDate) + getDayOne(birthDate).getDay() * DAY_IN_MS + 1) / (7 * DAY_IN_MS))
 
 
 // Functions to add time to a date
