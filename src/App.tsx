@@ -6,6 +6,8 @@ import { getNow } from './utils'
 import HQ from './components/HQ'
 import Timeline from './components/Timeline'
 import { PAN_AMOUNT, DEFAULT_BIRTH_DATE } from './config'
+import { AVAILABLE_TIMELINE_LAYERS } from './timeline/gregorian'
+import type { TimelineLayerId } from './timeline/layers'
 import { createInitialViewport, getViewportFirstTickDate, type Viewport } from './viewport'
 import { SCALE_CONFIG, zoomMax, zoomMin } from './timeline/scales'
 
@@ -13,9 +15,11 @@ function App() {
   const [now, setNow] = useState(getNow)
   const [viewport, setViewport] = useState<Viewport>(() => createInitialViewport(now))
   const [birthDate] = useState(DEFAULT_BIRTH_DATE)
+  const [activeLayerIds] = useState<TimelineLayerId[]>(['gregorian'])
 
   const zoom = viewport.zoomLevel
   const firstTickDate = getViewportFirstTickDate(viewport)
+  const activeLayers = AVAILABLE_TIMELINE_LAYERS.filter((layer) => activeLayerIds.includes(layer.id))
 
   // update now every second
   // TODO: minute view ticks show a second behind because it takes 1 second to animate to the current time, by which point the second has already passed.
@@ -77,7 +81,7 @@ function App() {
   return (
     <>
       <HQ now={now} zoom={zoom} firstTickDate={firstTickDate} handleZoom={handleZoom} handlePan={handlePan} birthDate={birthDate} />
-      <Timeline now={now} zoom={zoom} firstTickDate={firstTickDate}/>
+      <Timeline now={now} zoom={zoom} firstTickDate={firstTickDate} activeLayers={activeLayers} />
     </>
   )
 }

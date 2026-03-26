@@ -17,6 +17,8 @@ export interface TimelineLayer {
   getSpans: (context: LayerRenderContext) => PositionedTimelineSpan[]
 }
 
+export type TimelineLayerId = TimelineLayer['id']
+
 export const combineLayerPoints = (
   layers: TimelineLayer[],
   context: LayerRenderContext,

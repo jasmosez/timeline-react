@@ -80,3 +80,5 @@ export const gregorianLayer: TimelineLayer = {
   getPoints: createGregorianTickPoints,
   getSpans: ({ zoom, firstTickDate }) => createGregorianStructuralSpans(zoom, firstTickDate),
 }
+
+export const AVAILABLE_TIMELINE_LAYERS: TimelineLayer[] = [gregorianLayer]
