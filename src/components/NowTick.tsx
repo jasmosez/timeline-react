@@ -1,13 +1,13 @@
 import { LOCALE } from '../config';
 import { FULL_DATE_FORMAT } from '../utils';
-import { ZOOM } from '../timeline/scales';
+import { SCALE_CONFIG } from '../timeline/scales';
 import { positionTimelinePoint } from '../timeline/layout';
 import { TickPoint } from './Tick';
 import type { TimelinePoint } from '../timeline/types';
 
 interface NowTickProps {
     now: Date;
-    zoom: keyof typeof ZOOM;
+    zoom: keyof typeof SCALE_CONFIG;
     firstTickDate: Date;
 }
 

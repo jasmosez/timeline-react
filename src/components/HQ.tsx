@@ -1,12 +1,12 @@
 
 import { LOCALE, } from '../config';
 import { FULL_DATE_FORMAT, dayNumber, sundayBasedWeekNumber } from '../utils';
-import { ZOOM, zoomMax, zoomMin } from '../timeline/scales';
+import { SCALE_CONFIG, zoomMax, zoomMin } from '../timeline/scales';
 
 
 interface HQProps {
     now: Date;
-    zoom: keyof typeof ZOOM;
+    zoom: keyof typeof SCALE_CONFIG;
     firstTickDate: Date;
     handleZoom: (direction: '+' | '-') => void;
     handlePan: (direction: '+' | '-' | 'reset') => void;
@@ -19,7 +19,7 @@ export default function HQ({now, zoom, firstTickDate, handleZoom, handlePan, bir
   return (
     // TODO: abstract styles to css file
       <div className='hq-container'>
-          <div className='hq-title'>{ZOOM[zoom].label} View</div>
+          <div className='hq-title'>{SCALE_CONFIG[zoom].label} View</div>
           <div className='hq-controls-container'>
             <div className='hq-controls'>
               <div className='hq-control'>
@@ -54,9 +54,9 @@ export default function HQ({now, zoom, firstTickDate, handleZoom, handlePan, bir
               <div className='now' style={{fontWeight: 'bold', marginTop: '10px'}}>1-indexed since {birthDate.toLocaleString(LOCALE, {month: 'long', day: 'numeric', year: 'numeric'})}</div>
               <div className='now'>Day {dayNumber(now, birthDate)}</div>
               <div className='now'>Week {sundayBasedWeekNumber(now, birthDate)}</div>
-              {/* <div>Viewing one {ZOOM[zoom].key}</div> */}
-              {/* <div>Each tick is the start of a {ZOOM[zoom].unit}</div> */}
-              {/* <div>Each span between ticks represents one whole {ZOOM[zoom].unit}</div> */}
+              {/* <div>Viewing one {SCALE_CONFIG[zoom].key}</div> */}
+              {/* <div>Each tick is the start of a {SCALE_CONFIG[zoom].unit}</div> */}
+              {/* <div>Each span between ticks represents one whole {SCALE_CONFIG[zoom].unit}</div> */}
               
               {/* <div>Birthday-based Week {birthdayBasedWeekNumber(firstTickDate)}</div> */}
             </div>

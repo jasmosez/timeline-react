@@ -1,4 +1,4 @@
-import { ZOOM, type ZoomLevel } from './scales'
+import { SCALE_CONFIG, type ZoomLevel } from './scales'
 import { createStructuralSpans, positionTimelinePoint, positionTimelineSpan } from './layout'
 import type {
   PositionedTimelinePoint,
@@ -29,7 +29,7 @@ const addPositionedTicksForZoom = (
   timelineFirstTickDate: Date,
   fadeOut: boolean,
 ) => {
-  const { calculateTickTimeFunc, visibleTicks } = ZOOM[zoomLevel]
+  const { calculateTickTimeFunc, visibleTicks } = SCALE_CONFIG[zoomLevel]
 
   for (let i = 0; i < visibleTicks; i++) {
     const tickTime = calculateTickTimeFunc(baseDate, i)

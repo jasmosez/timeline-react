@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ZOOM } from '../timeline/scales';
+import { SCALE_CONFIG } from '../timeline/scales';
 import { createGregorianStructuralSpans, createGregorianTickPoints } from '../timeline/gregorian';
 import { useAnimatedTimelineState } from '../hooks/useAnimatedTimelineState';
 import { TickPoint } from './Tick';
@@ -11,7 +11,7 @@ import NowTick from './NowTick';
 import Span from './Span';
 
 interface TimelineProps {
-    zoom: keyof typeof ZOOM;
+    zoom: keyof typeof SCALE_CONFIG;
     firstTickDate: Date;
     now: Date;
 }

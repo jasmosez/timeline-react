@@ -7,7 +7,7 @@ import HQ from './components/HQ'
 import Timeline from './components/Timeline'
 import { PAN_AMOUNT, DEFAULT_BIRTH_DATE } from './config'
 import { createInitialViewport, getViewportFirstTickDate, type Viewport } from './viewport'
-import { ZOOM, zoomMax, zoomMin } from './timeline/scales'
+import { SCALE_CONFIG, zoomMax, zoomMin } from './timeline/scales'
 
 function App() {
   const [now, setNow] = useState(getNow)
@@ -62,8 +62,8 @@ function App() {
 
       const prevFirstTickDate = getViewportFirstTickDate(prevViewport)
       const nextFirstTickTimeMs = direction === '+'
-        ? ZOOM[prevViewport.zoomLevel].calculateTickTimeFunc(prevFirstTickDate, PAN_AMOUNT)
-        : ZOOM[prevViewport.zoomLevel].calculateTickTimeFunc(prevFirstTickDate, -PAN_AMOUNT)
+        ? SCALE_CONFIG[prevViewport.zoomLevel].calculateTickTimeFunc(prevFirstTickDate, PAN_AMOUNT)
+        : SCALE_CONFIG[prevViewport.zoomLevel].calculateTickTimeFunc(prevFirstTickDate, -PAN_AMOUNT)
 
       return {
         focusTimeMs: nextFirstTickTimeMs,

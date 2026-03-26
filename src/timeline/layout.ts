@@ -1,4 +1,4 @@
-import { ZOOM, getPointPercent, getTickLabel, type ZoomLevel } from './scales'
+import { SCALE_CONFIG, getPointPercent, getTickLabel, type ZoomLevel } from './scales'
 import type {
   PositionedTimelinePoint,
   PositionedTimelineSpan,
@@ -51,7 +51,7 @@ export const positionTimelineSpan = (
 
 export const createStructuralSpans = (zoom: ZoomLevel, firstTickDate: Date): TimelineSpan[] => {
   const spans: TimelineSpan[] = []
-  const { calculateTickTimeFunc, visibleTicks } = ZOOM[zoom]
+  const { calculateTickTimeFunc, visibleTicks } = SCALE_CONFIG[zoom]
 
   for (let i = 0; i < visibleTicks - 1; i++) {
     const startTimeMs = calculateTickTimeFunc(firstTickDate, i)

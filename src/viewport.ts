@@ -1,5 +1,5 @@
 import { STARTING_ZOOM } from './config'
-import { ZOOM, type ZoomLevel } from './timeline/scales'
+import { SCALE_CONFIG, type ZoomLevel } from './timeline/scales'
 
 export type ViewportRangeStrategy = 'centered' | 'currentContainingPeriod' | 'custom'
 
@@ -23,5 +23,5 @@ export const getViewportFirstTickDate = (viewport: Viewport) => {
 
   // For the current prototype, both centered and currentContainingPeriod views
   // align to the containing period boundary for the active zoom level.
-  return ZOOM[viewport.zoomLevel].firstTickDateFunc(new Date(viewport.focusTimeMs))
+  return SCALE_CONFIG[viewport.zoomLevel].firstTickDateFunc(new Date(viewport.focusTimeMs))
 }

@@ -23,20 +23,20 @@ export type ZoomLevelConfig = {
 }
 import { GREGORIAN_SCALE_CONFIG } from './gregorianScaleConfig'
 
-export const ZOOM: Record<number, ZoomLevelConfig> = GREGORIAN_SCALE_CONFIG
+export const SCALE_CONFIG: Record<number, ZoomLevelConfig> = GREGORIAN_SCALE_CONFIG
 
-export type ZoomLevel = keyof typeof ZOOM
+export type ZoomLevel = keyof typeof SCALE_CONFIG
 
-export const zoomMax = Math.max(...Object.keys(ZOOM).map(Number))
-export const zoomMin = Math.min(...Object.keys(ZOOM).map(Number))
+export const zoomMax = Math.max(...Object.keys(SCALE_CONFIG).map(Number))
+export const zoomMin = Math.min(...Object.keys(SCALE_CONFIG).map(Number))
 
 export const getTickLabel = (tickTime: number, zoom: ZoomLevel, firstTickDate: Date) => {
-  const { renderTickLabel, calculateTickTimeFunc } = ZOOM[zoom]
+  const { renderTickLabel, calculateTickTimeFunc } = SCALE_CONFIG[zoom]
   return renderTickLabel(tickTime, tickTime === calculateTickTimeFunc(firstTickDate, 0))
 }
 
 export const getPointPercent = (pointTime: number, zoom: ZoomLevel, firstTickDate: Date) => {
-  const { calculateTickTimeFunc, screenSpan, visibleTicks } = ZOOM[zoom]
+  const { calculateTickTimeFunc, screenSpan, visibleTicks } = SCALE_CONFIG[zoom]
 
   const firstTickOffsetPercentage = (100 / visibleTicks) / 2
   const firstTickOffsetMs = (screenSpan * firstTickOffsetPercentage) / 100
