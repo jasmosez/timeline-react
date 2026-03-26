@@ -2,6 +2,8 @@ import type { ZoomLevel } from './scales'
 import type { PositionedTimelinePoint, PositionedTimelineSpan } from './types'
 
 export type LayerRenderContext = {
+  now: Date
+  birthDate: Date
   zoom: ZoomLevel
   firstTickDate: Date
   timelineZoom: ZoomLevel

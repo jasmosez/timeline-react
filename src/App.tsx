@@ -6,10 +6,13 @@ import { getNow } from './utils'
 import HQ from './components/HQ'
 import Timeline from './components/Timeline'
 import { PAN_AMOUNT, DEFAULT_BIRTH_DATE } from './config'
-import { AVAILABLE_TIMELINE_LAYERS } from './timeline/gregorian'
+import { birthdayLayer } from './timeline/birthday'
+import { gregorianLayer } from './timeline/gregorian'
 import type { TimelineLayerId } from './timeline/layers'
 import { createInitialViewport, getViewportFirstTickDate, type Viewport } from './viewport'
 import { SCALE_CONFIG, zoomMax, zoomMin } from './timeline/scales'
+
+const AVAILABLE_TIMELINE_LAYERS = [gregorianLayer, birthdayLayer]
 
 function App() {
   const [now, setNow] = useState(getNow)
@@ -101,7 +104,13 @@ function App() {
         activeLayerIds={activeLayerIds}
         onToggleLayer={handleToggleLayer}
       />
-      <Timeline now={now} zoom={zoom} firstTickDate={firstTickDate} activeLayers={activeLayers} />
+      <Timeline
+        now={now}
+        birthDate={birthDate}
+        zoom={zoom}
+        firstTickDate={firstTickDate}
+        activeLayers={activeLayers}
+      />
     </>
   )
 }

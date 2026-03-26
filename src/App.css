@@ -123,3 +123,14 @@
 .now-tick-label, .now {
   color: red;
 }
+
+.birthday-marker {
+  width: 24px;
+  transform: translateX(-65%);
+  background-color: #0f766e;
+}
+
+.birthday-marker-label {
+  color: #0f766e;
+  font-weight: 600;
+}

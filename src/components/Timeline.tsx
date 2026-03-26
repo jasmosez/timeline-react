@@ -11,13 +11,14 @@ import NowTick from './NowTick';
 import Span from './Span';
 
 interface TimelineProps {
+    now: Date;
+    birthDate: Date;
     zoom: keyof typeof SCALE_CONFIG;
     firstTickDate: Date;
-    now: Date;
     activeLayers: TimelineLayer[];
 }
 
-function Timeline({zoom, firstTickDate, now, activeLayers}: TimelineProps) {
+function Timeline({now, birthDate, zoom, firstTickDate, activeLayers}: TimelineProps) {
   const [tickPoints, setTickPoints] = useState<PositionedTimelinePoint[]>([]);
   const [timelineSpans, setTimelineSpans] = useState<PositionedTimelineSpan[]>([]);
   const {
@@ -29,6 +30,8 @@ function Timeline({zoom, firstTickDate, now, activeLayers}: TimelineProps) {
 
   useEffect(() => {
     const context = {
+      now,
+      birthDate,
       zoom,
       firstTickDate,
       timelineZoom,
@@ -39,7 +42,7 @@ function Timeline({zoom, firstTickDate, now, activeLayers}: TimelineProps) {
 
     setTickPoints(combineLayerPoints(activeLayers, context));
     setTimelineSpans(combineLayerSpans(activeLayers, context));
-  }, [activeLayers, zoom, timelineZoom, firstTickDate, timelineFirstTickDate, prevZoom, prevFirstTickDate]);
+  }, [activeLayers, now, birthDate, zoom, timelineZoom, firstTickDate, timelineFirstTickDate, prevZoom, prevFirstTickDate]);
 
   return (
     <>
