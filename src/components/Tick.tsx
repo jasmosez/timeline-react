@@ -1,4 +1,5 @@
 import { ZOOM, getPointPercent, getTickLabel } from '../timeline/scales';
+import type { TimelinePoint } from '../timeline/types';
 
 interface TickProps {
     tickTime: number;
@@ -6,8 +7,22 @@ interface TickProps {
     firstTickDate: Date;
     className?: string;
     labelClassName?: string;
-    renderLabel?: () => string;
+    renderLabel?: () => string | undefined;
     fadeOut?: boolean;
+}
+
+export function TickPoint({ point }: { point: TimelinePoint }) {
+    return (
+        <Tick
+            tickTime={point.timeMs}
+            zoom={point.zoom}
+            firstTickDate={point.firstTickDate}
+            fadeOut={point.fadeOut}
+            className={point.className}
+            labelClassName={point.labelClassName}
+            renderLabel={point.label ? () => point.label : undefined}
+        />
+    );
 }
 
 function Tick({ tickTime, zoom, firstTickDate, className = '', labelClassName = '', renderLabel, fadeOut }: TickProps) {

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ZOOM } from '../timeline/scales';
-import Tick from './Tick';
+import { TickPoint } from './Tick';
+import type { TimelinePoint } from '../timeline/types';
 import NowTick from './NowTick';
 // import Span from './Span';
 
@@ -15,10 +16,10 @@ function Timeline({zoom, firstTickDate, now}: TimelineProps) {
   const [timelineFirstTickDate, setTimelineFirstTickDate] = useState<Date>(firstTickDate);
   const [prevZoom, setPrevZoom] = useState<keyof typeof ZOOM>();
   const [prevFirstTickDate, setPrevFirstTickDate] = useState<Date>();
-  const [ticks, setTicks] = useState<React.ReactElement[]>([]);
+  const [tickPoints, setTickPoints] = useState<TimelinePoint[]>([]);
 
   useEffect(() => {
-    setTicks(createTicks());
+    setTickPoints(createTickPoints());
     if (zoom !== timelineZoom || firstTickDate !== timelineFirstTickDate) {
       setPrevZoom(timelineZoom);
       setPrevFirstTickDate(timelineFirstTickDate);
@@ -35,52 +36,26 @@ function Timeline({zoom, firstTickDate, now}: TimelineProps) {
     }
   }, [zoom, timelineZoom, firstTickDate, timelineFirstTickDate]);
 
-  // Create ticks for both current and previous zoom levels during transition
-  const createTicks = () => {
+  // Create points for both current and previous zoom levels during transition.
+  const createTickPoints = () => {
     // TODO: fix this so panning animates properly
-    
-    const allTicks = new Map<number, React.ReactElement>();
-    
-    // Helper function to create or update a tick element
-    const createOrUpdateTickElement = (
-      tickTime: number, 
-      index: number,
-      existingElement?: React.ReactElement,
-      fadeOut: boolean = false
-    ) => {
-      const newProps = {
-        tickTime,
-        zoom: timelineZoom,
-        firstTickDate: timelineFirstTickDate,
-        index,
-        fadeOut
-      };
+    const allTickPoints = new Map<number, TimelinePoint>();
 
-      // If we have an existing element and it's a Tick component, update its props
-      if (existingElement && React.isValidElement(existingElement)) {
-        return React.cloneElement(existingElement, newProps);
-      }
-      
-      // Otherwise create a new Tick
-      return <Tick {...newProps} key={tickTime} />;
-    };
-
-    // Function to add ticks for a specific zoom level
     const addTicksForZoom = (zoomLevel: keyof typeof ZOOM, baseDate: Date, fadeOut: boolean = false) => {
       const { calculateTickTimeFunc, visibleTicks } = ZOOM[zoomLevel];
       for (let i = 0; i < visibleTicks; i++) {
-        // Calculate tick time based on the target zoom level's function and base date
         const tickTime = calculateTickTimeFunc(baseDate, i);
-        const existingTick = allTicks.get(tickTime);
-        allTicks.set(
-          tickTime, 
-          createOrUpdateTickElement(tickTime, i, existingTick, fadeOut)
-        );
+        allTickPoints.set(tickTime, {
+          id: `tick-${tickTime}`,
+          kind: 'tick',
+          timeMs: tickTime,
+          zoom: timelineZoom,
+          firstTickDate: timelineFirstTickDate,
+          fadeOut,
+        });
       }
     };
 
-    // Add ticks for both zoom levels - this creates the ticks at their target positions
-    // but they will all initially render using timelineZoom for positioning
     if (prevZoom !== undefined && prevFirstTickDate !== undefined && timelineZoom == zoom) {
       addTicksForZoom(prevZoom, prevFirstTickDate, true);
     } else if (timelineZoom !== zoom) {
@@ -88,7 +63,7 @@ function Timeline({zoom, firstTickDate, now}: TimelineProps) {
     }
     addTicksForZoom(zoom, firstTickDate, false);
 
-    return Array.from(allTicks.values());
+    return Array.from(allTickPoints.values());
   };
 
 
@@ -111,7 +86,7 @@ function Timeline({zoom, firstTickDate, now}: TimelineProps) {
     <>
       {/* {spans} */}
       <div className='timeline line' />
-      {ticks}
+      {tickPoints.map((point) => <TickPoint key={point.id} point={point} />)}
       <NowTick now={now} zoom={zoom} firstTickDate={firstTickDate} />
     </>
   );
