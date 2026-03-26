@@ -1,16 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { ZOOM } from '../timeline/scales';
-import {
-  createStructuralSpans as createTimelineStructuralSpans,
-  positionTimelinePoint,
-  positionTimelineSpan,
-} from '../timeline/layout';
+import { createGregorianStructuralSpans, createGregorianTickPoints } from '../timeline/gregorian';
 import { TickPoint } from './Tick';
 import type {
   PositionedTimelinePoint,
   PositionedTimelineSpan,
-  TimelinePoint,
-  TimelineSpan,
 } from '../timeline/types';
 import NowTick from './NowTick';
 import Span from './Span';
@@ -30,8 +24,17 @@ function Timeline({zoom, firstTickDate, now}: TimelineProps) {
   const [timelineSpans, setTimelineSpans] = useState<PositionedTimelineSpan[]>([]);
 
   useEffect(() => {
-    setTickPoints(createTickPoints());
-    setTimelineSpans(createPositionedStructuralSpans());
+    setTickPoints(
+      createGregorianTickPoints({
+        zoom,
+        firstTickDate,
+        timelineZoom,
+        timelineFirstTickDate,
+        prevZoom,
+        prevFirstTickDate,
+      }),
+    );
+    setTimelineSpans(createGregorianStructuralSpans(zoom, firstTickDate));
     if (zoom !== timelineZoom || firstTickDate !== timelineFirstTickDate) {
       setPrevZoom(timelineZoom);
       setPrevFirstTickDate(timelineFirstTickDate);
@@ -46,47 +49,7 @@ function Timeline({zoom, firstTickDate, now}: TimelineProps) {
       });
 
     }
-  }, [zoom, timelineZoom, firstTickDate, timelineFirstTickDate]);
-
-  // Create points for both current and previous zoom levels during transition.
-  const createTickPoints = () => {
-    // TODO: fix this so panning animates properly
-    const allTickPoints = new Map<number, PositionedTimelinePoint>();
-
-    const addTicksForZoom = (zoomLevel: keyof typeof ZOOM, baseDate: Date, fadeOut: boolean = false) => {
-      const { calculateTickTimeFunc, visibleTicks } = ZOOM[zoomLevel];
-      for (let i = 0; i < visibleTicks; i++) {
-        const tickTime = calculateTickTimeFunc(baseDate, i);
-        const point: TimelinePoint = {
-          id: `tick-${tickTime}`,
-          kind: 'tick',
-          timeMs: tickTime,
-        };
-
-        allTickPoints.set(
-          tickTime,
-          positionTimelinePoint(point, timelineZoom, timelineFirstTickDate, {
-            opacity: fadeOut ? 0 : 1,
-          }),
-        );
-      }
-    };
-
-    if (prevZoom !== undefined && prevFirstTickDate !== undefined && timelineZoom == zoom) {
-      addTicksForZoom(prevZoom, prevFirstTickDate, true);
-    } else if (timelineZoom !== zoom) {
-      addTicksForZoom(timelineZoom, timelineFirstTickDate, false);
-    }
-    addTicksForZoom(zoom, firstTickDate, false);
-
-    return Array.from(allTickPoints.values());
-  };
-
-  const createPositionedStructuralSpans = () => {
-    return createTimelineStructuralSpans(zoom, firstTickDate).map((span: TimelineSpan) =>
-      positionTimelineSpan(span, zoom, firstTickDate, { className: 'structural-span' }),
-    );
-  };
+  }, [zoom, timelineZoom, firstTickDate, timelineFirstTickDate, prevZoom, prevFirstTickDate]);
 
   return (
     <>
