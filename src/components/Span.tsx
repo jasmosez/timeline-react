@@ -1,26 +1,21 @@
-import { ZOOM, getPointPercent } from '../timeline/scales';
+import type { PositionedTimelineSpan } from '../timeline/types';
 
 interface SpanProps {
-    tickTime: number;
-    zoom: keyof typeof ZOOM;
-    firstTickDate: Date;
-    visibleTicks: number;
+    span: PositionedTimelineSpan;
 }
 
-function Span({ tickTime, zoom, firstTickDate, visibleTicks }: SpanProps) {
+function Span({ span }: SpanProps) {
     return (
         <div 
-            className='timeline span' 
+            className={`timeline span ${span.className ?? ''}`}
             style={{
-                top: `calc(${getPointPercent(tickTime, zoom, firstTickDate)} + 2px)`,
-                width: '15px',
-                height: `calc(${100 / visibleTicks}% - 4px)`,
-                backgroundColor: 'pink',
-                transform: 'translateX(-50%)',
+                top: span.top,
+                height: span.height,
+                opacity: span.opacity ?? 1,
             }}
-            onClick={() => console.log('click', new Date(tickTime).toLocaleString())}
+            title={span.label}
         />
     );
 }
 
-export default Span; 
+export default Span;

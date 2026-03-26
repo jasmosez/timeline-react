@@ -1,9 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { ZOOM } from '../timeline/scales';
+import { ZOOM, getPointPercent } from '../timeline/scales';
 import { TickPoint } from './Tick';
-import type { TimelinePoint } from '../timeline/types';
+import type {
+  PositionedTimelinePoint,
+  PositionedTimelineSpan,
+  TimelinePoint,
+  TimelineSpan,
+} from '../timeline/types';
 import NowTick from './NowTick';
-// import Span from './Span';
+import Span from './Span';
 
 interface TimelineProps {
     zoom: keyof typeof ZOOM;
@@ -16,10 +21,12 @@ function Timeline({zoom, firstTickDate, now}: TimelineProps) {
   const [timelineFirstTickDate, setTimelineFirstTickDate] = useState<Date>(firstTickDate);
   const [prevZoom, setPrevZoom] = useState<keyof typeof ZOOM>();
   const [prevFirstTickDate, setPrevFirstTickDate] = useState<Date>();
-  const [tickPoints, setTickPoints] = useState<TimelinePoint[]>([]);
+  const [tickPoints, setTickPoints] = useState<PositionedTimelinePoint[]>([]);
+  const [timelineSpans, setTimelineSpans] = useState<PositionedTimelineSpan[]>([]);
 
   useEffect(() => {
     setTickPoints(createTickPoints());
+    setTimelineSpans(createStructuralSpans());
     if (zoom !== timelineZoom || firstTickDate !== timelineFirstTickDate) {
       setPrevZoom(timelineZoom);
       setPrevFirstTickDate(timelineFirstTickDate);
@@ -39,19 +46,22 @@ function Timeline({zoom, firstTickDate, now}: TimelineProps) {
   // Create points for both current and previous zoom levels during transition.
   const createTickPoints = () => {
     // TODO: fix this so panning animates properly
-    const allTickPoints = new Map<number, TimelinePoint>();
+    const allTickPoints = new Map<number, PositionedTimelinePoint>();
 
     const addTicksForZoom = (zoomLevel: keyof typeof ZOOM, baseDate: Date, fadeOut: boolean = false) => {
       const { calculateTickTimeFunc, visibleTicks } = ZOOM[zoomLevel];
       for (let i = 0; i < visibleTicks; i++) {
         const tickTime = calculateTickTimeFunc(baseDate, i);
-        allTickPoints.set(tickTime, {
+        const point: TimelinePoint = {
           id: `tick-${tickTime}`,
           kind: 'tick',
           timeMs: tickTime,
-          zoom: timelineZoom,
-          firstTickDate: timelineFirstTickDate,
-          fadeOut,
+        };
+
+        allTickPoints.set(tickTime, {
+          ...point,
+          top: getPointPercent(point.timeMs, timelineZoom, timelineFirstTickDate),
+          opacity: fadeOut ? 0 : 1,
         });
       }
     };
@@ -66,26 +76,37 @@ function Timeline({zoom, firstTickDate, now}: TimelineProps) {
     return Array.from(allTickPoints.values());
   };
 
+  const createStructuralSpans = () => {
+    const spans: PositionedTimelineSpan[] = [];
+    const { calculateTickTimeFunc, visibleTicks } = ZOOM[zoom];
 
-  // const spans = [];
-  // const { calculateTickTimeFunc, visibleTicks } = ZOOM[zoom];
-  // for (let i = 0; i < visibleTicks; i++) {
-  //   const tickTime = calculateTickTimeFunc(firstTickDate, i);
-  //   spans.push(
-  //     <Span
-  //       key={i}
-  //       tickTime={tickTime}
-  //       zoom={zoom}
-  //       firstTickDate={firstTickDate}
-  //       visibleTicks={visibleTicks}
-  //     />
-  //   );
-  // }
+    for (let i = 0; i < visibleTicks - 1; i++) {
+      const startTimeMs = calculateTickTimeFunc(firstTickDate, i);
+      const endTimeMs = calculateTickTimeFunc(firstTickDate, i + 1);
+      const span: TimelineSpan = {
+        id: `structural-span-${startTimeMs}`,
+        kind: 'structural-period',
+        startTimeMs,
+        endTimeMs,
+      };
+      const startTop = Number.parseFloat(getPointPercent(span.startTimeMs, zoom, firstTickDate));
+      const endTop = Number.parseFloat(getPointPercent(span.endTimeMs, zoom, firstTickDate));
+
+      spans.push({
+        ...span,
+        top: `calc(${startTop}% + 2px)`,
+        height: `calc(${Math.max(endTop - startTop, 0)}% - 4px)`,
+        className: 'structural-span',
+      });
+    }
+
+    return spans;
+  };
 
   return (
     <>
-      {/* {spans} */}
       <div className='timeline line' />
+      {timelineSpans.map((span) => <Span key={span.id} span={span} />)}
       {tickPoints.map((point) => <TickPoint key={point.id} point={point} />)}
       <NowTick now={now} zoom={zoom} firstTickDate={firstTickDate} />
     </>

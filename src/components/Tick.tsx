@@ -1,23 +1,34 @@
 import { ZOOM, getPointPercent, getTickLabel } from '../timeline/scales';
-import type { TimelinePoint } from '../timeline/types';
+import type { PositionedTimelinePoint } from '../timeline/types';
 
-interface TickProps {
+interface BaseTickProps {
     tickTime: number;
-    zoom: keyof typeof ZOOM;
-    firstTickDate: Date;
     className?: string;
     labelClassName?: string;
     renderLabel?: () => string | undefined;
-    fadeOut?: boolean;
+    opacity?: number;
 }
 
-export function TickPoint({ point }: { point: TimelinePoint }) {
+type RawTickProps = BaseTickProps & {
+    zoom: keyof typeof ZOOM;
+    firstTickDate: Date;
+    top?: never;
+}
+
+type PositionedTickProps = BaseTickProps & {
+    top: string;
+    zoom?: never;
+    firstTickDate?: never;
+}
+
+type TickProps = RawTickProps | PositionedTickProps
+
+export function TickPoint({ point }: { point: PositionedTimelinePoint }) {
     return (
         <Tick
             tickTime={point.timeMs}
-            zoom={point.zoom}
-            firstTickDate={point.firstTickDate}
-            fadeOut={point.fadeOut}
+            top={point.top}
+            opacity={point.opacity}
             className={point.className}
             labelClassName={point.labelClassName}
             renderLabel={point.label ? () => point.label : undefined}
@@ -25,14 +36,24 @@ export function TickPoint({ point }: { point: TimelinePoint }) {
     );
 }
 
-function Tick({ tickTime, zoom, firstTickDate, className = '', labelClassName = '', renderLabel, fadeOut }: TickProps) {
+function Tick({ tickTime, className = '', labelClassName = '', renderLabel, opacity, ...positioningProps }: TickProps) {
+    const isPositionedTick = 'top' in positioningProps;
+    const top = isPositionedTick
+        ? positioningProps.top
+        : getPointPercent(tickTime, positioningProps.zoom, positioningProps.firstTickDate);
+    const resolvedLabel = renderLabel
+        ? renderLabel()
+        : isPositionedTick
+            ? undefined
+            : getTickLabel(tickTime, positioningProps.zoom, positioningProps.firstTickDate);
+
     return (
         <div className={`timeline tick ${className}`} style={{
-            top: getPointPercent(tickTime, zoom, firstTickDate),
-            opacity: fadeOut ? 0 : 1,
+            top,
+            opacity: opacity ?? 1,
         }}>
             <div className={`timeline tick-label ${labelClassName}`}>
-                {renderLabel ? renderLabel() : getTickLabel(tickTime, zoom, firstTickDate)}
+                {resolvedLabel}
             </div>
         </div>
     );

@@ -76,6 +76,17 @@
   transform: translateX(-50%);
 }
 
+.span {
+  width: 14px;
+  transform: translateX(-50%);
+  left: 50%;
+}
+
+.structural-span {
+  background-color: rgba(255, 99, 132, 0.18);
+  border: 1px solid rgba(255, 99, 132, 0.35);
+}
+
 .tick-label {
   font-size: .5rem;
   left: 15px;
