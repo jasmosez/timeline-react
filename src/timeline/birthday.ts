@@ -69,13 +69,13 @@ export const createBirthdayLayerPoints = ({
 export const birthdayLayer: TimelineLayer = {
   id: 'birthday',
   label: 'Birthday',
-  getPoints: ({ zoom, firstTickDate, timelineZoom, timelineFirstTickDate, birthDate }) =>
+  getPoints: ({ zoom, firstTickDate, timelineZoom, timelineFirstTickDate, environment }) =>
     createBirthdayLayerPoints({
       zoom,
       firstTickDate,
       timelineZoom,
       timelineFirstTickDate,
-      birthDate,
+      birthDate: environment.birthDate,
     }),
   getSpans: () => [],
 }
