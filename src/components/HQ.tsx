@@ -1,6 +1,6 @@
 
 import { LOCALE, } from '../config';
-import { ZOOM, zoomMax, zoomMin, FULL_DATE_FORMAT, dayNumber, birthdayBasedWeekNumber, sundayBasedWeekNumber } from '../utils';
+import { ZOOM, zoomMax, zoomMin, FULL_DATE_FORMAT, dayNumber, sundayBasedWeekNumber } from '../utils';
 
 
 interface HQProps {
