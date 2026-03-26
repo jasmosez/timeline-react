@@ -1,5 +1,6 @@
 import { SCALE_CONFIG, type ZoomLevel } from './scales'
 import { createStructuralSpans, positionTimelinePoint, positionTimelineSpan } from './layout'
+import type { TimelineLayer } from './layers'
 import type {
   PositionedTimelinePoint,
   PositionedTimelineSpan,
@@ -72,3 +73,10 @@ export const createGregorianStructuralSpans = (
   createStructuralSpans(zoom, firstTickDate).map((span) =>
     positionTimelineSpan(span, zoom, firstTickDate, { className: 'structural-span' }),
   )
+
+export const gregorianLayer: TimelineLayer = {
+  id: 'gregorian',
+  label: 'Gregorian',
+  getPoints: createGregorianTickPoints,
+  getSpans: ({ zoom, firstTickDate }) => createGregorianStructuralSpans(zoom, firstTickDate),
+}
