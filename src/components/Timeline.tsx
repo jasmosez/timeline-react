@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ZOOM } from '../timeline/scales';
 import { createGregorianStructuralSpans, createGregorianTickPoints } from '../timeline/gregorian';
+import { useAnimatedTimelineState } from '../hooks/useAnimatedTimelineState';
 import { TickPoint } from './Tick';
 import type {
   PositionedTimelinePoint,
@@ -16,12 +17,14 @@ interface TimelineProps {
 }
 
 function Timeline({zoom, firstTickDate, now}: TimelineProps) {
-  const [timelineZoom, setTimelineZoom] = useState<keyof typeof ZOOM>(zoom);
-  const [timelineFirstTickDate, setTimelineFirstTickDate] = useState<Date>(firstTickDate);
-  const [prevZoom, setPrevZoom] = useState<keyof typeof ZOOM>();
-  const [prevFirstTickDate, setPrevFirstTickDate] = useState<Date>();
   const [tickPoints, setTickPoints] = useState<PositionedTimelinePoint[]>([]);
   const [timelineSpans, setTimelineSpans] = useState<PositionedTimelineSpan[]>([]);
+  const {
+    timelineZoom,
+    timelineFirstTickDate,
+    prevZoom,
+    prevFirstTickDate,
+  } = useAnimatedTimelineState(zoom, firstTickDate);
 
   useEffect(() => {
     setTickPoints(
@@ -35,20 +38,6 @@ function Timeline({zoom, firstTickDate, now}: TimelineProps) {
       }),
     );
     setTimelineSpans(createGregorianStructuralSpans(zoom, firstTickDate));
-    if (zoom !== timelineZoom || firstTickDate !== timelineFirstTickDate) {
-      setPrevZoom(timelineZoom);
-      setPrevFirstTickDate(timelineFirstTickDate);
-
-      // Allow initial render at old positions
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          setTimelineZoom(zoom);
-          setTimelineFirstTickDate(firstTickDate);
-
-        });
-      });
-
-    }
   }, [zoom, timelineZoom, firstTickDate, timelineFirstTickDate, prevZoom, prevFirstTickDate]);
 
   return (
