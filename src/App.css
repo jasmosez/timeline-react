@@ -54,6 +54,19 @@
   padding: 5px;
 }
 
+.hq-layer-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.hq-layer-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 /* timeline */
 
 .timeline {

@@ -15,7 +15,7 @@ function App() {
   const [now, setNow] = useState(getNow)
   const [viewport, setViewport] = useState<Viewport>(() => createInitialViewport(now))
   const [birthDate] = useState(DEFAULT_BIRTH_DATE)
-  const [activeLayerIds] = useState<TimelineLayerId[]>(['gregorian'])
+  const [activeLayerIds, setActiveLayerIds] = useState<TimelineLayerId[]>(['gregorian'])
 
   const zoom = viewport.zoomLevel
   const firstTickDate = getViewportFirstTickDate(viewport)
@@ -78,9 +78,29 @@ function App() {
     })
   }
 
+  const handleToggleLayer = (layerId: TimelineLayerId) => {
+    setActiveLayerIds((prevLayerIds) => {
+      if (prevLayerIds.includes(layerId)) {
+        return prevLayerIds.filter((id) => id !== layerId)
+      }
+
+      return [...prevLayerIds, layerId]
+    })
+  }
+
   return (
     <>
-      <HQ now={now} zoom={zoom} firstTickDate={firstTickDate} handleZoom={handleZoom} handlePan={handlePan} birthDate={birthDate} />
+      <HQ
+        now={now}
+        zoom={zoom}
+        firstTickDate={firstTickDate}
+        handleZoom={handleZoom}
+        handlePan={handlePan}
+        birthDate={birthDate}
+        availableLayers={AVAILABLE_TIMELINE_LAYERS}
+        activeLayerIds={activeLayerIds}
+        onToggleLayer={handleToggleLayer}
+      />
       <Timeline now={now} zoom={zoom} firstTickDate={firstTickDate} activeLayers={activeLayers} />
     </>
   )

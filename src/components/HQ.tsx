@@ -2,6 +2,7 @@
 import { LOCALE, } from '../config';
 import { FULL_DATE_FORMAT, dayNumber, sundayBasedWeekNumber } from '../utils';
 import { SCALE_CONFIG, zoomMax, zoomMin } from '../timeline/scales';
+import type { TimelineLayer, TimelineLayerId } from '../timeline/layers';
 
 
 interface HQProps {
@@ -11,11 +12,24 @@ interface HQProps {
     handleZoom: (direction: '+' | '-') => void;
     handlePan: (direction: '+' | '-' | 'reset') => void;
     birthDate: Date;
+    availableLayers: TimelineLayer[];
+    activeLayerIds: TimelineLayerId[];
+    onToggleLayer: (layerId: TimelineLayerId) => void;
 }
 
 
 
-export default function HQ({now, zoom, firstTickDate, handleZoom, handlePan, birthDate}: HQProps) {
+export default function HQ({
+  now,
+  zoom,
+  firstTickDate,
+  handleZoom,
+  handlePan,
+  birthDate,
+  availableLayers,
+  activeLayerIds,
+  onToggleLayer,
+}: HQProps) {
   return (
     // TODO: abstract styles to css file
       <div className='hq-container'>
@@ -54,6 +68,20 @@ export default function HQ({now, zoom, firstTickDate, handleZoom, handlePan, bir
               <div className='now' style={{fontWeight: 'bold', marginTop: '10px'}}>1-indexed since {birthDate.toLocaleString(LOCALE, {month: 'long', day: 'numeric', year: 'numeric'})}</div>
               <div className='now'>Day {dayNumber(now, birthDate)}</div>
               <div className='now'>Week {sundayBasedWeekNumber(now, birthDate)}</div>
+
+              <div style={{fontWeight: 'bold', marginTop: '10px'}}>Layers</div>
+              <div className='hq-layer-list'>
+                {availableLayers.map((layer) => (
+                  <label key={layer.id} className='hq-layer-option'>
+                    <input
+                      type='checkbox'
+                      checked={activeLayerIds.includes(layer.id)}
+                      onChange={() => onToggleLayer(layer.id)}
+                    />
+                    <span>{layer.label}</span>
+                  </label>
+                ))}
+              </div>
               {/* <div>Viewing one {SCALE_CONFIG[zoom].key}</div> */}
               {/* <div>Each tick is the start of a {SCALE_CONFIG[zoom].unit}</div> */}
               {/* <div>Each span between ticks represents one whole {SCALE_CONFIG[zoom].unit}</div> */}
