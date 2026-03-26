@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { SCALE_CONFIG } from '../timeline/scales';
 import { gregorianLayer } from '../timeline/gregorian';
+import { combineLayerPoints, combineLayerSpans } from '../timeline/layers';
 import { useAnimatedTimelineState } from '../hooks/useAnimatedTimelineState';
 import { TickPoint } from './Tick';
 import type {
@@ -19,6 +20,7 @@ interface TimelineProps {
 function Timeline({zoom, firstTickDate, now}: TimelineProps) {
   const [tickPoints, setTickPoints] = useState<PositionedTimelinePoint[]>([]);
   const [timelineSpans, setTimelineSpans] = useState<PositionedTimelineSpan[]>([]);
+  const activeLayers = [gregorianLayer];
   const {
     timelineZoom,
     timelineFirstTickDate,
@@ -36,8 +38,8 @@ function Timeline({zoom, firstTickDate, now}: TimelineProps) {
       prevFirstTickDate,
     };
 
-    setTickPoints(gregorianLayer.getPoints(context));
-    setTimelineSpans(gregorianLayer.getSpans(context));
+    setTickPoints(combineLayerPoints(activeLayers, context));
+    setTimelineSpans(combineLayerSpans(activeLayers, context));
   }, [zoom, timelineZoom, firstTickDate, timelineFirstTickDate, prevZoom, prevFirstTickDate]);
 
   return (
