@@ -165,6 +165,11 @@ A layer may provide:
 - special dates or moments
 - event or annotation overlays
 
+Not all layers will play the same role.
+Some layers will primarily define structural segmentation, while others will
+primarily add markers or annotations to the existing structure. Some systems may
+eventually need to do both.
+
 ### 6. Span
 
 A duration with a start and end time.
@@ -316,6 +321,8 @@ continues:
   product?
 - Which Phase 5 ideas must be enabled early by Phase 1 architecture, and which
   can safely wait?
+- Should the layer model eventually distinguish explicitly between
+  segmentation-style layers and marker-style layers?
 
 This section should also serve as a parking lot for open design questions that
 do not yet block implementation.

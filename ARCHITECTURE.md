@@ -394,6 +394,62 @@ Near-term guidance:
 This becomes especially important once Gregorian, birthday-relative, and Hebrew
 information are shown together.
 
+## Layer Roles
+
+Not all layers are the same kind of layer.
+
+An important distinction that emerged during implementation is the difference
+between segmentation-style layers and marker-style layers.
+
+### Segmentation-Style Layers
+
+These define the structural shape of time in a given view.
+They are responsible for boundaries and the periods between them.
+
+Examples:
+
+- Gregorian tick boundaries
+- structural spans between Gregorian ticks
+- future birthday-relative day or week boundaries
+- future Hebrew day, month, or year boundaries
+
+In the current codebase, this role is mostly expressed through:
+
+- `TimelinePoint` with `kind: 'tick'`
+- `TimelineSpan` with `kind: 'structural-period'`
+
+### Marker-Style Layers
+
+These annotate the timeline with notable instants or windows without defining
+the primary structural segmentation.
+
+Examples:
+
+- the current moment (`now`)
+- birthday anniversaries
+- future holidays
+- future sunrise, sunset, or zmanim markers
+- future astrological transit instants
+
+In the current codebase, this role is mostly expressed through:
+
+- `TimelinePoint` with `kind: 'marker'`
+
+### Mixed Systems
+
+One timekeeping system may eventually play both roles.
+
+For example:
+
+- Gregorian time is currently acting as a segmentation-style layer
+- the birthday layer is currently implemented only as a marker-style layer
+- birthday-relative time as a product concept is likely larger than that and may
+  later define structural boundaries as well
+- Hebrew time is also likely to need both segmentation and marker behavior
+
+This means the current `TimelineLayer` interface is a good first seam, but it
+may eventually need explicit subtypes or conventions for different layer roles.
+
 ## Spreadsheet-Like Data Entry Implications
 
 The future note and planning model should be reflected in architecture early.
