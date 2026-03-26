@@ -1,0 +1,322 @@
+import { LOCALE } from '../config'
+
+/**
+ * Represents a zoom level configuration.
+ *
+ * @typedef {Object} ZoomLevelConfig
+ * @property {'minute' | 'hour' | 'day' | 'week' | 'month' | 'quarter' | 'year' | 'shmita' | 'decade'} key
+ * @property {string} label
+ * @property {number} visibleTicks
+ * @property {'second' | 'minute' | 'hour' | 'day' | 'month' | 'quarter' | 'year'} unit
+ * @property {number} screenSpan
+ * @property {(firstTick: Date, addedUnits: number) => number} calculateTickTimeFunc
+ * @property {(date: Date) => Date} firstTickDateFunc
+ * @property {(tickTime: number, isFirstTick: boolean) => string | undefined} renderTickLabel
+ */
+export type ZoomLevelConfig = {
+  key: 'minute' | 'hour' | 'day' | 'week' | 'month' | 'quarter' | 'year' | 'shmita' | 'decade',
+  label: string,
+  visibleTicks: number,
+  unit: 'second' | 'minute' | 'hour' | 'day' | 'month' | 'quarter' | 'year'
+  screenSpan: number
+  calculateTickTimeFunc: (firstTick: Date, addedUnits: number) => number
+  firstTickDateFunc: (date: Date) => Date
+  renderTickLabel: (tickTime: number, isFirstTick: boolean) => string | undefined
+}
+
+// Constants for time in milliseconds
+const SECOND_IN_MS = 1000
+const MINUTE_IN_MS = 60 * SECOND_IN_MS
+const HOUR_IN_MS = 60 * MINUTE_IN_MS
+const DAY_IN_MS = 24 * HOUR_IN_MS
+
+// Functions to add time to a date
+const addSeconds = (date: Date, seconds: number) => date.getTime() + seconds * SECOND_IN_MS
+const addMinutes = (date: Date, minutes: number) => date.getTime() + minutes * MINUTE_IN_MS
+const addHours = (date: Date, hours: number) => date.getTime() + hours * HOUR_IN_MS
+const addDays = (date: Date, days: number) => date.getTime() + days * DAY_IN_MS
+
+const addMonths = (date: Date, months: number) => {
+  const newDate = new Date(date)
+  newDate.setMonth(date.getMonth() + months)
+  return newDate.getTime()
+}
+
+const addYears = (date: Date, years: number) => {
+  const newDate = new Date(date)
+  newDate.setFullYear(date.getFullYear() + years)
+  return newDate.getTime()
+}
+
+// Functions to get the start of a time period for a date
+const startOfMinute = (date: Date) => {
+  const newDate = new Date(date)
+  newDate.setSeconds(0)
+  newDate.setMilliseconds(0)
+  return newDate
+}
+
+const startOfHour = (date: Date) => {
+  const newDate = new Date(date)
+  newDate.setMinutes(0)
+  newDate.setSeconds(0)
+  newDate.setMilliseconds(0)
+  return newDate
+}
+
+const startOfDay = (date: Date) => {
+  const newDate = new Date(date)
+  newDate.setHours(0)
+  newDate.setMinutes(0)
+  newDate.setSeconds(0)
+  newDate.setMilliseconds(0)
+  return newDate
+}
+
+const startOfWeek = (date: Date) => {
+  const newDate = new Date(date)
+  newDate.setHours(0)
+  newDate.setMinutes(0)
+  newDate.setSeconds(0)
+  newDate.setMilliseconds(0)
+  newDate.setDate(date.getDate() - date.getDay())
+  return newDate
+}
+
+const startOfMonth = (date: Date) => {
+  const newDate = new Date(date)
+  newDate.setHours(0)
+  newDate.setMinutes(0)
+  newDate.setSeconds(0)
+  newDate.setMilliseconds(0)
+  newDate.setDate(1)
+  return newDate
+}
+
+const startOfQuarter = (date: Date) => {
+  const newDate = new Date(date)
+  newDate.setHours(0)
+  newDate.setMinutes(0)
+  newDate.setSeconds(0)
+  newDate.setMilliseconds(0)
+  newDate.setMonth(Math.floor(date.getMonth() / 3) * 3)
+  newDate.setDate(1)
+  return newDate
+}
+
+const startOfYear = (date: Date) => {
+  const newDate = new Date(date)
+  newDate.setHours(0)
+  newDate.setMinutes(0)
+  newDate.setSeconds(0)
+  newDate.setMilliseconds(0)
+  newDate.setMonth(0)
+  newDate.setDate(1)
+  return newDate
+}
+
+const startOfDecade = (date: Date) => {
+  const newDate = new Date(date)
+  newDate.setHours(0)
+  newDate.setMinutes(0)
+  newDate.setSeconds(0)
+  newDate.setMilliseconds(0)
+  newDate.setFullYear(Math.floor(date.getFullYear() / 10) * 10)
+  newDate.setMonth(0)
+  newDate.setDate(1)
+  return newDate
+}
+
+// Constants for rendering tick labels
+const SECOND: Intl.DateTimeFormatOptions = { second: '2-digit' }
+const MINUTE: Intl.DateTimeFormatOptions = { minute: '2-digit' }
+const HOUR: Intl.DateTimeFormatOptions = { hour: 'numeric', hour12: true }
+const DAY: Intl.DateTimeFormatOptions = { day: 'numeric' }
+const WEEKDAY: Intl.DateTimeFormatOptions = { weekday: 'short' }
+const MONTH: Intl.DateTimeFormatOptions = { month: 'short' }
+const YEAR: Intl.DateTimeFormatOptions = { year: 'numeric' }
+const MONTH_WEEKDAY_DAY = { ...MONTH, ...WEEKDAY, ...DAY }
+
+const isMidnight = (tickDate: Date) => tickDate.getHours() === 0 && tickDate.getMinutes() === 0 && tickDate.getSeconds() === 0
+const isTopOfHour = (tickDate: Date) => tickDate.getMinutes() === 0 && tickDate.getSeconds() === 0
+const is3rdHour = (tickDate: Date) => tickDate.getHours() % 3 === 0
+const is5thMin = (tickDate: Date) => tickDate.getMinutes() % 5 === 0
+const is1stOfMonth = (tickDate: Date) => tickDate.getDate() === 1
+const isSaturday = (tickDate: Date) => tickDate.getDay() === 6
+const is1stOfYear = (tickDate: Date) => tickDate.getMonth() === 0 && tickDate.getDate() === 1
+const is15thSec = (tickDate: Date) => tickDate.getSeconds() % 15 === 0
+const isTopOfMinute = (tickDate: Date) => tickDate.getSeconds() === 0
+
+const renderTickLabelMinute = (tickTime: number, isFirstTick: boolean) => {
+  const tickDate = new Date(tickTime)
+
+  if (isMidnight(tickDate)) {
+    return tickDate.toLocaleDateString(LOCALE, { ...WEEKDAY, ...DAY, ...HOUR })
+  }
+  if (isTopOfHour(tickDate)) {
+    return tickDate.toLocaleTimeString(LOCALE, HOUR)
+  }
+  if (isTopOfMinute(tickDate)) {
+    return tickDate.toLocaleTimeString(LOCALE, { ...HOUR, ...MINUTE })
+  }
+  if (isFirstTick) {
+    return tickDate.toLocaleTimeString(LOCALE, { ...HOUR, ...MINUTE, ...SECOND })
+  }
+  if (is15thSec(tickDate)) {
+    return `:${String(tickDate.getSeconds()).padStart(2, '0')}`
+  }
+}
+
+const renderTickLabelHour = (tickTime: number) => {
+  const tickDate = new Date(tickTime)
+
+  if (isMidnight(tickDate)) {
+    return `${tickDate.toLocaleDateString(LOCALE, MONTH_WEEKDAY_DAY)} ${(isSaturday(tickDate) ? '✨' : '')}`
+  }
+  if (isTopOfHour(tickDate)) {
+    return tickDate.toLocaleTimeString(LOCALE, HOUR)
+  }
+  if (is5thMin(tickDate)) {
+    return `:${String(tickDate.getMinutes()).padStart(2, '0')}`
+  }
+}
+
+const renderTickLabelDay = (tickTime: number) => {
+  const tickDate = new Date(tickTime)
+  if (isMidnight(tickDate)) {
+    return `${tickDate.toLocaleDateString(LOCALE, MONTH_WEEKDAY_DAY)} ${(isSaturday(tickDate) ? '✨' : '')}`
+  }
+  if (is3rdHour(tickDate)) {
+    return tickDate.toLocaleTimeString(LOCALE, HOUR)
+  }
+}
+
+const renderTickLabelWeek = (tickTime: number) => {
+  const tickDate = new Date(tickTime)
+  const showMonth = is1stOfMonth(tickDate)
+  return `${tickDate.toLocaleDateString(LOCALE, showMonth ? MONTH_WEEKDAY_DAY : { ...WEEKDAY, ...DAY })} ${(isSaturday(tickDate) ? '✨' : '')}`
+}
+
+const renderTickLabelMonth = (tickTime: number, isFirstTick: boolean) => {
+  const tickDate = new Date(tickTime)
+  return `${tickDate.toLocaleDateString(LOCALE, { ...DAY, ...(isFirstTick || is1stOfMonth(tickDate) ? MONTH : {}), ...is1stOfYear(tickDate) ? YEAR : {} })} ${(isSaturday(tickDate) ? '✨' : '')}`
+}
+
+const renderTickLabelQuarter = (tickTime: number, isFirstTick: boolean) => {
+  const tickDate = new Date(tickTime)
+  return tickDate.toLocaleDateString(LOCALE, isFirstTick ? { ...MONTH, ...YEAR } : MONTH)
+}
+
+const renderTickLabelYear = (tickTime: number, isFirstTick: boolean) => {
+  const tickDate = new Date(tickTime)
+  return tickDate.toLocaleDateString(LOCALE, isFirstTick || is1stOfYear(tickDate) ? { ...MONTH, ...YEAR } : MONTH)
+}
+
+const renderTickLabelDecade = (tickTime: number) => {
+  const tickDate = new Date(tickTime)
+  return tickDate.toLocaleDateString(LOCALE, YEAR)
+}
+
+export const ZOOM: Record<number, ZoomLevelConfig> = {
+  [-1]: {
+    key: 'minute',
+    label: 'Minute',
+    visibleTicks: 61,
+    unit: 'second',
+    screenSpan: 61 * SECOND_IN_MS,
+    calculateTickTimeFunc: addSeconds,
+    firstTickDateFunc: startOfMinute,
+    renderTickLabel: renderTickLabelMinute,
+  },
+  0: {
+    key: 'hour',
+    label: 'Hour',
+    visibleTicks: 61,
+    unit: 'minute',
+    screenSpan: 61 * MINUTE_IN_MS,
+    calculateTickTimeFunc: addMinutes,
+    firstTickDateFunc: startOfHour,
+    renderTickLabel: renderTickLabelHour,
+  },
+  1: {
+    key: 'day',
+    label: 'Day',
+    visibleTicks: 25,
+    unit: 'hour',
+    screenSpan: 25 * HOUR_IN_MS,
+    calculateTickTimeFunc: addHours,
+    firstTickDateFunc: startOfDay,
+    renderTickLabel: renderTickLabelDay,
+  },
+  2: {
+    key: 'week',
+    label: 'Week',
+    visibleTicks: 8,
+    unit: 'day',
+    screenSpan: 8 * DAY_IN_MS,
+    calculateTickTimeFunc: addDays,
+    firstTickDateFunc: startOfWeek,
+    renderTickLabel: renderTickLabelWeek,
+  },
+  3: {
+    key: 'month',
+    label: 'Month',
+    visibleTicks: 32,
+    unit: 'day',
+    screenSpan: 32 * DAY_IN_MS,
+    calculateTickTimeFunc: addDays,
+    firstTickDateFunc: startOfMonth,
+    renderTickLabel: renderTickLabelMonth,
+  },
+  4: {
+    key: 'quarter',
+    label: 'Quarter',
+    visibleTicks: 4,
+    unit: 'month',
+    screenSpan: 120 * DAY_IN_MS,
+    calculateTickTimeFunc: addMonths,
+    firstTickDateFunc: startOfQuarter,
+    renderTickLabel: renderTickLabelQuarter,
+  },
+  5: {
+    key: 'year',
+    label: 'Year',
+    visibleTicks: 13,
+    unit: 'month',
+    screenSpan: 400 * DAY_IN_MS,
+    calculateTickTimeFunc: addMonths,
+    firstTickDateFunc: startOfYear,
+    renderTickLabel: renderTickLabelYear,
+  },
+  6: {
+    key: 'decade',
+    label: 'Decade',
+    visibleTicks: 11,
+    unit: 'year',
+    screenSpan: 4015 * DAY_IN_MS,
+    calculateTickTimeFunc: addYears,
+    firstTickDateFunc: startOfDecade,
+    renderTickLabel: renderTickLabelDecade,
+  },
+}
+
+export type ZoomLevel = keyof typeof ZOOM
+
+export const zoomMax = Math.max(...Object.keys(ZOOM).map(Number))
+export const zoomMin = Math.min(...Object.keys(ZOOM).map(Number))
+
+export const getTickLabel = (tickTime: number, zoom: ZoomLevel, firstTickDate: Date) => {
+  const { renderTickLabel, calculateTickTimeFunc } = ZOOM[zoom]
+  return renderTickLabel(tickTime, tickTime === calculateTickTimeFunc(firstTickDate, 0))
+}
+
+export const getPointPercent = (pointTime: number, zoom: ZoomLevel, firstTickDate: Date) => {
+  const { calculateTickTimeFunc, screenSpan, visibleTicks } = ZOOM[zoom]
+
+  const firstTickOffsetPercentage = (100 / visibleTicks) / 2
+  const firstTickOffsetMs = (screenSpan * firstTickOffsetPercentage) / 100
+  const screenStartTime = calculateTickTimeFunc(firstTickDate, 0) - firstTickOffsetMs
+  const timeSinceStart = pointTime - screenStartTime
+  const percentageOfScreenSpan = (timeSinceStart / screenSpan) * 100
+  return `${percentageOfScreenSpan}%`
+}

@@ -1,6 +1,7 @@
 
 import { LOCALE, } from '../config';
-import { ZOOM, zoomMax, zoomMin, FULL_DATE_FORMAT, dayNumber, sundayBasedWeekNumber } from '../utils';
+import { FULL_DATE_FORMAT, dayNumber, sundayBasedWeekNumber } from '../utils';
+import { ZOOM, zoomMax, zoomMin } from '../timeline/scales';
 
 
 interface HQProps {

@@ -1,7 +1,5 @@
 import { STARTING_ZOOM } from './config'
-import { ZOOM } from './utils'
-
-export type ZoomLevel = keyof typeof ZOOM
+import { ZOOM, type ZoomLevel } from './timeline/scales'
 
 export type ViewportRangeStrategy = 'centered' | 'currentContainingPeriod' | 'custom'
 

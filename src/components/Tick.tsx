@@ -1,4 +1,4 @@
-import { ZOOM, getPointPercent, getTickLabel } from '../utils';
+import { ZOOM, getPointPercent, getTickLabel } from '../timeline/scales';
 
 interface TickProps {
     tickTime: number;

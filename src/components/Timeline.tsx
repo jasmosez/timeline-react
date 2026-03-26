@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ZOOM } from '../utils';
+import { ZOOM } from '../timeline/scales';
 import Tick from './Tick';
 import NowTick from './NowTick';
 // import Span from './Span';

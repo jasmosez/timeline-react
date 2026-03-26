@@ -1,5 +1,6 @@
 import { LOCALE } from '../config';
-import { FULL_DATE_FORMAT, ZOOM } from '../utils';
+import { FULL_DATE_FORMAT } from '../utils';
+import { ZOOM } from '../timeline/scales';
 import Tick from './Tick';
 
 interface NowTickProps {

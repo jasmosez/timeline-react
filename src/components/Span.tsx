@@ -1,4 +1,4 @@
-import { ZOOM, getPointPercent } from '../utils';
+import { ZOOM, getPointPercent } from '../timeline/scales';
 
 interface SpanProps {
     tickTime: number;

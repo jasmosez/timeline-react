@@ -2,16 +2,17 @@ import { useEffect, useState } from 'react'
 // import { HDate, HebrewCalendar } from '@hebcal/core'
 
 import './App.css'
-import { getNow, ZOOM, zoomMax, zoomMin } from './utils'
+import { getNow } from './utils'
 import HQ from './components/HQ'
 import Timeline from './components/Timeline'
 import { PAN_AMOUNT, DEFAULT_BIRTH_DATE } from './config'
 import { createInitialViewport, getViewportFirstTickDate, type Viewport } from './viewport'
+import { ZOOM, zoomMax, zoomMin } from './timeline/scales'
 
 function App() {
   const [now, setNow] = useState(getNow)
   const [viewport, setViewport] = useState<Viewport>(() => createInitialViewport(now))
-  const [birthDate, setBirthDate] = useState(DEFAULT_BIRTH_DATE)
+  const [birthDate] = useState(DEFAULT_BIRTH_DATE)
 
   const zoom = viewport.zoomLevel
   const firstTickDate = getViewportFirstTickDate(viewport)
