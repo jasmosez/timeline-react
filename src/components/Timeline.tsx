@@ -1,5 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { ZOOM, getPointPercent } from '../timeline/scales';
+import { ZOOM } from '../timeline/scales';
+import {
+  createStructuralSpans as createTimelineStructuralSpans,
+  positionTimelinePoint,
+  positionTimelineSpan,
+} from '../timeline/layout';
 import { TickPoint } from './Tick';
 import type {
   PositionedTimelinePoint,
@@ -26,7 +31,7 @@ function Timeline({zoom, firstTickDate, now}: TimelineProps) {
 
   useEffect(() => {
     setTickPoints(createTickPoints());
-    setTimelineSpans(createStructuralSpans());
+    setTimelineSpans(createPositionedStructuralSpans());
     if (zoom !== timelineZoom || firstTickDate !== timelineFirstTickDate) {
       setPrevZoom(timelineZoom);
       setPrevFirstTickDate(timelineFirstTickDate);
@@ -58,11 +63,12 @@ function Timeline({zoom, firstTickDate, now}: TimelineProps) {
           timeMs: tickTime,
         };
 
-        allTickPoints.set(tickTime, {
-          ...point,
-          top: getPointPercent(point.timeMs, timelineZoom, timelineFirstTickDate),
-          opacity: fadeOut ? 0 : 1,
-        });
+        allTickPoints.set(
+          tickTime,
+          positionTimelinePoint(point, timelineZoom, timelineFirstTickDate, {
+            opacity: fadeOut ? 0 : 1,
+          }),
+        );
       }
     };
 
@@ -76,31 +82,10 @@ function Timeline({zoom, firstTickDate, now}: TimelineProps) {
     return Array.from(allTickPoints.values());
   };
 
-  const createStructuralSpans = () => {
-    const spans: PositionedTimelineSpan[] = [];
-    const { calculateTickTimeFunc, visibleTicks } = ZOOM[zoom];
-
-    for (let i = 0; i < visibleTicks - 1; i++) {
-      const startTimeMs = calculateTickTimeFunc(firstTickDate, i);
-      const endTimeMs = calculateTickTimeFunc(firstTickDate, i + 1);
-      const span: TimelineSpan = {
-        id: `structural-span-${startTimeMs}`,
-        kind: 'structural-period',
-        startTimeMs,
-        endTimeMs,
-      };
-      const startTop = Number.parseFloat(getPointPercent(span.startTimeMs, zoom, firstTickDate));
-      const endTop = Number.parseFloat(getPointPercent(span.endTimeMs, zoom, firstTickDate));
-
-      spans.push({
-        ...span,
-        top: `calc(${startTop}% + 2px)`,
-        height: `calc(${Math.max(endTop - startTop, 0)}% - 4px)`,
-        className: 'structural-span',
-      });
-    }
-
-    return spans;
+  const createPositionedStructuralSpans = () => {
+    return createTimelineStructuralSpans(zoom, firstTickDate).map((span: TimelineSpan) =>
+      positionTimelineSpan(span, zoom, firstTickDate, { className: 'structural-span' }),
+    );
   };
 
   return (
