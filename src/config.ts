@@ -7,7 +7,7 @@ if (PAUSED_TIME) {
   MockDate.set(PAUSED_TIME)
 }
 
-export const STARTING_ZOOM = 2 
+export const STARTING_SCALE_LEVEL = 2 
 export const LOCALE: Intl.LocalesArgument = 'en-US'
 export const PAN_AMOUNT = 1 // 1 time unit
 

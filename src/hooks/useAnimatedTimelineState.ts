@@ -1,43 +1,43 @@
 import { useEffect, useState } from 'react'
 
-import type { ZoomLevel } from '../timeline/scales'
+import type { ScaleLevel } from '../timeline/scales'
 
 type AnimatedTimelineState = {
-  timelineZoom: ZoomLevel
+  timelineScaleLevel: ScaleLevel
   timelineFocusTimeMs: number
-  prevZoom?: ZoomLevel
+  prevScaleLevel?: ScaleLevel
   prevFocusTimeMs?: number
   isZoomTransitioning: boolean
 }
 
-export function useAnimatedTimelineState(zoom: ZoomLevel, focusTimeMs: number): AnimatedTimelineState {
-  const [timelineZoom, setTimelineZoom] = useState<ZoomLevel>(zoom)
+export function useAnimatedTimelineState(scaleLevel: ScaleLevel, focusTimeMs: number): AnimatedTimelineState {
+  const [timelineScaleLevel, setTimelineScaleLevel] = useState<ScaleLevel>(scaleLevel)
   const [timelineFocusTimeMs, setTimelineFocusTimeMs] = useState<number>(focusTimeMs)
-  const [prevZoom, setPrevZoom] = useState<ZoomLevel>()
+  const [prevScaleLevel, setPrevScaleLevel] = useState<ScaleLevel>()
   const [prevFocusTimeMs, setPrevFocusTimeMs] = useState<number>()
 
   useEffect(() => {
-    if (zoom === timelineZoom && focusTimeMs === timelineFocusTimeMs) {
-      if (prevZoom !== undefined || prevFocusTimeMs !== undefined) {
-        setPrevZoom(undefined)
+    if (scaleLevel === timelineScaleLevel && focusTimeMs === timelineFocusTimeMs) {
+      if (prevScaleLevel !== undefined || prevFocusTimeMs !== undefined) {
+        setPrevScaleLevel(undefined)
         setPrevFocusTimeMs(undefined)
       }
       return
     }
 
-    if (zoom === timelineZoom) {
-      setPrevZoom(undefined)
+    if (scaleLevel === timelineScaleLevel) {
+      setPrevScaleLevel(undefined)
       setPrevFocusTimeMs(undefined)
       setTimelineFocusTimeMs(focusTimeMs)
       return
     }
 
-    setPrevZoom(timelineZoom)
+    setPrevScaleLevel(timelineScaleLevel)
     setPrevFocusTimeMs(timelineFocusTimeMs)
 
     const frameId = requestAnimationFrame(() => {
       const secondFrameId = requestAnimationFrame(() => {
-        setTimelineZoom(zoom)
+        setTimelineScaleLevel(scaleLevel)
         setTimelineFocusTimeMs(focusTimeMs)
       })
 
@@ -45,13 +45,13 @@ export function useAnimatedTimelineState(zoom: ZoomLevel, focusTimeMs: number): 
     })
 
     return () => cancelAnimationFrame(frameId)
-  }, [zoom, focusTimeMs, timelineZoom, timelineFocusTimeMs, prevZoom, prevFocusTimeMs])
+  }, [scaleLevel, focusTimeMs, timelineScaleLevel, timelineFocusTimeMs, prevScaleLevel, prevFocusTimeMs])
 
   return {
-    timelineZoom,
+    timelineScaleLevel,
     timelineFocusTimeMs,
-    prevZoom,
+    prevScaleLevel,
     prevFocusTimeMs,
-    isZoomTransitioning: prevZoom !== undefined && prevFocusTimeMs !== undefined,
+    isZoomTransitioning: prevScaleLevel !== undefined && prevFocusTimeMs !== undefined,
   }
 }

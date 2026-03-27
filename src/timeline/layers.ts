@@ -1,4 +1,4 @@
-import type { ZoomLevel } from './scales'
+import type { ScaleLevel } from './scales'
 import type { PositionedTimelinePoint, PositionedTimelineSpan } from './types'
 
 export type TimelineEnvironment = {
@@ -8,12 +8,12 @@ export type TimelineEnvironment = {
 
 export type LayerRenderContext = {
   environment: TimelineEnvironment
-  zoom: ZoomLevel
+  scaleLevel: ScaleLevel
   focusTimeMs: number
   startTickDate: Date
-  timelineZoom: ZoomLevel
+  timelineScaleLevel: ScaleLevel
   timelineFocusTimeMs: number
-  prevZoom?: ZoomLevel
+  prevScaleLevel?: ScaleLevel
   prevFocusTimeMs?: number
 }
 

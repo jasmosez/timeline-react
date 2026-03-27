@@ -1,5 +1,5 @@
 import { LOCALE } from '../config'
-import type { ZoomLevel, ZoomLevelConfig } from './scales'
+import type { ScaleLevel, ScaleLevelConfig } from './scales'
 
 // Constants for time in milliseconds
 const SECOND_IN_MS = 1000
@@ -194,7 +194,7 @@ const renderTickLabelDecade = (tickTime: number) => {
   return tickDate.toLocaleDateString(LOCALE, YEAR)
 }
 
-export const GREGORIAN_SCALE_CONFIG: Record<ZoomLevel, ZoomLevelConfig> = {
+export const GREGORIAN_SCALE_LEVEL_CONFIG: Record<ScaleLevel, ScaleLevelConfig> = {
   [-1]: {
     key: 'minute',
     label: 'Minute',
@@ -202,7 +202,7 @@ export const GREGORIAN_SCALE_CONFIG: Record<ZoomLevel, ZoomLevelConfig> = {
     unit: 'second',
     screenSpan: 61 * SECOND_IN_MS,
     calculateTickTimeFunc: addSeconds,
-    firstTickDateFunc: startOfMinute,
+    startTickDateFunc: startOfMinute,
     renderTickLabel: renderTickLabelMinute,
   },
   0: {
@@ -212,7 +212,7 @@ export const GREGORIAN_SCALE_CONFIG: Record<ZoomLevel, ZoomLevelConfig> = {
     unit: 'minute',
     screenSpan: 61 * MINUTE_IN_MS,
     calculateTickTimeFunc: addMinutes,
-    firstTickDateFunc: startOfHour,
+    startTickDateFunc: startOfHour,
     renderTickLabel: renderTickLabelHour,
   },
   1: {
@@ -222,7 +222,7 @@ export const GREGORIAN_SCALE_CONFIG: Record<ZoomLevel, ZoomLevelConfig> = {
     unit: 'hour',
     screenSpan: 25 * HOUR_IN_MS,
     calculateTickTimeFunc: addHours,
-    firstTickDateFunc: startOfDay,
+    startTickDateFunc: startOfDay,
     renderTickLabel: renderTickLabelDay,
   },
   2: {
@@ -232,7 +232,7 @@ export const GREGORIAN_SCALE_CONFIG: Record<ZoomLevel, ZoomLevelConfig> = {
     unit: 'day',
     screenSpan: 8 * DAY_IN_MS,
     calculateTickTimeFunc: addDays,
-    firstTickDateFunc: startOfWeek,
+    startTickDateFunc: startOfWeek,
     renderTickLabel: renderTickLabelWeek,
   },
   3: {
@@ -242,7 +242,7 @@ export const GREGORIAN_SCALE_CONFIG: Record<ZoomLevel, ZoomLevelConfig> = {
     unit: 'day',
     screenSpan: 32 * DAY_IN_MS,
     calculateTickTimeFunc: addDays,
-    firstTickDateFunc: startOfMonth,
+    startTickDateFunc: startOfMonth,
     renderTickLabel: renderTickLabelMonth,
   },
   4: {
@@ -252,7 +252,7 @@ export const GREGORIAN_SCALE_CONFIG: Record<ZoomLevel, ZoomLevelConfig> = {
     unit: 'month',
     screenSpan: 120 * DAY_IN_MS,
     calculateTickTimeFunc: addMonths,
-    firstTickDateFunc: startOfQuarter,
+    startTickDateFunc: startOfQuarter,
     renderTickLabel: renderTickLabelQuarter,
   },
   5: {
@@ -262,7 +262,7 @@ export const GREGORIAN_SCALE_CONFIG: Record<ZoomLevel, ZoomLevelConfig> = {
     unit: 'month',
     screenSpan: 400 * DAY_IN_MS,
     calculateTickTimeFunc: addMonths,
-    firstTickDateFunc: startOfYear,
+    startTickDateFunc: startOfYear,
     renderTickLabel: renderTickLabelYear,
   },
   6: {
@@ -272,7 +272,7 @@ export const GREGORIAN_SCALE_CONFIG: Record<ZoomLevel, ZoomLevelConfig> = {
     unit: 'year',
     screenSpan: 4015 * DAY_IN_MS,
     calculateTickTimeFunc: addYears,
-    firstTickDateFunc: startOfDecade,
+    startTickDateFunc: startOfDecade,
     renderTickLabel: renderTickLabelDecade,
   },
 }

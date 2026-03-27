@@ -1,12 +1,12 @@
-import { getVisibleTimeRange, type ZoomLevel } from './scales'
+import { getVisibleTimeRange, type ScaleLevel } from './scales'
 import { positionTimelinePoint } from './layout'
 import type { TimelineLayer } from './layers'
 import type { PositionedTimelinePoint, TimelinePoint } from './types'
 
 type BirthdayMarkerParams = {
-  zoom: ZoomLevel
+  scaleLevel: ScaleLevel
   focusTimeMs: number
-  timelineZoom: ZoomLevel
+  timelineScaleLevel: ScaleLevel
   timelineFocusTimeMs: number
   startTickDate: Date
   birthDate: Date
@@ -24,14 +24,14 @@ const createBirthdayAnniversary = (birthDate: Date, age: number) =>
   )
 
 export const createBirthdayLayerPoints = ({
-  zoom,
+  scaleLevel,
   focusTimeMs,
-  timelineZoom,
+  timelineScaleLevel,
   timelineFocusTimeMs,
   startTickDate,
   birthDate,
 }: BirthdayMarkerParams): PositionedTimelinePoint[] => {
-  const { startTimeMs: rangeStartMs, endTimeMs: rangeEndMs } = getVisibleTimeRange(zoom, focusTimeMs)
+  const { startTimeMs: rangeStartMs, endTimeMs: rangeEndMs } = getVisibleTimeRange(scaleLevel, focusTimeMs)
   const startingAge = Math.max(new Date(rangeStartMs).getFullYear() - birthDate.getFullYear() - 1, 0)
   const endingAge = Math.max(new Date(rangeEndMs).getFullYear() - birthDate.getFullYear() + 1, 0)
   const points: PositionedTimelinePoint[] = []
@@ -54,7 +54,7 @@ export const createBirthdayLayerPoints = ({
     points.push(
       positionTimelinePoint(
         point,
-        timelineZoom,
+        timelineScaleLevel,
         timelineFocusTimeMs,
         startTickDate,
         {
@@ -71,12 +71,12 @@ export const createBirthdayLayerPoints = ({
 export const birthdayLayer: TimelineLayer = {
   id: 'birthday',
   label: 'Birthday',
-  getPoints: ({ zoom, focusTimeMs, timelineZoom, timelineFocusTimeMs, startTickDate, environment }) =>
+  getPoints: ({ scaleLevel, focusTimeMs, timelineScaleLevel, timelineFocusTimeMs, startTickDate, environment }) =>
     createBirthdayLayerPoints({
-      zoom,
+      scaleLevel,
       focusTimeMs,
       startTickDate,
-      timelineZoom,
+      timelineScaleLevel,
       timelineFocusTimeMs,
       birthDate: environment.birthDate,
     }),

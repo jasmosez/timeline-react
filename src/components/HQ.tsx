@@ -1,13 +1,13 @@
 
 import { LOCALE, } from '../config';
 import { FULL_DATE_FORMAT, dayNumber, sundayBasedWeekNumber } from '../utils';
-import { SCALE_CONFIG, zoomMax, zoomMin } from '../timeline/scales';
+import { SCALE_LEVEL_CONFIG, scaleLevelMax, scaleLevelMin } from '../timeline/scales';
 import type { TimelineLayer, TimelineLayerId } from '../timeline/layers';
 
 
 interface HQProps {
     now: Date;
-    zoom: keyof typeof SCALE_CONFIG;
+    scaleLevel: keyof typeof SCALE_LEVEL_CONFIG;
     startTickDate: Date;
     handleZoom: (direction: '+' | '-') => void;
     handlePan: (direction: '+' | '-' | 'reset') => void;
@@ -21,7 +21,7 @@ interface HQProps {
 
 export default function HQ({
   now,
-  zoom,
+  scaleLevel,
   startTickDate,
   handleZoom,
   handlePan,
@@ -33,7 +33,7 @@ export default function HQ({
   return (
     // TODO: abstract styles to css file
       <div className='hq-container'>
-          <div className='hq-title'>{SCALE_CONFIG[zoom].label} View</div>
+          <div className='hq-title'>{SCALE_LEVEL_CONFIG[scaleLevel].label} View</div>
           <div className='hq-controls-container'>
             <div className='hq-controls'>
               <div className='hq-control'>
@@ -41,8 +41,8 @@ export default function HQ({
 
                 {/* TODO: see comment on handlezoom definition */}
                 <div className='hq-control-buttons'>
-                  <button disabled={zoom === zoomMax} onClick={() => handleZoom('+')}>-</button>
-                  <button disabled={zoom === zoomMin} onClick={() => handleZoom('-')}>+</button>
+                  <button disabled={scaleLevel === scaleLevelMax} onClick={() => handleZoom('+')}>-</button>
+                  <button disabled={scaleLevel === scaleLevelMin} onClick={() => handleZoom('-')}>+</button>
                 </div>
                 
               </div>
@@ -60,7 +60,7 @@ export default function HQ({
             </div>
             <div className='hq-controls-info'>
               <div style={{fontWeight: 'bold', marginTop: '10px'}}>First tick</div>
-              <div>{startTickDate.toLocaleString(LOCALE, zoom === -1 ? {...FULL_DATE_FORMAT, ...{second: '2-digit'}} : FULL_DATE_FORMAT)}</div>
+              <div>{startTickDate.toLocaleString(LOCALE, scaleLevel === -1 ? {...FULL_DATE_FORMAT, ...{second: '2-digit'}} : FULL_DATE_FORMAT)}</div>
               
               <div className='now' style={{fontWeight: 'bold', marginTop: '10px'}}>Currently</div>
               <div className='now'>{now.toLocaleString(LOCALE, FULL_DATE_FORMAT)}</div>
@@ -82,9 +82,9 @@ export default function HQ({
                   </label>
                 ))}
               </div>
-              {/* <div>Viewing one {SCALE_CONFIG[zoom].key}</div> */}
-              {/* <div>Each tick is the start of a {SCALE_CONFIG[zoom].unit}</div> */}
-              {/* <div>Each span between ticks represents one whole {SCALE_CONFIG[zoom].unit}</div> */}
+              {/* <div>Viewing one {SCALE_LEVEL_CONFIG[scaleLevel].key}</div> */}
+              {/* <div>Each tick is the start of a {SCALE_LEVEL_CONFIG[scaleLevel].unit}</div> */}
+              {/* <div>Each span between ticks represents one whole {SCALE_LEVEL_CONFIG[scaleLevel].unit}</div> */}
               
               {/* <div>Birthday-based Week {birthdayBasedWeekNumber(startTickDate)}</div> */}
             </div>

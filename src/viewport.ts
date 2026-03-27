@@ -1,24 +1,24 @@
-import { STARTING_ZOOM } from './config'
-import { SCALE_CONFIG, getCenteredFirstTickDate, type ZoomLevel } from './timeline/scales'
+import { STARTING_SCALE_LEVEL } from './config'
+import { SCALE_LEVEL_CONFIG, getCenteredStartTickDate, type ScaleLevel } from './timeline/scales'
 
 export type ViewportRangeStrategy = 'centered' | 'currentContainingPeriod'
 
 export interface Viewport {
   focusTimeMs: number
-  zoomLevel: ZoomLevel
+  scaleLevel: ScaleLevel
   rangeStrategy: ViewportRangeStrategy
 }
 
 export const createInitialViewport = (now: Date): Viewport => ({
   focusTimeMs: now.getTime(),
-  zoomLevel: STARTING_ZOOM,
+  scaleLevel: STARTING_SCALE_LEVEL,
   rangeStrategy: 'currentContainingPeriod',
 })
 
 export const getViewportStartTickDate = (viewport: Viewport) => {
   if (viewport.rangeStrategy === 'centered') {
-    return getCenteredFirstTickDate(viewport.zoomLevel, viewport.focusTimeMs)
+    return getCenteredStartTickDate(viewport.scaleLevel, viewport.focusTimeMs)
   }
 
-  return SCALE_CONFIG[viewport.zoomLevel].firstTickDateFunc(new Date(viewport.focusTimeMs))
+  return SCALE_LEVEL_CONFIG[viewport.scaleLevel].startTickDateFunc(new Date(viewport.focusTimeMs))
 }

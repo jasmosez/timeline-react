@@ -11,10 +11,10 @@ import { gregorianLayer } from './timeline/gregorian'
 import type { TimelineEnvironment, TimelineLayerId } from './timeline/layers'
 import { createInitialViewport, getViewportStartTickDate, type Viewport } from './viewport'
 import {
-  SCALE_CONFIG,
+  SCALE_LEVEL_CONFIG,
   getViewportCenterTimeMs,
-  zoomMax,
-  zoomMin,
+  scaleLevelMax,
+  scaleLevelMin,
 } from './timeline/scales'
 
 const AVAILABLE_TIMELINE_LAYERS = [gregorianLayer, birthdayLayer]
@@ -25,7 +25,7 @@ function App() {
   const [birthDate] = useState(DEFAULT_BIRTH_DATE)
   const [activeLayerIds, setActiveLayerIds] = useState<TimelineLayerId[]>(['gregorian'])
 
-  const zoom = viewport.zoomLevel
+  const scaleLevel = viewport.scaleLevel
   const startTickDate = getViewportStartTickDate(viewport)
   const activeLayers = AVAILABLE_TIMELINE_LAYERS.filter((layer) => activeLayerIds.includes(layer.id))
   const timelineEnvironment: TimelineEnvironment = {
@@ -50,7 +50,7 @@ function App() {
     return () => clearTimeout(timeout)
   }, [])
 
-  // + is zoom out, counter-intuitively. That is because it is a larger amount of time.
+  // + zooms out, counter-intuitively. That is because it selects a larger time scale.
   // TODO: make this more intuitive
   const updateZoomBySteps = (steps: number) => {
     if (steps === 0) {
@@ -58,18 +58,21 @@ function App() {
     }
 
     setViewport((prevViewport) => {
-      const newZoom = Math.min(Math.max(prevViewport.zoomLevel + steps, zoomMin), zoomMax)
+      const nextScaleLevel = Math.min(
+        Math.max(prevViewport.scaleLevel + steps, scaleLevelMin),
+        scaleLevelMax,
+      )
 
-      if (newZoom === prevViewport.zoomLevel) {
+      if (nextScaleLevel === prevViewport.scaleLevel) {
         return prevViewport
       }
 
       const prevStartTickDate = getViewportStartTickDate(prevViewport)
-      const centerTimeMs = getViewportCenterTimeMs(prevViewport.zoomLevel, prevStartTickDate)
+      const centerTimeMs = getViewportCenterTimeMs(prevViewport.scaleLevel, prevStartTickDate)
 
       return {
         focusTimeMs: centerTimeMs,
-        zoomLevel: newZoom,
+        scaleLevel: nextScaleLevel,
         rangeStrategy: 'centered',
       }
     })
@@ -84,20 +87,20 @@ function App() {
       if (direction === 'reset') {
         return {
           focusTimeMs: now.getTime(),
-          zoomLevel: prevViewport.zoomLevel,
+          scaleLevel: prevViewport.scaleLevel,
           rangeStrategy: 'currentContainingPeriod',
         }
       }
 
       const prevStartTickDate = getViewportStartTickDate(prevViewport)
       const nextBoundaryTimeMs = direction === '+'
-        ? SCALE_CONFIG[prevViewport.zoomLevel].calculateTickTimeFunc(prevStartTickDate, PAN_AMOUNT)
-        : SCALE_CONFIG[prevViewport.zoomLevel].calculateTickTimeFunc(prevStartTickDate, -PAN_AMOUNT)
+        ? SCALE_LEVEL_CONFIG[prevViewport.scaleLevel].calculateTickTimeFunc(prevStartTickDate, PAN_AMOUNT)
+        : SCALE_LEVEL_CONFIG[prevViewport.scaleLevel].calculateTickTimeFunc(prevStartTickDate, -PAN_AMOUNT)
       const boundaryDeltaMs = nextBoundaryTimeMs - prevStartTickDate.getTime()
 
       return {
         focusTimeMs: prevViewport.focusTimeMs + boundaryDeltaMs,
-        zoomLevel: prevViewport.zoomLevel,
+        scaleLevel: prevViewport.scaleLevel,
         rangeStrategy: 'centered',
       }
     })
@@ -121,7 +124,7 @@ function App() {
     setViewport((prevViewport) => {
       return {
         focusTimeMs: prevViewport.focusTimeMs + deltaMs,
-        zoomLevel: prevViewport.zoomLevel,
+        scaleLevel: prevViewport.scaleLevel,
         rangeStrategy: 'centered',
       }
     })
@@ -135,7 +138,7 @@ function App() {
     <>
       <HQ
         now={now}
-        zoom={zoom}
+        scaleLevel={scaleLevel}
         startTickDate={startTickDate}
         handleZoom={handleZoom}
         handlePan={handlePan}
@@ -146,7 +149,7 @@ function App() {
       />
       <Timeline
         environment={timelineEnvironment}
-        zoom={zoom}
+        scaleLevel={scaleLevel}
         focusTimeMs={viewport.focusTimeMs}
         startTickDate={startTickDate}
         activeLayers={activeLayers}

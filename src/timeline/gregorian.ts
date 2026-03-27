@@ -1,4 +1,4 @@
-import { SCALE_CONFIG, getCenteredFirstTickDate, getVisibleTimeRange, type ZoomLevel } from './scales'
+import { SCALE_LEVEL_CONFIG, getCenteredStartTickDate, getVisibleTimeRange, type ScaleLevel } from './scales'
 import { createStructuralSpansForRange, positionTimelinePoint, positionTimelineSpan } from './layout'
 import type { TimelineLayer } from './layers'
 import type {
@@ -8,11 +8,11 @@ import type {
 } from './types'
 
 type TickCollectionParams = {
-  zoom: ZoomLevel
+  scaleLevel: ScaleLevel
   focusTimeMs: number
-  timelineZoom: ZoomLevel
+  timelineScaleLevel: ScaleLevel
   timelineFocusTimeMs: number
-  prevZoom?: ZoomLevel
+  prevScaleLevel?: ScaleLevel
   prevFocusTimeMs?: number
 }
 
@@ -22,19 +22,19 @@ const createTickPoint = (tickTime: number): TimelinePoint => ({
   timeMs: tickTime,
 })
 
-const addPositionedTicksForZoom = (
+const addPositionedTicksForScaleLevel = (
   points: Map<number, PositionedTimelinePoint>,
-  zoomLevel: ZoomLevel,
+  scaleLevel: ScaleLevel,
   baseFocusTimeMs: number,
-  timelineZoom: ZoomLevel,
+  timelineScaleLevel: ScaleLevel,
   timelineFocusTimeMs: number,
   fadeOut: boolean,
 ) => {
-  const { calculateTickTimeFunc, firstTickDateFunc, screenSpan } = SCALE_CONFIG[zoomLevel]
-  const bufferedRange = getVisibleTimeRange(zoomLevel, baseFocusTimeMs)
+  const { calculateTickTimeFunc, startTickDateFunc, screenSpan } = SCALE_LEVEL_CONFIG[scaleLevel]
+  const bufferedRange = getVisibleTimeRange(scaleLevel, baseFocusTimeMs)
   const bufferedStartMs = bufferedRange.startTimeMs - screenSpan * 0.5
   const bufferedEndMs = bufferedRange.endTimeMs + screenSpan * 0.5
-  let tickTime = firstTickDateFunc(new Date(bufferedStartMs)).getTime()
+  let tickTime = startTickDateFunc(new Date(bufferedStartMs)).getTime()
 
   while (tickTime <= bufferedEndMs) {
     const point = createTickPoint(tickTime)
@@ -43,9 +43,9 @@ const addPositionedTicksForZoom = (
       tickTime,
       positionTimelinePoint(
         point,
-        timelineZoom,
+        timelineScaleLevel,
         timelineFocusTimeMs,
-        getCenteredFirstTickDate(timelineZoom, timelineFocusTimeMs),
+        getCenteredStartTickDate(timelineScaleLevel, timelineFocusTimeMs),
         {
         opacity: fadeOut ? 0 : 1,
         },
@@ -57,37 +57,37 @@ const addPositionedTicksForZoom = (
 }
 
 export const createGregorianTickPoints = ({
-  zoom,
+  scaleLevel,
   focusTimeMs,
-  timelineZoom,
+  timelineScaleLevel,
   timelineFocusTimeMs,
-  prevZoom,
+  prevScaleLevel,
   prevFocusTimeMs,
 }: TickCollectionParams): PositionedTimelinePoint[] => {
   const points = new Map<number, PositionedTimelinePoint>()
 
-  if (prevZoom !== undefined && prevFocusTimeMs !== undefined && timelineZoom === zoom) {
-    addPositionedTicksForZoom(points, prevZoom, prevFocusTimeMs, timelineZoom, timelineFocusTimeMs, true)
-  } else if (timelineZoom !== zoom) {
-    addPositionedTicksForZoom(points, timelineZoom, timelineFocusTimeMs, timelineZoom, timelineFocusTimeMs, false)
+  if (prevScaleLevel !== undefined && prevFocusTimeMs !== undefined && timelineScaleLevel === scaleLevel) {
+    addPositionedTicksForScaleLevel(points, prevScaleLevel, prevFocusTimeMs, timelineScaleLevel, timelineFocusTimeMs, true)
+  } else if (timelineScaleLevel !== scaleLevel) {
+    addPositionedTicksForScaleLevel(points, timelineScaleLevel, timelineFocusTimeMs, timelineScaleLevel, timelineFocusTimeMs, false)
   }
 
-  addPositionedTicksForZoom(points, zoom, focusTimeMs, timelineZoom, timelineFocusTimeMs, false)
+  addPositionedTicksForScaleLevel(points, scaleLevel, focusTimeMs, timelineScaleLevel, timelineFocusTimeMs, false)
 
   return Array.from(points.values())
 }
 
 export const createGregorianStructuralSpans = (
-  zoom: ZoomLevel,
+  scaleLevel: ScaleLevel,
   focusTimeMs: number,
 ): PositionedTimelineSpan[] => {
-  const { screenSpan } = SCALE_CONFIG[zoom]
-  const bufferedRange = getVisibleTimeRange(zoom, focusTimeMs)
+  const { screenSpan } = SCALE_LEVEL_CONFIG[scaleLevel]
+  const bufferedRange = getVisibleTimeRange(scaleLevel, focusTimeMs)
   const bufferedStartMs = bufferedRange.startTimeMs - screenSpan * 0.5
   const bufferedEndMs = bufferedRange.endTimeMs + screenSpan * 0.5
 
-  return createStructuralSpansForRange(zoom, bufferedStartMs, bufferedEndMs).map((span) =>
-    positionTimelineSpan(span, zoom, focusTimeMs, { className: 'structural-span' }),
+  return createStructuralSpansForRange(scaleLevel, bufferedStartMs, bufferedEndMs).map((span) =>
+    positionTimelineSpan(span, scaleLevel, focusTimeMs, { className: 'structural-span' }),
   )
 }
 
@@ -95,5 +95,5 @@ export const gregorianLayer: TimelineLayer = {
   id: 'gregorian',
   label: 'Gregorian',
   getPoints: createGregorianTickPoints,
-  getSpans: ({ zoom, focusTimeMs }) => createGregorianStructuralSpans(zoom, focusTimeMs),
+  getSpans: ({ scaleLevel, focusTimeMs }) => createGregorianStructuralSpans(scaleLevel, focusTimeMs),
 }
