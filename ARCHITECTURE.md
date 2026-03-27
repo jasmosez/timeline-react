@@ -52,6 +52,22 @@ The next likely shift is similar for zoom: `visibleDurationMs` will likely
 become the primary zoom state, while named scale bands become derived
 interpretations of that duration.
 
+### Current Architecture Shape
+
+The current implementation already has several important seams in place:
+
+- a real viewport object in app state
+- a layer registry and active layer selection in app state
+- shared timeline environment data passed to layers
+- normalized point and span primitives
+- a layout step that positions semantic primitives against the visible range
+- a dedicated animation hook that separates zoom-transition state from ordinary
+  pan updates
+
+This means the code is no longer organized around “render ticks directly from a
+single monolithic zoom config.” It is already partway into the intended engine
+shape.
+
 ### Rendering Flow
 
 The current rendering pipeline is roughly:
@@ -68,6 +84,14 @@ Most of the timeline domain logic now lives in focused modules under
 [src/timeline](/Users/jms/code/timeline-react/src/timeline) rather than one
 utility file.
 
+The current code path is roughly:
+
+- `App` owns viewport state, layer selection, and environment
+- `Timeline` orchestrates layer rendering for the current viewport
+- active layers generate semantic points and spans
+- layout helpers convert those into positioned render objects
+- point and span view components render the final DOM elements
+
 For now, the default structural rendering path is still Gregorian-backed. That
 is intentional for the current phase: the interaction and viewport model are
 being generalized faster than the structural segmentation rules.
@@ -75,10 +99,12 @@ being generalized faster than the structural segmentation rules.
 ### Strengths of the Current Prototype
 
 - It already proves the core visual metaphor.
+- Scroll-based pan now feels much closer to free exploration than button-only
+  navigation did.
 - Discrete zoom levels make the product legible early.
 - Time is already positioned continuously within the visible screen span.
 - The app has a first example of alternate time interpretation via
-  birthday-relative counters.
+  birthday-relative counters and anniversary markers.
 - Some views already behave more like "show the current containing period" than
   "center directly on now."
 
@@ -100,10 +126,10 @@ Key issues:
 
 ## Recommended Direction
 
-## 1. Introduce an Explicit Viewport Model
+## 1. Continue the Explicit Viewport Model
 
-The next refactor should replace the implicit “first tick plus zoom” mental
-model with an explicit viewport model.
+The viewport model is now in place, and it should remain the center of gravity
+for future navigation work.
 
 Suggested shape:
 
@@ -128,7 +154,8 @@ type Viewport = {
 }
 ```
 
-Why this instead of `firstTickDate` as the primary model?
+Why keep this as the primary model instead of drifting back toward structural
+tick anchoring?
 
 - viewport behavior becomes explicit rather than implicit
 - zooming around a focal point becomes conceptually cleaner
@@ -138,8 +165,8 @@ Why this instead of `firstTickDate` as the primary model?
 - "show the current week/month/period" remains possible without pretending the
   view is literally centered on now
 
-For the near term, discrete zoom levels can still derive a tick-aligned visible
-range from this viewport.
+For the current implementation, discrete scale levels still derive a structural
+visible range from this viewport.
 
 Examples:
 
@@ -179,10 +206,9 @@ For the first prototype of this model, the structural defaults can remain
 Gregorian-backed. That is a useful interim step, not the final architectural
 destination.
 
-## 2. Separate Scale from Calendar Interpretation
+## 2. Continue Separating Scale from Calendar Interpretation
 
-The current `ZOOM` object is carrying too much.
-It should be split into at least two concepts:
+This separation has started, but it is not complete.
 
 This distinction matters because scale is not the same thing as period identity.
 A "month-scale" view should not be hard-coded to mean a Gregorian month. It is
@@ -216,7 +242,7 @@ This answers:
 - which markers or spans are important at this scale?
 
 Gregorian, birthday-relative, Hebrew, and future astrology logic should live
-here rather than inside one global zoom config.
+here rather than inside one global scale config.
 
 However, the next continuous-zoom experiment does not need to solve that split
 perfectly. It is acceptable for the current scale bands to keep using
@@ -280,12 +306,13 @@ later attach to those derived periods or to equivalent explicit ranges.
 This is the main step that unlocks events, custom spans, zmanim, and future
 astrological windows without redesigning the renderer each time.
 
-## 4. Introduce a Layer Interface
+## 4. Evolve the Layer Interface
 
 The product vision depends on multiple simultaneous interpretations of the same
-time range. That should become explicit.
+time range. That is now explicit in code, but the interface is still an early
+version.
 
-Suggested near-term interface:
+Current shape, conceptually:
 
 ```ts
 type LayerContext = {
@@ -302,22 +329,25 @@ type LayerContext = {
 type TimelineLayer = {
   id: string
   label: string
-  enabledByDefault: boolean
   getPoints: (context: LayerContext) => TimelinePoint[]
-  getSpans?: (context: LayerContext) => TimelineSpan[]
-  getMetadata?: (context: LayerContext) => Array<{ id: string; label: string; value: string }>
+  getSpans: (context: LayerContext) => TimelineSpan[]
 }
 ```
 
-Near-term layers:
+Current implemented layers:
 
 - Gregorian layer
-- birthday-relative layer
-- Hebrew layer
+- birthday marker layer behavior
 
 Future layers:
 
+- fuller birthday-relative structural layer behavior
+- Hebrew layer
 - astrology layer
+
+The key current lesson is that not every layer is the same kind of layer.
+Some are primarily segmentation-style, while others are marker-style. A single
+system may eventually need to do both.
 - imported calendar layer
 - notes/journaling layer
 

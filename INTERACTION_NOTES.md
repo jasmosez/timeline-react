@@ -18,6 +18,7 @@ Current implementation:
 - scrolling up moves forward in time
 - scrolling down moves backward in time
 - panning is driven by continuous updates to viewport `focusTimeMs`
+- points and spans are generated with buffered off-screen range coverage for pan
 
 This should become the primary way to explore the timeline.
 Button-based pan controls may remain temporarily, but should become secondary.
@@ -34,6 +35,8 @@ Current implementation:
 - buttons may remain during transition, but should become secondary controls
 - zoom still moves between discrete scale levels
 - zoom transitions are animated separately from pan motion
+- the current zoom model is now the main interaction area that feels less
+  mature than pan
 
 Next experiment direction:
 
@@ -127,6 +130,8 @@ Google Earth is a useful inspiration for this interaction philosophy.
 - Pan and zoom should not share the same animation strategy. Continuous pan
   should feel immediate, while discrete zoom may still benefit from staged
   transitions.
+- A continuous viewport model feels much healthier than deriving visible motion
+  from the leading structural tick alone.
 - Label formatting that works well for static views can become noisy during
   motion. Label strategy will need another pass with fluid navigation in mind.
 - The next zoom prototype should target the real desired paradigm rather than

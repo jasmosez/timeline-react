@@ -202,6 +202,9 @@ The current app already demonstrates the basic product direction:
 - a configurable birth date
 - life-relative day and week counters
 - layered rendering for Gregorian structure and birthday markers
+- app-level layer toggles
+- explicit viewport state built around focus time
+- normalized point and span rendering primitives
 
 Known current limitations include:
 
@@ -243,6 +246,14 @@ Success looks like:
 - the architecture can support continuous zoom without assuming Gregorian
   structure is the only long-term possibility
 
+Current progress:
+
+- explicit viewport state is in place
+- scroll-based panning is in place
+- points and spans are first-class render primitives
+- Gregorian structure and birthday markers both render through the layer system
+- the main remaining Phase 1 risk area is zoom behavior and label strategy
+
 ### Phase 2: Formalize Timekeeping Layers
 
 Goal: model multiple time systems without fragmenting the UI architecture.
@@ -263,6 +274,12 @@ Success looks like:
 - multiple time systems can appear together in one view
 - layers can be toggled or reprioritized cleanly
 - core rendering does not depend on one calendar model
+
+Current progress:
+
+- the first layer interface exists
+- Gregorian is the default structural layer
+- birthday-relative rendering has begun in marker form, not yet structural form
 
 ### Phase 3: Add Notes and Planning Primitives
 
