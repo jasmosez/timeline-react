@@ -48,6 +48,10 @@ The most important current shift is that `focusTimeMs` inside the viewport is
 now the primary navigation driver. A leading `startTickDate` is still derived
 for structural labeling and readouts, but it no longer drives pan behavior.
 
+The next likely shift is similar for zoom: `visibleDurationMs` will likely
+become the primary zoom state, while named scale bands become derived
+interpretations of that duration.
+
 ### Rendering Flow
 
 The current rendering pipeline is roughly:
@@ -63,6 +67,10 @@ The current rendering pipeline is roughly:
 Most of the timeline domain logic now lives in focused modules under
 [src/timeline](/Users/jms/code/timeline-react/src/timeline) rather than one
 utility file.
+
+For now, the default structural rendering path is still Gregorian-backed. That
+is intentional for the current phase: the interaction and viewport model are
+being generalized faster than the structural segmentation rules.
 
 ### Strengths of the Current Prototype
 
@@ -86,6 +94,9 @@ Key issues:
 - `NowTick` is still special-cased outside the layer system
 - zoom interaction remains discrete even though pan is now continuous
 - label strategy is still tuned more for static views than for fluid motion
+- current scale definitions are still backed by Gregorian default structure,
+  even though the long-term model should allow other layers to become primary
+  at the same visible duration
 
 ## Recommended Direction
 
@@ -97,11 +108,11 @@ model with an explicit viewport model.
 Suggested shape:
 
 ```ts
-type ZoomLevelId = 'minute' | 'hour' | 'day' | 'week' | 'month' | 'quarter' | 'year' | 'decade'
+type ScaleLevelId = 'minute' | 'hour' | 'day' | 'week' | 'month' | 'quarter' | 'year' | 'decade'
 
 type Viewport = {
   focusTimeMs: number
-  zoomLevel: ZoomLevelId
+  scaleLevel: ScaleLevelId
   rangeStrategy: 'centered' | 'currentContainingPeriod'
 }
 ```
@@ -111,7 +122,7 @@ This can later expand if needed:
 ```ts
 type Viewport = {
   focusTimeMs: number
-  zoomLevel: ZoomLevelId
+  scaleLevel: ScaleLevelId
   rangeStrategy: 'centered' | 'currentContainingPeriod'
   interactionMode?: 'live' | 'exploring'
 }
@@ -136,6 +147,38 @@ Examples:
   range derived from the current Gregorian week
 - a recentered exploration mode may use `rangeStrategy: 'centered'`
 
+### Next Zoom Step: Continuous Duration with Derived Scale Bands
+
+The next likely experiment should make zoom more like pan: continuous in the
+underlying viewport model, while still using named scale bands as derived
+interpretations.
+
+Suggested direction:
+
+```ts
+type Viewport = {
+  focusTimeMs: number
+  visibleDurationMs: number
+  rangeStrategy: 'centered' | 'currentContainingPeriod'
+}
+
+type ActiveScaleBand = {
+  scaleLevel: ScaleLevelId
+  transitionProgress: number
+}
+```
+
+In this model:
+
+- `visibleDurationMs` becomes the primary zoom state
+- named scale bands are derived from the current duration
+- band changes can begin as threshold-based structural swaps
+- later, adjacent bands may crossfade or progressively reveal labels
+
+For the first prototype of this model, the structural defaults can remain
+Gregorian-backed. That is a useful interim step, not the final architectural
+destination.
+
 ## 2. Separate Scale from Calendar Interpretation
 
 The current `ZOOM` object is carrying too much.
@@ -157,7 +200,7 @@ Example:
 
 ```ts
 type ScaleDefinition = {
-  id: ZoomLevelId
+  id: ScaleLevelId
   visibleDurationMs: number
   targetTickCount: number
   defaultPanStepMs?: number
@@ -174,6 +217,11 @@ This answers:
 
 Gregorian, birthday-relative, Hebrew, and future astrology logic should live
 here rather than inside one global zoom config.
+
+However, the next continuous-zoom experiment does not need to solve that split
+perfectly. It is acceptable for the current scale bands to keep using
+Gregorian-backed structural defaults while the viewport and interaction model
+become duration-driven.
 
 This means:
 

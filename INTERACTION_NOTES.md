@@ -35,6 +35,13 @@ Current implementation:
 - zoom still moves between discrete scale levels
 - zoom transitions are animated separately from pan motion
 
+Next experiment direction:
+
+- zoom should eventually change `visibleDurationMs` continuously
+- named scale levels should become derived scale bands rather than hard modes
+- threshold crossings may initially swap dominant structure before later gaining
+  smoother crossfades or progressive reveal
+
 ### Viewport Behavior
 
 The default interaction model should support free exploration.
@@ -75,6 +82,14 @@ Current implementation:
 The near-term goal is to approach the feeling of map navigation and progressive
 reveal without prematurely solving every continuous zoom problem.
 
+The next recommended prototype is semi-continuous:
+
+- `visibleDurationMs` changes continuously
+- an active scale band is derived from the current duration
+- Gregorian-backed structural defaults remain in place for the first pass
+- later iterations can separate those bands more fully from Gregorian
+  assumptions
+
 ## `now` Behavior
 
 `now` is currently best understood as a marker-style element rather than part of
@@ -114,6 +129,10 @@ Google Earth is a useful inspiration for this interaction philosophy.
   transitions.
 - Label formatting that works well for static views can become noisy during
   motion. Label strategy will need another pass with fluid navigation in mind.
+- The next zoom prototype should target the real desired paradigm rather than
+  over-polishing the current step-only model.
+- It is acceptable for the first continuous-zoom experiment to keep Gregorian
+  default structure while the interaction model becomes duration-driven.
 
 ## Open Questions
 
@@ -125,3 +144,4 @@ Google Earth is a useful inspiration for this interaction philosophy.
 - How should label density adapt during faster, more fluid navigation?
 - When should the project move from discrete zoom levels to semi-continuous or
   continuous zoom?
+- When should scale bands stop relying on Gregorian-backed structural defaults?

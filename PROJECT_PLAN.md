@@ -129,14 +129,16 @@ Likely represented internally by a JavaScript `Date` or timestamp.
 ### 2. Viewport
 
 The currently visible segment of the timeline.
-This includes the active zoom level, visible range, and current focal point.
+This includes the current focal point and visible range. In the longer-term
+model, visible duration may become more primary than a named zoom level.
 
-### 3. Zoom Level
+### 3. Scale Level / Scale Band
 
 A discrete representation of scale used by the current implementation.
 Examples: minute, hour, day, week, month, quarter, year, decade.
 
-Long term, the app may move toward more continuous zoom behavior.
+Long term, these may become derived scale bands rather than primary state,
+with continuous visible duration driving zoom behavior underneath.
 
 ### 4. Tick
 
@@ -204,6 +206,8 @@ The current app already demonstrates the basic product direction:
 Known current limitations include:
 
 - zoom animation behavior is still rough
+- zoom is still driven by discrete scale levels rather than continuous visible
+  duration
 - label behavior during motion still needs design work
 - the README does not yet describe the actual project
 - timezone handling is minimal
@@ -229,12 +233,15 @@ Milestones:
 - establish a cleaner styling and layout foundation
 - make Phase 1 abstractions compatible with future continuous or semi-continuous
   zoom work
+- prototype continuous visible-duration zoom with derived scale bands
 
 Success looks like:
 
 - the timeline is pleasant to navigate
 - panning and zooming feel stable and predictable
 - the rendering model can support both points and spans
+- the architecture can support continuous zoom without assuming Gregorian
+  structure is the only long-term possibility
 
 ### Phase 2: Formalize Timekeeping Layers
 
@@ -300,6 +307,8 @@ Milestones:
 - extend zoom range beyond decade
 - improve performance for dense views and long spans
 - refine interaction design for advanced navigation
+- further separate scale bands from Gregorian-backed structural defaults when
+  layer architecture is ready
 
 Success looks like:
 
@@ -324,6 +333,10 @@ continues:
   can safely wait?
 - Should the layer model eventually distinguish explicitly between
   segmentation-style layers and marker-style layers?
+- When should continuous visible-duration zoom become primary state in the
+  viewport?
+- When should scale levels stop being Gregorian-backed defaults and become more
+  fully layer-neutral?
 
 This section should also serve as a parking lot for open design questions that
 do not yet block implementation.
@@ -337,7 +350,9 @@ This is the recommended order for the next implementation work:
 3. Introduce span rendering support before external integrations.
 4. Define a lightweight layer interface and migrate Gregorian logic into it.
 5. Add birthday-relative layer behavior on top of that model.
-6. Prototype Hebrew date overlays before tackling sunset and zmanim in depth.
+6. Prototype semi-continuous zoom using visible duration plus derived scale
+   bands.
+7. Prototype Hebrew date overlays before tackling sunset and zmanim in depth.
 
 ## Documentation Strategy
 
