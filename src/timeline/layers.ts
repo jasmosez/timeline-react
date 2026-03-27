@@ -9,11 +9,12 @@ export type TimelineEnvironment = {
 export type LayerRenderContext = {
   environment: TimelineEnvironment
   zoom: ZoomLevel
-  firstTickDate: Date
+  focusTimeMs: number
+  startTickDate: Date
   timelineZoom: ZoomLevel
-  timelineFirstTickDate: Date
+  timelineFocusTimeMs: number
   prevZoom?: ZoomLevel
-  prevFirstTickDate?: Date
+  prevFocusTimeMs?: number
 }
 
 export interface TimelineLayer {

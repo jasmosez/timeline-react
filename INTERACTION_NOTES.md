@@ -12,11 +12,12 @@ all interaction questions are fully settled.
 
 The timeline should move through time via scrolling.
 
-MVP direction:
+Current implementation:
 
 - vertical scroll pans through time
 - scrolling up moves forward in time
 - scrolling down moves backward in time
+- panning is driven by continuous updates to viewport `focusTimeMs`
 
 This should become the primary way to explore the timeline.
 Button-based pan controls may remain temporarily, but should become secondary.
@@ -26,17 +27,19 @@ Button-based pan controls may remain temporarily, but should become secondary.
 The preferred zoom gesture is pinch zoom.
 As a practical desktop fallback, modifier-plus-wheel can also control zoom.
 
-MVP direction:
+Current implementation:
 
 - pinch zooms when available
 - modifier + wheel zooms as a fallback
 - buttons may remain during transition, but should become secondary controls
+- zoom still moves between discrete scale levels
+- zoom transitions are animated separately from pan motion
 
 ### Viewport Behavior
 
 The default interaction model should support free exploration.
 
-MVP direction:
+Current implementation:
 
 - the viewport moves freely through time
 - `now` is not pinned to a fixed screen position
@@ -62,7 +65,7 @@ Pointer-centered zoom remains a possible future improvement.
 The current product still uses discrete scale levels.
 That remains acceptable for the next interaction prototype.
 
-MVP direction:
+Current implementation:
 
 - keep discrete scale levels
 - make navigation between them feel fluid
@@ -100,24 +103,17 @@ Desired characteristics:
 
 Google Earth is a useful inspiration for this interaction philosophy.
 
-## MVP Prototype Plan
+## Current Learnings
 
-The recommended next interaction prototype is:
-
-1. Replace button-first panning with scroll-driven panning.
-2. Add modifier-plus-wheel zooming.
-3. Keep existing discrete scale levels.
-4. Center zoom around the viewport center.
-5. Keep recenter-on-now as an explicit control.
-6. Observe where the interaction feels good versus where it breaks down.
-
-This prototype should help answer:
-
-- whether scroll-based time navigation feels natural
-- whether discrete scales already feel sufficiently fluid with better gesture
-  support
-- where animation or label density problems become most noticeable
-- whether pointer-centered zoom is needed soon or can wait
+- Continuous pan feels much better when the viewport moves through time
+  directly, rather than stepping from one leading tick boundary to the next.
+- Buffered off-screen generation is needed for both points and spans.
+  Applying that strategy only to points produces visible gaps during fast pan.
+- Pan and zoom should not share the same animation strategy. Continuous pan
+  should feel immediate, while discrete zoom may still benefit from staged
+  transitions.
+- Label formatting that works well for static views can become noisy during
+  motion. Label strategy will need another pass with fluid navigation in mind.
 
 ## Open Questions
 

@@ -39,36 +39,30 @@ This keeps navigation, rendering, and imported data aligned around one model.
 Today, [src/App.tsx](/Users/jms/code/timeline-react/src/App.tsx) owns:
 
 - `now`
-- `zoom`
-- `firstTickDate`
+- `viewport`
 - `birthDate`
+- `activeLayerIds`
+- shared timeline environment data passed to layers
 
-This is enough for the current prototype, but it mixes several concerns:
-
-- live clock state
-- navigation state
-- calendar interpretation state
-- user settings
+The most important current shift is that `focusTimeMs` inside the viewport is
+now the primary navigation driver. A leading `startTickDate` is still derived
+for structural labeling and readouts, but it no longer drives pan behavior.
 
 ### Rendering Flow
 
 The current rendering pipeline is roughly:
 
-1. `App` computes `zoom` and `firstTickDate`.
-2. `Timeline` derives visible ticks from `ZOOM`.
-3. `Tick` renders each point by converting time to a vertical percentage.
-4. `NowTick` renders the current moment as a specialized tick.
-5. `HQ` renders controls and metadata for the current state.
+1. `App` computes viewport state, active layers, and the shared environment.
+2. `Timeline` builds a `LayerRenderContext` from `zoom`, `focusTimeMs`, and the
+   current `startTickDate`.
+3. Active layers generate semantic points and spans for the current buffered
+   time range.
+4. Layout helpers convert those semantic items into positioned render objects.
+5. `Tick`, `Span`, and `NowTick` render the positioned objects.
 
-Most of the domain logic currently lives in
-[src/utils.tsx](/Users/jms/code/timeline-react/src/utils.tsx), where `ZOOM`
-defines:
-
-- visible tick count
-- interval math
-- first tick rounding
-- screen span
-- label formatting
+Most of the timeline domain logic now lives in focused modules under
+[src/timeline](/Users/jms/code/timeline-react/src/timeline) rather than one
+utility file.
 
 ### Strengths of the Current Prototype
 
@@ -85,17 +79,13 @@ defines:
 The current model is good for a prototype but will get harder to extend.
 Key issues:
 
-- `firstTickDate` is acting as a partial viewport model, but not explicitly
-  enough to support richer navigation.
-- `ZOOM` mixes scale definition, Gregorian tick generation, and label policy in
-  one structure.
-- `Timeline` owns transition-state complexity that will grow as spans and layers
-  are introduced.
-- Tick generation is tightly coupled to one calendar interpretation.
-- There is no shared primitive for “renderable item on the timeline,” only
-  point ticks.
-- The current control model is optimized for buttons, not scroll/drag
-  navigation.
+- scale config still carries Gregorian assumptions around boundaries and label
+  formatting
+- `startTickDate` is still a useful structural anchor, but its role should stay
+  secondary to `focusTimeMs`
+- `NowTick` is still special-cased outside the layer system
+- zoom interaction remains discrete even though pan is now continuous
+- label strategy is still tuned more for static views than for fluid motion
 
 ## Recommended Direction
 
@@ -112,7 +102,7 @@ type ZoomLevelId = 'minute' | 'hour' | 'day' | 'week' | 'month' | 'quarter' | 'y
 type Viewport = {
   focusTimeMs: number
   zoomLevel: ZoomLevelId
-  rangeStrategy: 'centered' | 'currentContainingPeriod' | 'custom'
+  rangeStrategy: 'centered' | 'currentContainingPeriod'
 }
 ```
 
@@ -122,12 +112,12 @@ This can later expand if needed:
 type Viewport = {
   focusTimeMs: number
   zoomLevel: ZoomLevelId
-  rangeStrategy: 'centered' | 'currentContainingPeriod' | 'custom'
+  rangeStrategy: 'centered' | 'currentContainingPeriod'
   interactionMode?: 'live' | 'exploring'
 }
 ```
 
-Why this instead of `firstTickDate`?
+Why this instead of `firstTickDate` as the primary model?
 
 - viewport behavior becomes explicit rather than implicit
 - zooming around a focal point becomes conceptually cleaner
@@ -145,7 +135,6 @@ Examples:
 - week view may use `rangeStrategy: 'currentContainingPeriod'` with the visible
   range derived from the current Gregorian week
 - a recentered exploration mode may use `rangeStrategy: 'centered'`
-- future saved or custom views may use `rangeStrategy: 'custom'`
 
 ## 2. Separate Scale from Calendar Interpretation
 

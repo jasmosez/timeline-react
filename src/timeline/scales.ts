@@ -30,18 +30,38 @@ export type ZoomLevel = keyof typeof SCALE_CONFIG
 export const zoomMax = Math.max(...Object.keys(SCALE_CONFIG).map(Number))
 export const zoomMin = Math.min(...Object.keys(SCALE_CONFIG).map(Number))
 
-export const getTickLabel = (tickTime: number, zoom: ZoomLevel, firstTickDate: Date) => {
+export const getTickLabel = (tickTime: number, zoom: ZoomLevel, startTickDate: Date) => {
   const { renderTickLabel, calculateTickTimeFunc } = SCALE_CONFIG[zoom]
-  return renderTickLabel(tickTime, tickTime === calculateTickTimeFunc(firstTickDate, 0))
+  return renderTickLabel(tickTime, tickTime === calculateTickTimeFunc(startTickDate, 0))
 }
 
-export const getPointPercent = (pointTime: number, zoom: ZoomLevel, firstTickDate: Date) => {
-  const { calculateTickTimeFunc, screenSpan, visibleTicks } = SCALE_CONFIG[zoom]
+export const getVisibleTimeRange = (zoom: ZoomLevel, focusTimeMs: number) => {
+  const { screenSpan } = SCALE_CONFIG[zoom]
+  return {
+    startTimeMs: focusTimeMs - screenSpan / 2,
+    endTimeMs: focusTimeMs + screenSpan / 2,
+  }
+}
 
-  const firstTickOffsetPercentage = (100 / visibleTicks) / 2
-  const firstTickOffsetMs = (screenSpan * firstTickOffsetPercentage) / 100
-  const screenStartTime = calculateTickTimeFunc(firstTickDate, 0) - firstTickOffsetMs
-  const timeSinceStart = pointTime - screenStartTime
+export const getPointPercent = (pointTime: number, zoom: ZoomLevel, focusTimeMs: number) => {
+  const { screenSpan } = SCALE_CONFIG[zoom]
+  const { startTimeMs } = getVisibleTimeRange(zoom, focusTimeMs)
+  const timeSinceStart = pointTime - startTimeMs
   const percentageOfScreenSpan = (timeSinceStart / screenSpan) * 100
   return `${percentageOfScreenSpan}%`
+}
+
+export const getViewportCenterTimeMs = (zoom: ZoomLevel, startTickDate: Date) => {
+  const { calculateTickTimeFunc, screenSpan, visibleTicks } = SCALE_CONFIG[zoom]
+  const firstTickOffsetPercentage = (100 / visibleTicks) / 2
+  const firstTickOffsetMs = (screenSpan * firstTickOffsetPercentage) / 100
+  const screenStartTime = calculateTickTimeFunc(startTickDate, 0) - firstTickOffsetMs
+  return screenStartTime + screenSpan / 2
+}
+
+export const getCenteredFirstTickDate = (zoom: ZoomLevel, centerTimeMs: number) => {
+  const { firstTickDateFunc, calculateTickTimeFunc, visibleTicks } = SCALE_CONFIG[zoom]
+  const centeredDate = firstTickDateFunc(new Date(centerTimeMs))
+  const ticksToShift = Math.floor(visibleTicks / 2)
+  return new Date(calculateTickTimeFunc(centeredDate, -ticksToShift))
 }

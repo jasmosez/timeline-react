@@ -194,23 +194,24 @@ This may include plans, notes, journal entries, or summaries.
 
 The current app already demonstrates the basic product direction:
 
-- a vertical timeline centered around now
+- a vertical timeline with free exploratory navigation
 - discrete zoom levels from minute to decade
-- panning controls
+- scroll-based panning plus button fallbacks
 - a configurable birth date
 - life-relative day and week counters
-- animated tick transitions
+- layered rendering for Gregorian structure and birthday markers
 
 Known current limitations include:
 
-- pan and zoom animation behavior is still rough
-- the control model is click-based rather than scroll-based
+- zoom animation behavior is still rough
+- label behavior during motion still needs design work
 - the README does not yet describe the actual project
 - timezone handling is minimal
 - the birth date settings UI currently captures only a date, not a full
   date-time with timezone intent
-- there is not yet a formal abstraction for multiple calendar layers
-- spans and notes are not yet implemented in the main timeline view
+- marker-style and segmentation-style layers still share one lightweight
+  interface
+- spans are implemented structurally, but not yet as user-authored annotations
 
 ## Roadmap
 

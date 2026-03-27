@@ -20,12 +20,13 @@ type SpanPresentation = {
 export const positionTimelinePoint = (
   point: TimelinePoint,
   zoom: ZoomLevel,
-  firstTickDate: Date,
+  focusTimeMs: number,
+  startTickDate: Date,
   presentation: PointPresentation = {},
 ): PositionedTimelinePoint => ({
   ...point,
-  top: getPointPercent(point.timeMs, zoom, firstTickDate),
-  label: point.label ?? (point.kind === 'tick' ? getTickLabel(point.timeMs, zoom, firstTickDate) : point.label),
+  top: getPointPercent(point.timeMs, zoom, focusTimeMs),
+  label: point.label ?? (point.kind === 'tick' ? getTickLabel(point.timeMs, zoom, startTickDate) : point.label),
   opacity: presentation.opacity,
   className: presentation.className,
   labelClassName: presentation.labelClassName,
@@ -34,11 +35,11 @@ export const positionTimelinePoint = (
 export const positionTimelineSpan = (
   span: TimelineSpan,
   zoom: ZoomLevel,
-  firstTickDate: Date,
+  focusTimeMs: number,
   presentation: SpanPresentation = {},
 ): PositionedTimelineSpan => {
-  const startTop = Number.parseFloat(getPointPercent(span.startTimeMs, zoom, firstTickDate))
-  const endTop = Number.parseFloat(getPointPercent(span.endTimeMs, zoom, firstTickDate))
+  const startTop = Number.parseFloat(getPointPercent(span.startTimeMs, zoom, focusTimeMs))
+  const endTop = Number.parseFloat(getPointPercent(span.endTimeMs, zoom, focusTimeMs))
 
   return {
     ...span,
@@ -49,20 +50,26 @@ export const positionTimelineSpan = (
   }
 }
 
-export const createStructuralSpans = (zoom: ZoomLevel, firstTickDate: Date): TimelineSpan[] => {
+export const createStructuralSpansForRange = (
+  zoom: ZoomLevel,
+  startTimeMs: number,
+  endTimeMs: number,
+): TimelineSpan[] => {
   const spans: TimelineSpan[] = []
-  const { calculateTickTimeFunc, visibleTicks } = SCALE_CONFIG[zoom]
+  const { calculateTickTimeFunc, firstTickDateFunc } = SCALE_CONFIG[zoom]
+  let spanStartTimeMs = firstTickDateFunc(new Date(startTimeMs)).getTime()
 
-  for (let i = 0; i < visibleTicks - 1; i++) {
-    const startTimeMs = calculateTickTimeFunc(firstTickDate, i)
-    const endTimeMs = calculateTickTimeFunc(firstTickDate, i + 1)
+  while (spanStartTimeMs <= endTimeMs) {
+    const spanEndTimeMs = calculateTickTimeFunc(new Date(spanStartTimeMs), 1)
 
     spans.push({
-      id: `structural-span-${startTimeMs}`,
+      id: `structural-span-${spanStartTimeMs}`,
       kind: 'structural-period',
-      startTimeMs,
-      endTimeMs,
+      startTimeMs: spanStartTimeMs,
+      endTimeMs: spanEndTimeMs,
     })
+
+    spanStartTimeMs = spanEndTimeMs
   }
 
   return spans

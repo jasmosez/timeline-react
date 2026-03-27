@@ -8,7 +8,7 @@ import type { TimelineLayer, TimelineLayerId } from '../timeline/layers';
 interface HQProps {
     now: Date;
     zoom: keyof typeof SCALE_CONFIG;
-    firstTickDate: Date;
+    startTickDate: Date;
     handleZoom: (direction: '+' | '-') => void;
     handlePan: (direction: '+' | '-' | 'reset') => void;
     birthDate: Date;
@@ -22,7 +22,7 @@ interface HQProps {
 export default function HQ({
   now,
   zoom,
-  firstTickDate,
+  startTickDate,
   handleZoom,
   handlePan,
   birthDate,
@@ -60,7 +60,7 @@ export default function HQ({
             </div>
             <div className='hq-controls-info'>
               <div style={{fontWeight: 'bold', marginTop: '10px'}}>First tick</div>
-              <div>{firstTickDate.toLocaleString(LOCALE, zoom === -1 ? {...FULL_DATE_FORMAT, ...{second: '2-digit'}} : FULL_DATE_FORMAT)}</div>
+              <div>{startTickDate.toLocaleString(LOCALE, zoom === -1 ? {...FULL_DATE_FORMAT, ...{second: '2-digit'}} : FULL_DATE_FORMAT)}</div>
               
               <div className='now' style={{fontWeight: 'bold', marginTop: '10px'}}>Currently</div>
               <div className='now'>{now.toLocaleString(LOCALE, FULL_DATE_FORMAT)}</div>
@@ -86,7 +86,7 @@ export default function HQ({
               {/* <div>Each tick is the start of a {SCALE_CONFIG[zoom].unit}</div> */}
               {/* <div>Each span between ticks represents one whole {SCALE_CONFIG[zoom].unit}</div> */}
               
-              {/* <div>Birthday-based Week {birthdayBasedWeekNumber(firstTickDate)}</div> */}
+              {/* <div>Birthday-based Week {birthdayBasedWeekNumber(startTickDate)}</div> */}
             </div>
           </div>
       </div>

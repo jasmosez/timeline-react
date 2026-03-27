@@ -4,39 +4,54 @@ import type { ZoomLevel } from '../timeline/scales'
 
 type AnimatedTimelineState = {
   timelineZoom: ZoomLevel
-  timelineFirstTickDate: Date
+  timelineFocusTimeMs: number
   prevZoom?: ZoomLevel
-  prevFirstTickDate?: Date
+  prevFocusTimeMs?: number
+  isZoomTransitioning: boolean
 }
 
-export function useAnimatedTimelineState(zoom: ZoomLevel, firstTickDate: Date): AnimatedTimelineState {
+export function useAnimatedTimelineState(zoom: ZoomLevel, focusTimeMs: number): AnimatedTimelineState {
   const [timelineZoom, setTimelineZoom] = useState<ZoomLevel>(zoom)
-  const [timelineFirstTickDate, setTimelineFirstTickDate] = useState<Date>(firstTickDate)
+  const [timelineFocusTimeMs, setTimelineFocusTimeMs] = useState<number>(focusTimeMs)
   const [prevZoom, setPrevZoom] = useState<ZoomLevel>()
-  const [prevFirstTickDate, setPrevFirstTickDate] = useState<Date>()
+  const [prevFocusTimeMs, setPrevFocusTimeMs] = useState<number>()
 
   useEffect(() => {
-    if (zoom === timelineZoom && firstTickDate === timelineFirstTickDate) {
+    if (zoom === timelineZoom && focusTimeMs === timelineFocusTimeMs) {
+      if (prevZoom !== undefined || prevFocusTimeMs !== undefined) {
+        setPrevZoom(undefined)
+        setPrevFocusTimeMs(undefined)
+      }
+      return
+    }
+
+    if (zoom === timelineZoom) {
+      setPrevZoom(undefined)
+      setPrevFocusTimeMs(undefined)
+      setTimelineFocusTimeMs(focusTimeMs)
       return
     }
 
     setPrevZoom(timelineZoom)
-    setPrevFirstTickDate(timelineFirstTickDate)
+    setPrevFocusTimeMs(timelineFocusTimeMs)
 
     const frameId = requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
+      const secondFrameId = requestAnimationFrame(() => {
         setTimelineZoom(zoom)
-        setTimelineFirstTickDate(firstTickDate)
+        setTimelineFocusTimeMs(focusTimeMs)
       })
+
+      return () => cancelAnimationFrame(secondFrameId)
     })
 
     return () => cancelAnimationFrame(frameId)
-  }, [zoom, firstTickDate, timelineZoom, timelineFirstTickDate])
+  }, [zoom, focusTimeMs, timelineZoom, timelineFocusTimeMs, prevZoom, prevFocusTimeMs])
 
   return {
     timelineZoom,
-    timelineFirstTickDate,
+    timelineFocusTimeMs,
     prevZoom,
-    prevFirstTickDate,
+    prevFocusTimeMs,
+    isZoomTransitioning: prevZoom !== undefined && prevFocusTimeMs !== undefined,
   }
 }

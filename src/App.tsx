@@ -9,8 +9,13 @@ import { PAN_AMOUNT, DEFAULT_BIRTH_DATE } from './config'
 import { birthdayLayer } from './timeline/birthday'
 import { gregorianLayer } from './timeline/gregorian'
 import type { TimelineEnvironment, TimelineLayerId } from './timeline/layers'
-import { createInitialViewport, getViewportFirstTickDate, type Viewport } from './viewport'
-import { SCALE_CONFIG, zoomMax, zoomMin } from './timeline/scales'
+import { createInitialViewport, getViewportStartTickDate, type Viewport } from './viewport'
+import {
+  SCALE_CONFIG,
+  getViewportCenterTimeMs,
+  zoomMax,
+  zoomMin,
+} from './timeline/scales'
 
 const AVAILABLE_TIMELINE_LAYERS = [gregorianLayer, birthdayLayer]
 
@@ -21,7 +26,7 @@ function App() {
   const [activeLayerIds, setActiveLayerIds] = useState<TimelineLayerId[]>(['gregorian'])
 
   const zoom = viewport.zoomLevel
-  const firstTickDate = getViewportFirstTickDate(viewport)
+  const startTickDate = getViewportStartTickDate(viewport)
   const activeLayers = AVAILABLE_TIMELINE_LAYERS.filter((layer) => activeLayerIds.includes(layer.id))
   const timelineEnvironment: TimelineEnvironment = {
     now,
@@ -47,18 +52,31 @@ function App() {
 
   // + is zoom out, counter-intuitively. That is because it is a larger amount of time.
   // TODO: make this more intuitive
-  const handleZoom = (direction: '+' | '-') => {
+  const updateZoomBySteps = (steps: number) => {
+    if (steps === 0) {
+      return
+    }
+
     setViewport((prevViewport) => {
-      const newZoom = direction === '+'
-        ? Math.min(prevViewport.zoomLevel + 1, zoomMax)
-        : Math.max(prevViewport.zoomLevel - 1, zoomMin)
+      const newZoom = Math.min(Math.max(prevViewport.zoomLevel + steps, zoomMin), zoomMax)
+
+      if (newZoom === prevViewport.zoomLevel) {
+        return prevViewport
+      }
+
+      const prevStartTickDate = getViewportStartTickDate(prevViewport)
+      const centerTimeMs = getViewportCenterTimeMs(prevViewport.zoomLevel, prevStartTickDate)
 
       return {
-        focusTimeMs: now.getTime(),
+        focusTimeMs: centerTimeMs,
         zoomLevel: newZoom,
-        rangeStrategy: 'currentContainingPeriod',
+        rangeStrategy: 'centered',
       }
     })
+  }
+
+  const handleZoom = (direction: '+' | '-') => {
+    updateZoomBySteps(direction === '+' ? 1 : -1)
   }
 
   const handlePan = (direction: '+' | '-' | 'reset') => {
@@ -71,16 +89,16 @@ function App() {
         }
       }
 
-      const prevFirstTickDate = getViewportFirstTickDate(prevViewport)
-      const nextFirstTickTimeMs = direction === '+'
-        ? SCALE_CONFIG[prevViewport.zoomLevel].calculateTickTimeFunc(prevFirstTickDate, PAN_AMOUNT)
-        : SCALE_CONFIG[prevViewport.zoomLevel].calculateTickTimeFunc(prevFirstTickDate, -PAN_AMOUNT)
+      const prevStartTickDate = getViewportStartTickDate(prevViewport)
+      const nextBoundaryTimeMs = direction === '+'
+        ? SCALE_CONFIG[prevViewport.zoomLevel].calculateTickTimeFunc(prevStartTickDate, PAN_AMOUNT)
+        : SCALE_CONFIG[prevViewport.zoomLevel].calculateTickTimeFunc(prevStartTickDate, -PAN_AMOUNT)
+      const boundaryDeltaMs = nextBoundaryTimeMs - prevStartTickDate.getTime()
 
       return {
-        focusTimeMs: nextFirstTickTimeMs,
+        focusTimeMs: prevViewport.focusTimeMs + boundaryDeltaMs,
         zoomLevel: prevViewport.zoomLevel,
-        rangeStrategy: 'custom',
-        customFirstTickTimeMs: nextFirstTickTimeMs,
+        rangeStrategy: 'centered',
       }
     })
   }
@@ -95,12 +113,30 @@ function App() {
     })
   }
 
+  const handleWheelPan = (deltaMs: number) => {
+    if (deltaMs === 0) {
+      return
+    }
+
+    setViewport((prevViewport) => {
+      return {
+        focusTimeMs: prevViewport.focusTimeMs + deltaMs,
+        zoomLevel: prevViewport.zoomLevel,
+        rangeStrategy: 'centered',
+      }
+    })
+  }
+
+  const handleWheelZoom = (steps: number) => {
+    updateZoomBySteps(steps)
+  }
+
   return (
     <>
       <HQ
         now={now}
         zoom={zoom}
-        firstTickDate={firstTickDate}
+        startTickDate={startTickDate}
         handleZoom={handleZoom}
         handlePan={handlePan}
         birthDate={birthDate}
@@ -111,8 +147,11 @@ function App() {
       <Timeline
         environment={timelineEnvironment}
         zoom={zoom}
-        firstTickDate={firstTickDate}
+        focusTimeMs={viewport.focusTimeMs}
+        startTickDate={startTickDate}
         activeLayers={activeLayers}
+        onPanTimeDelta={handleWheelPan}
+        onZoomSteps={handleWheelZoom}
       />
     </>
   )

@@ -1,19 +1,15 @@
-import { SCALE_CONFIG, type ZoomLevel } from './scales'
+import { getVisibleTimeRange, type ZoomLevel } from './scales'
 import { positionTimelinePoint } from './layout'
 import type { TimelineLayer } from './layers'
 import type { PositionedTimelinePoint, TimelinePoint } from './types'
 
 type BirthdayMarkerParams = {
   zoom: ZoomLevel
-  firstTickDate: Date
+  focusTimeMs: number
   timelineZoom: ZoomLevel
-  timelineFirstTickDate: Date
+  timelineFocusTimeMs: number
+  startTickDate: Date
   birthDate: Date
-}
-
-const getVisibleRangeEnd = (zoom: ZoomLevel, firstTickDate: Date) => {
-  const { calculateTickTimeFunc, visibleTicks } = SCALE_CONFIG[zoom]
-  return calculateTickTimeFunc(firstTickDate, visibleTicks)
 }
 
 const createBirthdayAnniversary = (birthDate: Date, age: number) =>
@@ -29,14 +25,14 @@ const createBirthdayAnniversary = (birthDate: Date, age: number) =>
 
 export const createBirthdayLayerPoints = ({
   zoom,
-  firstTickDate,
+  focusTimeMs,
   timelineZoom,
-  timelineFirstTickDate,
+  timelineFocusTimeMs,
+  startTickDate,
   birthDate,
 }: BirthdayMarkerParams): PositionedTimelinePoint[] => {
-  const rangeStartMs = firstTickDate.getTime()
-  const rangeEndMs = getVisibleRangeEnd(zoom, firstTickDate)
-  const startingAge = Math.max(firstTickDate.getFullYear() - birthDate.getFullYear() - 1, 0)
+  const { startTimeMs: rangeStartMs, endTimeMs: rangeEndMs } = getVisibleTimeRange(zoom, focusTimeMs)
+  const startingAge = Math.max(new Date(rangeStartMs).getFullYear() - birthDate.getFullYear() - 1, 0)
   const endingAge = Math.max(new Date(rangeEndMs).getFullYear() - birthDate.getFullYear() + 1, 0)
   const points: PositionedTimelinePoint[] = []
 
@@ -56,10 +52,16 @@ export const createBirthdayLayerPoints = ({
     }
 
     points.push(
-      positionTimelinePoint(point, timelineZoom, timelineFirstTickDate, {
-        className: 'birthday-marker',
-        labelClassName: 'birthday-marker-label',
-      }),
+      positionTimelinePoint(
+        point,
+        timelineZoom,
+        timelineFocusTimeMs,
+        startTickDate,
+        {
+          className: 'birthday-marker',
+          labelClassName: 'birthday-marker-label',
+        },
+      ),
     )
   }
 
@@ -69,12 +71,13 @@ export const createBirthdayLayerPoints = ({
 export const birthdayLayer: TimelineLayer = {
   id: 'birthday',
   label: 'Birthday',
-  getPoints: ({ zoom, firstTickDate, timelineZoom, timelineFirstTickDate, environment }) =>
+  getPoints: ({ zoom, focusTimeMs, timelineZoom, timelineFocusTimeMs, startTickDate, environment }) =>
     createBirthdayLayerPoints({
       zoom,
-      firstTickDate,
+      focusTimeMs,
+      startTickDate,
       timelineZoom,
-      timelineFirstTickDate,
+      timelineFocusTimeMs,
       birthDate: environment.birthDate,
     }),
   getSpans: () => [],

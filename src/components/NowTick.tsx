@@ -8,10 +8,11 @@ import type { TimelinePoint } from '../timeline/types';
 interface NowTickProps {
     now: Date;
     zoom: keyof typeof SCALE_CONFIG;
-    firstTickDate: Date;
+    focusTimeMs: number;
+    startTickDate: Date;
 }
 
-function NowTick({now, zoom, firstTickDate}: NowTickProps) {
+function NowTick({now, zoom, focusTimeMs, startTickDate}: NowTickProps) {
     const point: TimelinePoint = {
         id: `now-${now.getTime()}`,
         kind: 'marker',
@@ -21,7 +22,7 @@ function NowTick({now, zoom, firstTickDate}: NowTickProps) {
 
     return (
         <TickPoint
-            point={positionTimelinePoint(point, zoom, firstTickDate, {
+            point={positionTimelinePoint(point, zoom, focusTimeMs, startTickDate, {
                 className: 'now-tick',
                 labelClassName: 'now-tick-label',
             })}
