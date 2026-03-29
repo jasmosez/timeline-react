@@ -1,24 +1,34 @@
 import { STARTING_SCALE_LEVEL } from './config'
-import { SCALE_LEVEL_CONFIG, getCenteredStartTickDate, type ScaleLevel } from './timeline/scales'
+import {
+  SCALE_LEVEL_CONFIG,
+  getNearestScaleLevel,
+  getScaleLevelVisibleDurationMs,
+  getVisibleRangeStartTickDate,
+} from './timeline/scales'
 
 export type ViewportRangeStrategy = 'centered' | 'currentContainingPeriod'
 
 export interface Viewport {
   focusTimeMs: number
-  scaleLevel: ScaleLevel
+  visibleDurationMs: number
   rangeStrategy: ViewportRangeStrategy
 }
 
 export const createInitialViewport = (now: Date): Viewport => ({
   focusTimeMs: now.getTime(),
-  scaleLevel: STARTING_SCALE_LEVEL,
+  visibleDurationMs: getScaleLevelVisibleDurationMs(STARTING_SCALE_LEVEL),
   rangeStrategy: 'currentContainingPeriod',
 })
 
+export const getViewportActiveScaleLevel = (viewport: Viewport) =>
+  getNearestScaleLevel(viewport.visibleDurationMs)
+
 export const getViewportStartTickDate = (viewport: Viewport) => {
+  const activeScaleLevel = getViewportActiveScaleLevel(viewport)
+
   if (viewport.rangeStrategy === 'centered') {
-    return getCenteredStartTickDate(viewport.scaleLevel, viewport.focusTimeMs)
+    return getVisibleRangeStartTickDate(activeScaleLevel, viewport.focusTimeMs, viewport.visibleDurationMs)
   }
 
-  return SCALE_LEVEL_CONFIG[viewport.scaleLevel].startTickDateFunc(new Date(viewport.focusTimeMs))
+  return SCALE_LEVEL_CONFIG[activeScaleLevel].startTickDateFunc(new Date(viewport.focusTimeMs))
 }

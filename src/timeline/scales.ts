@@ -29,34 +29,53 @@ export type ScaleLevel = keyof typeof SCALE_LEVEL_CONFIG
 
 export const scaleLevelMax = Math.max(...Object.keys(SCALE_LEVEL_CONFIG).map(Number))
 export const scaleLevelMin = Math.min(...Object.keys(SCALE_LEVEL_CONFIG).map(Number))
+const SCALE_LEVEL_ORDER = Object.keys(SCALE_LEVEL_CONFIG)
+  .map(Number)
+  .sort((a, b) => a - b) as ScaleLevel[]
+
+export const getScaleLevelOrder = () => SCALE_LEVEL_ORDER
+
+export const getScaleLevelVisibleDurationMs = (scaleLevel: ScaleLevel) =>
+  SCALE_LEVEL_CONFIG[scaleLevel].screenSpan
+
+export const getScaleDurationBounds = () => ({
+  minVisibleDurationMs: Math.min(...SCALE_LEVEL_ORDER.map(getScaleLevelVisibleDurationMs)),
+  maxVisibleDurationMs: Math.max(...SCALE_LEVEL_ORDER.map(getScaleLevelVisibleDurationMs)),
+})
+
+export const getNearestScaleLevel = (visibleDurationMs: number): ScaleLevel => {
+  let nearestScaleLevel = SCALE_LEVEL_ORDER[0]
+  let nearestDelta = Math.abs(Math.log(visibleDurationMs) - Math.log(getScaleLevelVisibleDurationMs(nearestScaleLevel)))
+
+  for (const scaleLevel of SCALE_LEVEL_ORDER.slice(1)) {
+    const delta = Math.abs(Math.log(visibleDurationMs) - Math.log(getScaleLevelVisibleDurationMs(scaleLevel)))
+
+    if (delta < nearestDelta) {
+      nearestScaleLevel = scaleLevel
+      nearestDelta = delta
+    }
+  }
+
+  return nearestScaleLevel
+}
 
 export const getTickLabel = (tickTime: number, scaleLevel: ScaleLevel, startTickDate: Date) => {
   const { renderTickLabel, calculateTickTimeFunc } = SCALE_LEVEL_CONFIG[scaleLevel]
   return renderTickLabel(tickTime, tickTime === calculateTickTimeFunc(startTickDate, 0))
 }
 
-export const getVisibleTimeRange = (scaleLevel: ScaleLevel, focusTimeMs: number) => {
-  const { screenSpan } = SCALE_LEVEL_CONFIG[scaleLevel]
+export const getVisibleTimeRange = (focusTimeMs: number, visibleDurationMs: number) => {
   return {
-    startTimeMs: focusTimeMs - screenSpan / 2,
-    endTimeMs: focusTimeMs + screenSpan / 2,
+    startTimeMs: focusTimeMs - visibleDurationMs / 2,
+    endTimeMs: focusTimeMs + visibleDurationMs / 2,
   }
 }
 
-export const getPointPercent = (pointTime: number, scaleLevel: ScaleLevel, focusTimeMs: number) => {
-  const { screenSpan } = SCALE_LEVEL_CONFIG[scaleLevel]
-  const { startTimeMs } = getVisibleTimeRange(scaleLevel, focusTimeMs)
+export const getPointPercent = (pointTime: number, focusTimeMs: number, visibleDurationMs: number) => {
+  const { startTimeMs } = getVisibleTimeRange(focusTimeMs, visibleDurationMs)
   const timeSinceStart = pointTime - startTimeMs
-  const percentageOfScreenSpan = (timeSinceStart / screenSpan) * 100
+  const percentageOfScreenSpan = (timeSinceStart / visibleDurationMs) * 100
   return `${percentageOfScreenSpan}%`
-}
-
-export const getViewportCenterTimeMs = (scaleLevel: ScaleLevel, startTickDate: Date) => {
-  const { calculateTickTimeFunc, screenSpan, visibleTicks } = SCALE_LEVEL_CONFIG[scaleLevel]
-  const firstTickOffsetPercentage = (100 / visibleTicks) / 2
-  const firstTickOffsetMs = (screenSpan * firstTickOffsetPercentage) / 100
-  const screenStartTime = calculateTickTimeFunc(startTickDate, 0) - firstTickOffsetMs
-  return screenStartTime + screenSpan / 2
 }
 
 export const getCenteredStartTickDate = (scaleLevel: ScaleLevel, centerTimeMs: number) => {
@@ -64,4 +83,13 @@ export const getCenteredStartTickDate = (scaleLevel: ScaleLevel, centerTimeMs: n
   const centeredDate = startTickDateFunc(new Date(centerTimeMs))
   const ticksToShift = Math.floor(visibleTicks / 2)
   return new Date(calculateTickTimeFunc(centeredDate, -ticksToShift))
+}
+
+export const getVisibleRangeStartTickDate = (
+  scaleLevel: ScaleLevel,
+  focusTimeMs: number,
+  visibleDurationMs: number,
+) => {
+  const { startTimeMs } = getVisibleTimeRange(focusTimeMs, visibleDurationMs)
+  return SCALE_LEVEL_CONFIG[scaleLevel].startTickDateFunc(new Date(startTimeMs))
 }

@@ -4,10 +4,12 @@ import type { TimelineLayer } from './layers'
 import type { PositionedTimelinePoint, TimelinePoint } from './types'
 
 type BirthdayMarkerParams = {
-  scaleLevel: ScaleLevel
+  activeScaleLevel: ScaleLevel
   focusTimeMs: number
-  timelineScaleLevel: ScaleLevel
+  visibleDurationMs: number
+  timelineActiveScaleLevel: ScaleLevel
   timelineFocusTimeMs: number
+  timelineVisibleDurationMs: number
   startTickDate: Date
   birthDate: Date
 }
@@ -24,14 +26,15 @@ const createBirthdayAnniversary = (birthDate: Date, age: number) =>
   )
 
 export const createBirthdayLayerPoints = ({
-  scaleLevel,
   focusTimeMs,
-  timelineScaleLevel,
+  visibleDurationMs,
+  timelineActiveScaleLevel,
   timelineFocusTimeMs,
+  timelineVisibleDurationMs,
   startTickDate,
   birthDate,
 }: BirthdayMarkerParams): PositionedTimelinePoint[] => {
-  const { startTimeMs: rangeStartMs, endTimeMs: rangeEndMs } = getVisibleTimeRange(scaleLevel, focusTimeMs)
+  const { startTimeMs: rangeStartMs, endTimeMs: rangeEndMs } = getVisibleTimeRange(focusTimeMs, visibleDurationMs)
   const startingAge = Math.max(new Date(rangeStartMs).getFullYear() - birthDate.getFullYear() - 1, 0)
   const endingAge = Math.max(new Date(rangeEndMs).getFullYear() - birthDate.getFullYear() + 1, 0)
   const points: PositionedTimelinePoint[] = []
@@ -54,8 +57,9 @@ export const createBirthdayLayerPoints = ({
     points.push(
       positionTimelinePoint(
         point,
-        timelineScaleLevel,
+        timelineActiveScaleLevel,
         timelineFocusTimeMs,
+        timelineVisibleDurationMs,
         startTickDate,
         {
           className: 'birthday-marker',
@@ -71,13 +75,24 @@ export const createBirthdayLayerPoints = ({
 export const birthdayLayer: TimelineLayer = {
   id: 'birthday',
   label: 'Birthday',
-  getPoints: ({ scaleLevel, focusTimeMs, timelineScaleLevel, timelineFocusTimeMs, startTickDate, environment }) =>
+  getPoints: ({
+    activeScaleLevel,
+    focusTimeMs,
+    visibleDurationMs,
+    timelineActiveScaleLevel,
+    timelineFocusTimeMs,
+    timelineVisibleDurationMs,
+    startTickDate,
+    environment,
+  }) =>
     createBirthdayLayerPoints({
-      scaleLevel,
+      activeScaleLevel,
       focusTimeMs,
+      visibleDurationMs,
       startTickDate,
-      timelineScaleLevel,
+      timelineActiveScaleLevel,
       timelineFocusTimeMs,
+      timelineVisibleDurationMs,
       birthDate: environment.birthDate,
     }),
   getSpans: () => [],

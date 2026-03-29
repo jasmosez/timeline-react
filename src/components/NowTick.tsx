@@ -9,10 +9,11 @@ interface NowTickProps {
     now: Date;
     scaleLevel: keyof typeof SCALE_LEVEL_CONFIG;
     focusTimeMs: number;
+    visibleDurationMs: number;
     startTickDate: Date;
 }
 
-function NowTick({now, scaleLevel, focusTimeMs, startTickDate}: NowTickProps) {
+function NowTick({now, scaleLevel, focusTimeMs, visibleDurationMs, startTickDate}: NowTickProps) {
     const point: TimelinePoint = {
         id: `now-${now.getTime()}`,
         kind: 'marker',
@@ -22,7 +23,7 @@ function NowTick({now, scaleLevel, focusTimeMs, startTickDate}: NowTickProps) {
 
     return (
         <TickPoint
-            point={positionTimelinePoint(point, scaleLevel, focusTimeMs, startTickDate, {
+            point={positionTimelinePoint(point, scaleLevel, focusTimeMs, visibleDurationMs, startTickDate, {
                 className: 'now-tick',
                 labelClassName: 'now-tick-label',
             })}

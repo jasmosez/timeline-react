@@ -21,11 +21,12 @@ export const positionTimelinePoint = (
   point: TimelinePoint,
   scaleLevel: ScaleLevel,
   focusTimeMs: number,
+  visibleDurationMs: number,
   startTickDate: Date,
   presentation: PointPresentation = {},
 ): PositionedTimelinePoint => ({
   ...point,
-  top: getPointPercent(point.timeMs, scaleLevel, focusTimeMs),
+  top: getPointPercent(point.timeMs, focusTimeMs, visibleDurationMs),
   label: point.label ?? (point.kind === 'tick' ? getTickLabel(point.timeMs, scaleLevel, startTickDate) : point.label),
   opacity: presentation.opacity,
   className: presentation.className,
@@ -34,12 +35,12 @@ export const positionTimelinePoint = (
 
 export const positionTimelineSpan = (
   span: TimelineSpan,
-  scaleLevel: ScaleLevel,
   focusTimeMs: number,
+  visibleDurationMs: number,
   presentation: SpanPresentation = {},
 ): PositionedTimelineSpan => {
-  const startTop = Number.parseFloat(getPointPercent(span.startTimeMs, scaleLevel, focusTimeMs))
-  const endTop = Number.parseFloat(getPointPercent(span.endTimeMs, scaleLevel, focusTimeMs))
+  const startTop = Number.parseFloat(getPointPercent(span.startTimeMs, focusTimeMs, visibleDurationMs))
+  const endTop = Number.parseFloat(getPointPercent(span.endTimeMs, focusTimeMs, visibleDurationMs))
 
   return {
     ...span,

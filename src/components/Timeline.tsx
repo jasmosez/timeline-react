@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { SCALE_LEVEL_CONFIG } from '../timeline/scales';
+import type { ScaleLevel } from '../timeline/scales';
 import {
   combineLayerPoints,
   combineLayerSpans,
@@ -17,67 +17,77 @@ import Span from './Span';
 
 interface TimelineProps {
     environment: TimelineEnvironment;
-    scaleLevel: keyof typeof SCALE_LEVEL_CONFIG;
+    activeScaleLevel: ScaleLevel;
     focusTimeMs: number;
+    visibleDurationMs: number;
     startTickDate: Date;
     activeLayers: TimelineLayer[];
     onPanTimeDelta: (deltaMs: number) => void;
-    onZoomSteps: (steps: number) => void;
+    onZoomByFactor: (factor: number) => void;
 }
 
-const WHEEL_STEP_THRESHOLD = 40;
-
-function Timeline({environment, scaleLevel, focusTimeMs, startTickDate, activeLayers, onPanTimeDelta, onZoomSteps}: TimelineProps) {
+function Timeline({
+  environment,
+  activeScaleLevel,
+  focusTimeMs,
+  visibleDurationMs,
+  startTickDate,
+  activeLayers,
+  onPanTimeDelta,
+  onZoomByFactor,
+}: TimelineProps) {
   const [tickPoints, setTickPoints] = useState<PositionedTimelinePoint[]>([]);
   const [timelineSpans, setTimelineSpans] = useState<PositionedTimelineSpan[]>([]);
-  const zoomDeltaRef = useRef(0);
   const viewportRef = useRef<HTMLDivElement>(null);
   const {
-    timelineScaleLevel,
+    timelineActiveScaleLevel,
     timelineFocusTimeMs,
-    prevScaleLevel,
+    timelineVisibleDurationMs,
+    prevActiveScaleLevel,
     prevFocusTimeMs,
+    prevVisibleDurationMs,
     isZoomTransitioning,
-  } = useAnimatedTimelineState(scaleLevel, focusTimeMs);
+  } = useAnimatedTimelineState(activeScaleLevel, focusTimeMs, visibleDurationMs);
 
   useEffect(() => {
     const context = {
       environment,
-      scaleLevel,
+      activeScaleLevel,
       focusTimeMs,
+      visibleDurationMs,
       startTickDate,
-      timelineScaleLevel,
+      timelineActiveScaleLevel,
       timelineFocusTimeMs,
-      prevScaleLevel,
+      timelineVisibleDurationMs,
+      prevActiveScaleLevel,
       prevFocusTimeMs,
+      prevVisibleDurationMs,
     };
 
     setTickPoints(combineLayerPoints(activeLayers, context));
     setTimelineSpans(combineLayerSpans(activeLayers, context));
-  }, [activeLayers, environment, scaleLevel, focusTimeMs, startTickDate, timelineScaleLevel, timelineFocusTimeMs, prevScaleLevel, prevFocusTimeMs]);
-
-  const consumeWheelSteps = (accumulatedDelta: number) => {
-    if (Math.abs(accumulatedDelta) < WHEEL_STEP_THRESHOLD) {
-      return { consumedSteps: 0, remainder: accumulatedDelta };
-    }
-
-    const consumedSteps = Math.trunc(accumulatedDelta / WHEEL_STEP_THRESHOLD);
-    const remainder = accumulatedDelta - consumedSteps * WHEEL_STEP_THRESHOLD;
-    return { consumedSteps, remainder };
-  };
+  }, [
+    activeLayers,
+    environment,
+    activeScaleLevel,
+    focusTimeMs,
+    visibleDurationMs,
+    startTickDate,
+    timelineActiveScaleLevel,
+    timelineFocusTimeMs,
+    timelineVisibleDurationMs,
+    prevActiveScaleLevel,
+    prevFocusTimeMs,
+    prevVisibleDurationMs,
+  ]);
 
   useEffect(() => {
     const handleWheel = (event: WheelEvent) => {
       event.preventDefault();
 
       if (event.ctrlKey || event.metaKey) {
-        zoomDeltaRef.current += event.deltaY;
-        const { consumedSteps, remainder } = consumeWheelSteps(zoomDeltaRef.current);
-        zoomDeltaRef.current = remainder;
-
-        if (consumedSteps !== 0) {
-          onZoomSteps(consumedSteps);
-        }
+        const zoomFactor = Math.exp(event.deltaY * 0.0015)
+        onZoomByFactor(zoomFactor)
 
         return;
       }
@@ -87,7 +97,6 @@ function Timeline({environment, scaleLevel, focusTimeMs, startTickDate, activeLa
         return;
       }
 
-      const visibleDurationMs = SCALE_LEVEL_CONFIG[scaleLevel].screenSpan;
       const deltaMs = (event.deltaY / viewportHeight) * visibleDurationMs;
       if (deltaMs !== 0) {
         onPanTimeDelta(deltaMs);
@@ -99,14 +108,20 @@ function Timeline({environment, scaleLevel, focusTimeMs, startTickDate, activeLa
     return () => {
       window.removeEventListener('wheel', handleWheel);
     };
-  }, [scaleLevel, onPanTimeDelta, onZoomSteps]);
+  }, [visibleDurationMs, onPanTimeDelta, onZoomByFactor]);
 
   return (
     <div ref={viewportRef} className='timeline-root' data-animate={isZoomTransitioning}>
       <div className='timeline line' />
       {timelineSpans.map((span) => <Span key={span.id} span={span} />)}
       {tickPoints.map((point) => <TickPoint key={point.id} point={point} />)}
-      <NowTick now={environment.now} scaleLevel={scaleLevel} focusTimeMs={focusTimeMs} startTickDate={startTickDate} />
+      <NowTick
+        now={environment.now}
+        scaleLevel={activeScaleLevel}
+        focusTimeMs={focusTimeMs}
+        visibleDurationMs={visibleDurationMs}
+        startTickDate={startTickDate}
+      />
     </div>
   );
 }

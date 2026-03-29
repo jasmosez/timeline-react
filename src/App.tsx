@@ -12,9 +12,10 @@ import type { TimelineEnvironment, TimelineLayerId } from './timeline/layers'
 import { createInitialViewport, getViewportStartTickDate, type Viewport } from './viewport'
 import {
   SCALE_LEVEL_CONFIG,
-  getViewportCenterTimeMs,
-  scaleLevelMax,
-  scaleLevelMin,
+  getNearestScaleLevel,
+  getScaleDurationBounds,
+  getScaleLevelOrder,
+  getScaleLevelVisibleDurationMs,
 } from './timeline/scales'
 
 const AVAILABLE_TIMELINE_LAYERS = [gregorianLayer, birthdayLayer]
@@ -25,13 +26,15 @@ function App() {
   const [birthDate] = useState(DEFAULT_BIRTH_DATE)
   const [activeLayerIds, setActiveLayerIds] = useState<TimelineLayerId[]>(['gregorian'])
 
-  const scaleLevel = viewport.scaleLevel
+  const activeScaleLevel = getNearestScaleLevel(viewport.visibleDurationMs)
   const startTickDate = getViewportStartTickDate(viewport)
   const activeLayers = AVAILABLE_TIMELINE_LAYERS.filter((layer) => activeLayerIds.includes(layer.id))
   const timelineEnvironment: TimelineEnvironment = {
     now,
     birthDate,
   }
+  const scaleLevelOrder = getScaleLevelOrder()
+  const { minVisibleDurationMs, maxVisibleDurationMs } = getScaleDurationBounds()
 
   // update now every second
   // TODO: minute view ticks show a second behind because it takes 1 second to animate to the current time, by which point the second has already passed.
@@ -52,34 +55,32 @@ function App() {
 
   // + zooms out, counter-intuitively. That is because it selects a larger time scale.
   // TODO: make this more intuitive
-  const updateZoomBySteps = (steps: number) => {
+  const updateZoomByScaleSteps = (steps: number) => {
     if (steps === 0) {
       return
     }
 
     setViewport((prevViewport) => {
-      const nextScaleLevel = Math.min(
-        Math.max(prevViewport.scaleLevel + steps, scaleLevelMin),
-        scaleLevelMax,
-      )
+      const currentScaleLevel = getNearestScaleLevel(prevViewport.visibleDurationMs)
+      const currentIndex = scaleLevelOrder.indexOf(currentScaleLevel)
+      const nextIndex = Math.min(Math.max(currentIndex + steps, 0), scaleLevelOrder.length - 1)
+      const nextScaleLevel = scaleLevelOrder[nextIndex]
+      const nextVisibleDurationMs = getScaleLevelVisibleDurationMs(nextScaleLevel)
 
-      if (nextScaleLevel === prevViewport.scaleLevel) {
+      if (nextVisibleDurationMs === prevViewport.visibleDurationMs) {
         return prevViewport
       }
 
-      const prevStartTickDate = getViewportStartTickDate(prevViewport)
-      const centerTimeMs = getViewportCenterTimeMs(prevViewport.scaleLevel, prevStartTickDate)
-
       return {
-        focusTimeMs: centerTimeMs,
-        scaleLevel: nextScaleLevel,
+        focusTimeMs: prevViewport.focusTimeMs,
+        visibleDurationMs: nextVisibleDurationMs,
         rangeStrategy: 'centered',
       }
     })
   }
 
   const handleZoom = (direction: '+' | '-') => {
-    updateZoomBySteps(direction === '+' ? 1 : -1)
+    updateZoomByScaleSteps(direction === '+' ? 1 : -1)
   }
 
   const handlePan = (direction: '+' | '-' | 'reset') => {
@@ -87,20 +88,21 @@ function App() {
       if (direction === 'reset') {
         return {
           focusTimeMs: now.getTime(),
-          scaleLevel: prevViewport.scaleLevel,
+          visibleDurationMs: prevViewport.visibleDurationMs,
           rangeStrategy: 'currentContainingPeriod',
         }
       }
 
+      const activeScaleLevel = getNearestScaleLevel(prevViewport.visibleDurationMs)
       const prevStartTickDate = getViewportStartTickDate(prevViewport)
       const nextBoundaryTimeMs = direction === '+'
-        ? SCALE_LEVEL_CONFIG[prevViewport.scaleLevel].calculateTickTimeFunc(prevStartTickDate, PAN_AMOUNT)
-        : SCALE_LEVEL_CONFIG[prevViewport.scaleLevel].calculateTickTimeFunc(prevStartTickDate, -PAN_AMOUNT)
+        ? SCALE_LEVEL_CONFIG[activeScaleLevel].calculateTickTimeFunc(prevStartTickDate, PAN_AMOUNT)
+        : SCALE_LEVEL_CONFIG[activeScaleLevel].calculateTickTimeFunc(prevStartTickDate, -PAN_AMOUNT)
       const boundaryDeltaMs = nextBoundaryTimeMs - prevStartTickDate.getTime()
 
       return {
         focusTimeMs: prevViewport.focusTimeMs + boundaryDeltaMs,
-        scaleLevel: prevViewport.scaleLevel,
+        visibleDurationMs: prevViewport.visibleDurationMs,
         rangeStrategy: 'centered',
       }
     })
@@ -124,21 +126,32 @@ function App() {
     setViewport((prevViewport) => {
       return {
         focusTimeMs: prevViewport.focusTimeMs + deltaMs,
-        scaleLevel: prevViewport.scaleLevel,
+        visibleDurationMs: prevViewport.visibleDurationMs,
         rangeStrategy: 'centered',
       }
     })
   }
 
-  const handleWheelZoom = (steps: number) => {
-    updateZoomBySteps(steps)
+  const handleWheelZoom = (zoomFactor: number) => {
+    if (zoomFactor === 1) {
+      return
+    }
+
+    setViewport((prevViewport) => ({
+      focusTimeMs: prevViewport.focusTimeMs,
+      visibleDurationMs: Math.min(
+        Math.max(prevViewport.visibleDurationMs * zoomFactor, minVisibleDurationMs),
+        maxVisibleDurationMs,
+      ),
+      rangeStrategy: 'centered',
+    }))
   }
 
   return (
     <>
       <HQ
         now={now}
-        scaleLevel={scaleLevel}
+        scaleLevel={activeScaleLevel}
         startTickDate={startTickDate}
         handleZoom={handleZoom}
         handlePan={handlePan}
@@ -149,12 +162,13 @@ function App() {
       />
       <Timeline
         environment={timelineEnvironment}
-        scaleLevel={scaleLevel}
+        activeScaleLevel={activeScaleLevel}
         focusTimeMs={viewport.focusTimeMs}
+        visibleDurationMs={viewport.visibleDurationMs}
         startTickDate={startTickDate}
         activeLayers={activeLayers}
         onPanTimeDelta={handleWheelPan}
-        onZoomSteps={handleWheelZoom}
+        onZoomByFactor={handleWheelZoom}
       />
     </>
   )

@@ -8,13 +8,16 @@ export type TimelineEnvironment = {
 
 export type LayerRenderContext = {
   environment: TimelineEnvironment
-  scaleLevel: ScaleLevel
+  activeScaleLevel: ScaleLevel
   focusTimeMs: number
+  visibleDurationMs: number
   startTickDate: Date
-  timelineScaleLevel: ScaleLevel
+  timelineActiveScaleLevel: ScaleLevel
   timelineFocusTimeMs: number
-  prevScaleLevel?: ScaleLevel
+  timelineVisibleDurationMs: number
+  prevActiveScaleLevel?: ScaleLevel
   prevFocusTimeMs?: number
+  prevVisibleDurationMs?: number
 }
 
 export interface TimelineLayer {
