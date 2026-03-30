@@ -83,6 +83,7 @@ export const createGregorianStructuralSpans = (
 export const gregorianLayer: TimelineLayer = {
   id: 'gregorian',
   label: 'Gregorian',
+  role: 'structural',
   getPoints: createGregorianTickPoints,
   getSpans: ({ activeScaleLevel, focusTimeMs, visibleDurationMs }) =>
     createGregorianStructuralSpans(activeScaleLevel, focusTimeMs, visibleDurationMs),

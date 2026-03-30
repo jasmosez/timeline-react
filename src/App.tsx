@@ -8,7 +8,7 @@ import Timeline from './components/Timeline'
 import { PAN_AMOUNT, DEFAULT_BIRTH_DATE } from './config'
 import { birthdayLayer } from './timeline/birthday'
 import { gregorianLayer } from './timeline/gregorian'
-import type { TimelineEnvironment, TimelineLayerId } from './timeline/layers'
+import type { PrimaryCalendarSystemId, TimelineEnvironment, TimelineLayerId } from './timeline/layers'
 import { createInitialViewport, getViewportStartTickDate, type Viewport } from './viewport'
 import {
   SCALE_LEVEL_CONFIG,
@@ -22,12 +22,21 @@ import {
 
 const AVAILABLE_TIMELINE_LAYERS = [gregorianLayer, birthdayLayer]
 const LOCK_NOW_DEFAULT_PERCENT = 0.5
+const DEFAULT_TIMELINE_LOCATION = {
+  city: 'Northampton',
+  region: 'MA',
+  postalCode: '01060',
+  latitude: 42.3251,
+  longitude: -72.6412,
+}
+const DEFAULT_TIMELINE_TIMEZONE = 'America/New_York'
 
 function App() {
   const [now, setNow] = useState(getNow)
   const [viewport, setViewport] = useState<Viewport>(() => createInitialViewport(now))
   const [birthDate] = useState(DEFAULT_BIRTH_DATE)
   const [activeLayerIds, setActiveLayerIds] = useState<TimelineLayerId[]>(['gregorian'])
+  const [primaryCalendarSystemId, setPrimaryCalendarSystemId] = useState<PrimaryCalendarSystemId>('gregorian')
   const [lockNow, setLockNow] = useState(false)
   const [lockNowAnchorPercent, setLockNowAnchorPercent] = useState<number | null>(null)
 
@@ -42,6 +51,8 @@ function App() {
   const timelineEnvironment: TimelineEnvironment = {
     now,
     birthDate,
+    timezone: DEFAULT_TIMELINE_TIMEZONE,
+    location: DEFAULT_TIMELINE_LOCATION,
   }
   const scaleLevelOrder = getScaleLevelOrder()
   const { minVisibleDurationMs, maxVisibleDurationMs } = getScaleDurationBounds()
@@ -162,6 +173,10 @@ function App() {
     })
   }
 
+  const handleSetPrimaryCalendarSystem = (layerId: PrimaryCalendarSystemId) => {
+    setPrimaryCalendarSystemId(layerId)
+  }
+
   const handleWheelPan = (deltaMs: number) => {
     if (deltaMs === 0) {
       return
@@ -229,6 +244,8 @@ function App() {
         birthDate={birthDate}
         availableLayers={AVAILABLE_TIMELINE_LAYERS}
         activeLayerIds={activeLayerIds}
+        primaryCalendarSystemId={primaryCalendarSystemId}
+        onSetPrimaryCalendarSystem={handleSetPrimaryCalendarSystem}
         onToggleLayer={handleToggleLayer}
       />
       <Timeline

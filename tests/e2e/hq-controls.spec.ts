@@ -35,4 +35,16 @@ test.describe('HQ controls', () => {
     await page.getByLabel('Pan forward').click()
     await expect(lockNowToggle).not.toBeChecked()
   })
+
+  test('primary calendar system stays selected even if its structure is hidden', async ({ page }) => {
+    await page.goto('/')
+
+    const primaryGregorian = page.getByTestId('primary-structure-gregorian')
+    await expect(primaryGregorian).toBeChecked()
+
+    const gregorianLayerToggle = page.getByRole('checkbox', { name: 'Gregorian' })
+    await gregorianLayerToggle.uncheck()
+    await expect(gregorianLayerToggle).not.toBeChecked()
+    await expect(primaryGregorian).toBeChecked()
+  })
 })

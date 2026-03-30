@@ -2,7 +2,7 @@
 import { LOCALE, } from '../config';
 import { FULL_DATE_FORMAT, dayNumber, sundayBasedWeekNumber } from '../utils';
 import { SCALE_LEVEL_CONFIG, scaleLevelMax, scaleLevelMin } from '../timeline/scales';
-import type { TimelineLayer, TimelineLayerId } from '../timeline/layers';
+import type { PrimaryCalendarSystemId, TimelineLayer, TimelineLayerId } from '../timeline/layers';
 
 
 interface HQProps {
@@ -16,6 +16,8 @@ interface HQProps {
     birthDate: Date;
     availableLayers: TimelineLayer[];
     activeLayerIds: TimelineLayerId[];
+    primaryCalendarSystemId: PrimaryCalendarSystemId;
+    onSetPrimaryCalendarSystem: (layerId: PrimaryCalendarSystemId) => void;
     onToggleLayer: (layerId: TimelineLayerId) => void;
 }
 
@@ -32,8 +34,12 @@ export default function HQ({
   birthDate,
   availableLayers,
   activeLayerIds,
+  primaryCalendarSystemId,
+  onSetPrimaryCalendarSystem,
   onToggleLayer,
 }: HQProps) {
+  const structuralLayers = availableLayers.filter((layer) => layer.role === 'structural')
+
   return (
     // TODO: abstract styles to css file
       <div className='hq-container'>
@@ -93,6 +99,23 @@ export default function HQ({
                       type='checkbox'
                       checked={activeLayerIds.includes(layer.id)}
                       onChange={() => onToggleLayer(layer.id)}
+                    />
+                    <span>{layer.label}</span>
+                  </label>
+                ))}
+              </div>
+
+              <div style={{fontWeight: 'bold', marginTop: '10px'}}>Primary Structure</div>
+              <div className='hq-layer-list'>
+                {structuralLayers.map((layer) => (
+                  <label key={`primary-${layer.id}`} className='hq-layer-option'>
+                    <input
+                      type='radio'
+                      name='primary-structure'
+                      checked={primaryCalendarSystemId === layer.id}
+                      onChange={() => onSetPrimaryCalendarSystem(layer.id)}
+                      aria-label={`Primary structure ${layer.label}`}
+                      data-testid={`primary-structure-${layer.id}`}
                     />
                     <span>{layer.label}</span>
                   </label>
