@@ -157,7 +157,7 @@ This is the core architectural test.
 The first rendering strategy should remain conservative:
 
 - one primary structural layer gets dominant labels
-- secondary structural layers may render more quietly
+- a secondary structural layer should still be legible, but spatially distinct
 - label collision strategy can remain simple at first
 
 The important thing is proving:
@@ -167,6 +167,16 @@ The important thing is proving:
 - the viewport model does not break
 
 We do not need perfect multi-structure visual design in the very first slice.
+
+Recommended MVP distinction:
+
+- primary structural labels render on the left side of the timeline
+- secondary structural labels render on the right side of the timeline
+- subtle visual differences such as color or weight may be added later if
+  spatial distinction alone is not enough
+
+This should be treated as a first dual-structure rendering strategy, not
+necessarily the final one.
 
 ## MVP Questions to Settle Before Coding
 
@@ -187,6 +197,19 @@ We do not need perfect multi-structure visual design in the very first slice.
 3. Render a first Hebrew structural layer at one or two scales.
 4. Make reset / containing-period anchoring respect the primary calendar.
 5. Expand Hebrew structure to additional scales.
+
+## Current MVP Decisions
+
+These are the current working decisions for the first implementation:
+
+- When both Gregorian and Hebrew structural layers are active:
+  - primary structural labels render on the left side of the axis
+  - secondary structural labels render on the right side of the axis
+- Hebrew-primary week behavior should be interpreted as a 7-day span ending
+  with Shabbat
+- Within a Hebrew day, intraday tick marks should continue to use civil
+  Gregorian hours for MVP
+- Proportional / seasonal Hebrew hours remain out of scope for this first slice
 
 ## Success Criteria
 
