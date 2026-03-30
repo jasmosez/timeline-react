@@ -12,6 +12,7 @@ import type { TimelineEnvironment, TimelineLayerId } from './timeline/layers'
 import { createInitialViewport, getViewportStartTickDate, type Viewport } from './viewport'
 import {
   SCALE_LEVEL_CONFIG,
+  getFirstVisibleTickDate,
   getNearestScaleLevel,
   getScaleDurationBounds,
   getScaleLevelOrder,
@@ -28,6 +29,11 @@ function App() {
 
   const activeScaleLevel = getNearestScaleLevel(viewport.visibleDurationMs)
   const startTickDate = getViewportStartTickDate(viewport)
+  const firstVisibleTickDate = getFirstVisibleTickDate(
+    activeScaleLevel,
+    viewport.focusTimeMs,
+    viewport.visibleDurationMs,
+  )
   const activeLayers = AVAILABLE_TIMELINE_LAYERS.filter((layer) => activeLayerIds.includes(layer.id))
   const timelineEnvironment: TimelineEnvironment = {
     now,
@@ -152,7 +158,7 @@ function App() {
       <HQ
         now={now}
         scaleLevel={activeScaleLevel}
-        startTickDate={startTickDate}
+        firstVisibleTickDate={firstVisibleTickDate}
         handleZoom={handleZoom}
         handlePan={handlePan}
         birthDate={birthDate}

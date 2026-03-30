@@ -93,3 +93,19 @@ export const getVisibleRangeStartTickDate = (
   const { startTimeMs } = getVisibleTimeRange(focusTimeMs, visibleDurationMs)
   return SCALE_LEVEL_CONFIG[scaleLevel].startTickDateFunc(new Date(startTimeMs))
 }
+
+export const getFirstVisibleTickDate = (
+  scaleLevel: ScaleLevel,
+  focusTimeMs: number,
+  visibleDurationMs: number,
+) => {
+  const { startTimeMs } = getVisibleTimeRange(focusTimeMs, visibleDurationMs)
+  const { calculateTickTimeFunc } = SCALE_LEVEL_CONFIG[scaleLevel]
+  let tickDate = getVisibleRangeStartTickDate(scaleLevel, focusTimeMs, visibleDurationMs)
+
+  while (tickDate.getTime() < startTimeMs) {
+    tickDate = new Date(calculateTickTimeFunc(tickDate, 1))
+  }
+
+  return tickDate
+}

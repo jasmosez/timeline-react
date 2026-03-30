@@ -254,6 +254,24 @@ Current progress:
 - Gregorian structure and birthday markers both render through the layer system
 - the main remaining Phase 1 risk area is zoom behavior and label strategy
 
+### Phase 1.5: Add Regression Protection
+
+Goal: protect the new timeline engine with a lightweight but durable test
+foundation.
+
+Milestones:
+
+- add unit coverage for core time math and viewport derivation
+- add a small browser-level suite for critical interaction behavior
+- ensure important regressions like blocked controls are caught automatically
+- establish a simple, sustainable testing workflow for future refactors
+
+Success looks like:
+
+- core timeline math is covered by unit tests
+- a few high-value interactions are covered end-to-end
+- future interaction work can move faster with less fear of silent regressions
+
 ### Phase 2: Formalize Timekeeping Layers
 
 Goal: model multiple time systems without fragmenting the UI architecture.

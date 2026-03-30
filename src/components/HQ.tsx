@@ -8,7 +8,7 @@ import type { TimelineLayer, TimelineLayerId } from '../timeline/layers';
 interface HQProps {
     now: Date;
     scaleLevel: keyof typeof SCALE_LEVEL_CONFIG;
-    startTickDate: Date;
+    firstVisibleTickDate: Date;
     handleZoom: (direction: '+' | '-') => void;
     handlePan: (direction: '+' | '-' | 'reset') => void;
     birthDate: Date;
@@ -22,7 +22,7 @@ interface HQProps {
 export default function HQ({
   now,
   scaleLevel,
-  startTickDate,
+  firstVisibleTickDate,
   handleZoom,
   handlePan,
   birthDate,
@@ -33,7 +33,7 @@ export default function HQ({
   return (
     // TODO: abstract styles to css file
       <div className='hq-container'>
-          <div className='hq-title'>{SCALE_LEVEL_CONFIG[scaleLevel].label} View</div>
+          <div className='hq-title' data-testid='scale-title'>{SCALE_LEVEL_CONFIG[scaleLevel].label} View</div>
           <div className='hq-controls-container'>
             <div className='hq-controls'>
               <div className='hq-control'>
@@ -41,8 +41,8 @@ export default function HQ({
 
                 {/* TODO: see comment on handlezoom definition */}
                 <div className='hq-control-buttons'>
-                  <button disabled={scaleLevel === scaleLevelMax} onClick={() => handleZoom('+')}>-</button>
-                  <button disabled={scaleLevel === scaleLevelMin} onClick={() => handleZoom('-')}>+</button>
+                  <button aria-label='Zoom out' disabled={scaleLevel === scaleLevelMax} onClick={() => handleZoom('+')}>-</button>
+                  <button aria-label='Zoom in' disabled={scaleLevel === scaleLevelMin} onClick={() => handleZoom('-')}>+</button>
                 </div>
                 
               </div>
@@ -51,16 +51,16 @@ export default function HQ({
 
                 {/* TODO: see comment on handlezoom definition */}
                 <div className='hq-control-buttons'>
-                  <button onClick={() => handlePan('-')}>-</button>
-                  <button onClick={() => handlePan('+')}>+</button>
-                  <button onClick={() => handlePan('reset')}>{'<>'}</button>
+                  <button aria-label='Pan backward' onClick={() => handlePan('-')}>-</button>
+                  <button aria-label='Pan forward' onClick={() => handlePan('+')}>+</button>
+                  <button aria-label='Reset timeline' onClick={() => handlePan('reset')}>{'<>'}</button>
                 </div>
                 
               </div>
             </div>
             <div className='hq-controls-info'>
-              <div style={{fontWeight: 'bold', marginTop: '10px'}}>First tick</div>
-              <div>{startTickDate.toLocaleString(LOCALE, scaleLevel === -1 ? {...FULL_DATE_FORMAT, ...{second: '2-digit'}} : FULL_DATE_FORMAT)}</div>
+              <div style={{fontWeight: 'bold', marginTop: '10px'}}>First visible tick</div>
+              <div data-testid='start-tick-value'>{firstVisibleTickDate.toLocaleString(LOCALE, scaleLevel === -1 ? {...FULL_DATE_FORMAT, ...{second: '2-digit'}} : FULL_DATE_FORMAT)}</div>
               
               <div className='now' style={{fontWeight: 'bold', marginTop: '10px'}}>Currently</div>
               <div className='now'>{now.toLocaleString(LOCALE, FULL_DATE_FORMAT)}</div>
@@ -86,7 +86,7 @@ export default function HQ({
               {/* <div>Each tick is the start of a {SCALE_LEVEL_CONFIG[scaleLevel].unit}</div> */}
               {/* <div>Each span between ticks represents one whole {SCALE_LEVEL_CONFIG[scaleLevel].unit}</div> */}
               
-              {/* <div>Birthday-based Week {birthdayBasedWeekNumber(startTickDate)}</div> */}
+              {/* <div>Birthday-based Week {birthdayBasedWeekNumber(firstVisibleTickDate)}</div> */}
             </div>
           </div>
       </div>
