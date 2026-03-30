@@ -212,6 +212,7 @@ Known current limitations include:
 - zoom is still driven by discrete scale levels rather than continuous visible
   duration
 - label behavior during motion still needs design work
+- `now` marker motion still needs cleanup so it feels correct and intentional
 - the README does not yet describe the actual project
 - timezone handling is minimal
 - the birth date settings UI currently captures only a date, not a full
@@ -252,7 +253,8 @@ Current progress:
 - scroll-based panning is in place
 - points and spans are first-class render primitives
 - Gregorian structure and birthday markers both render through the layer system
-- the main remaining Phase 1 risk area is zoom behavior and label strategy
+- the main remaining Phase 1 risk areas are zoom polish, `now` motion, and
+  label strategy
 
 ### Phase 1.5: Add Regression Protection
 
@@ -372,6 +374,8 @@ continues:
   viewport?
 - When should scale levels stop being Gregorian-backed defaults and become more
   fully layer-neutral?
+- How should the layout adapt for mobile and smaller screens without fighting
+  the long-term timeline-first design?
 
 This section should also serve as a parking lot for open design questions that
 do not yet block implementation.

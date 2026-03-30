@@ -123,6 +123,8 @@ Key issues:
 - current scale definitions are still backed by Gregorian default structure,
   even though the long-term model should allow other layers to become primary
   at the same visible duration
+- the layout now assumes a real left rail plus a reserved left gutter for the
+  persistent `now` label, but responsive/mobile adaptations are still ahead
 
 ## Recommended Direction
 

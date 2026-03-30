@@ -55,6 +55,10 @@ Current implementation:
 - `now` is not pinned to a fixed screen position
 - `now` may leave the visible range
 - recentering on `now` is an explicit action, not a constant default behavior
+- the main controls now live in a true left rail rather than competing as a
+  floating overlay
+- the timeline composition reserves left-side space for the persistent `now`
+  label
 
 This keeps the model simple and aligns with the current architectural direction.
 
@@ -138,6 +142,8 @@ Google Earth is a useful inspiration for this interaction philosophy.
   over-polishing the current step-only model.
 - It is acceptable for the first continuous-zoom experiment to keep Gregorian
   default structure while the interaction model becomes duration-driven.
+- The `now` marker still needs its own motion strategy; it does not behave well
+  when treated exactly like the structural timeline elements.
 
 ## Open Questions
 
@@ -150,3 +156,5 @@ Google Earth is a useful inspiration for this interaction philosophy.
 - When should the project move from discrete zoom levels to semi-continuous or
   continuous zoom?
 - When should scale bands stop relying on Gregorian-backed structural defaults?
+- How should mobile and smaller-screen layouts preserve the timeline-first
+  interaction model without simply collapsing into a generic app shell?
