@@ -18,7 +18,5 @@ const YEAR: Intl.DateTimeFormatOptions = { year: 'numeric' }
 export const FULL_DATE_FORMAT = {...YEAR, ...MONTH, ...WEEKDAY, ...DAY, ...HOUR, ...MINUTE}
 
 export const getNow = () => {
-  const d = new Date()
-  d.setMilliseconds(Math.round(d.getMilliseconds() / 1000) * 1000)
-  return d
+  return new Date()
 }

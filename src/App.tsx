@@ -42,22 +42,27 @@ function App() {
   const scaleLevelOrder = getScaleLevelOrder()
   const { minVisibleDurationMs, maxVisibleDurationMs } = getScaleDurationBounds()
 
-  // update now every second
-  // TODO: minute view ticks show a second behind because it takes 1 second to animate to the current time, by which point the second has already passed.
   useEffect(() => {
-    const ms = 1000 - now.getMilliseconds()
-    const timeout = setTimeout(() => {
+    const updateIntervalMs = SCALE_LEVEL_CONFIG[activeScaleLevel].key === 'minute' ? 10 : 1000
+    const currentNow = getNow()
+    const timeUntilNextUpdate = updateIntervalMs - (currentNow.getTime() % updateIntervalMs || updateIntervalMs)
+
+    let intervalId: number | undefined
+    const timeoutId = window.setTimeout(() => {
       setNow(getNow())
-      
-      const interval = setInterval(() => {
+
+      intervalId = window.setInterval(() => {
         setNow(getNow())
-      }, 1000)
-      
-      return () => clearInterval(interval)
-    }, ms)
-    
-    return () => clearTimeout(timeout)
-  }, [])
+      }, updateIntervalMs)
+    }, timeUntilNextUpdate)
+
+    return () => {
+      window.clearTimeout(timeoutId)
+      if (intervalId !== undefined) {
+        window.clearInterval(intervalId)
+      }
+    }
+  }, [activeScaleLevel])
 
   // + zooms out, counter-intuitively. That is because it selects a larger time scale.
   // TODO: make this more intuitive

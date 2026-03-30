@@ -15,7 +15,7 @@ interface NowTickProps {
 
 function NowTick({now, scaleLevel, focusTimeMs, visibleDurationMs, startTickDate}: NowTickProps) {
     const point: TimelinePoint = {
-        id: `now-${now.getTime()}`,
+        id: `now-${SCALE_LEVEL_CONFIG[scaleLevel].key}`,
         kind: 'marker',
         timeMs: now.getTime(),
         label: now.toLocaleString(LOCALE, {...FULL_DATE_FORMAT, second: '2-digit'}),
