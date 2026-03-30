@@ -33,10 +33,12 @@ Current implementation:
 - pinch zooms when available
 - modifier + wheel zooms as a fallback
 - buttons may remain during transition, but should become secondary controls
-- zoom still moves between discrete scale levels
-- zoom transitions are animated separately from pan motion
-- the current zoom model is now the main interaction area that feels less
-  mature than pan
+- zoom changes `visibleDurationMs` continuously and derives the active scale
+  band from duration
+- structural band changes currently swap cleanly rather than trying to animate
+  between incompatible structural snapshots
+- HQ button zoom uses the same band-switch model and may later receive its own
+  smoother transition treatment as part of broader band-transition work
 
 Next experiment direction:
 
@@ -136,6 +138,8 @@ Google Earth is a useful inspiration for this interaction philosophy.
   transitions.
 - A continuous viewport model feels much healthier than deriving visible motion
   from the leading structural tick alone.
+- If structural bands cannot transition honestly yet, a clean flash is better
+  than animating ticks and spans from incorrect intermediate positions.
 - Label formatting that works well for static views can become noisy during
   motion. Label strategy will need another pass with fluid navigation in mind.
 - The next zoom prototype should target the real desired paradigm rather than
@@ -155,6 +159,8 @@ Google Earth is a useful inspiration for this interaction philosophy.
 - How should label density adapt during faster, more fluid navigation?
 - When should the project move from discrete zoom levels to semi-continuous or
   continuous zoom?
+- What is the right later transition treatment for band switches, including HQ
+  button zoom interactions?
 - When should scale bands stop relying on Gregorian-backed structural defaults?
 - How should mobile and smaller-screen layouts preserve the timeline-first
   interaction model without simply collapsing into a generic app shell?

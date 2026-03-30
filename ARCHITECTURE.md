@@ -204,6 +204,11 @@ In this model:
 - band changes can begin as threshold-based structural swaps
 - later, adjacent bands may crossfade or progressively reveal labels
 
+The current codebase now uses this simpler threshold-swap approach rather than
+trying to animate between incompatible structural snapshots. That is a better
+interim architecture: honest visual swaps now, smoother band-transition
+treatments later.
+
 For the first prototype of this model, the structural defaults can remain
 Gregorian-backed. That is a useful interim step, not the final architectural
 destination.

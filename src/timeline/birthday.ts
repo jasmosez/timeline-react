@@ -7,9 +7,6 @@ type BirthdayMarkerParams = {
   activeScaleLevel: ScaleLevel
   focusTimeMs: number
   visibleDurationMs: number
-  timelineActiveScaleLevel: ScaleLevel
-  timelineFocusTimeMs: number
-  timelineVisibleDurationMs: number
   startTickDate: Date
   birthDate: Date
 }
@@ -26,11 +23,9 @@ const createBirthdayAnniversary = (birthDate: Date, age: number) =>
   )
 
 export const createBirthdayLayerPoints = ({
+  activeScaleLevel,
   focusTimeMs,
   visibleDurationMs,
-  timelineActiveScaleLevel,
-  timelineFocusTimeMs,
-  timelineVisibleDurationMs,
   startTickDate,
   birthDate,
 }: BirthdayMarkerParams): PositionedTimelinePoint[] => {
@@ -57,9 +52,9 @@ export const createBirthdayLayerPoints = ({
     points.push(
       positionTimelinePoint(
         point,
-        timelineActiveScaleLevel,
-        timelineFocusTimeMs,
-        timelineVisibleDurationMs,
+        activeScaleLevel,
+        focusTimeMs,
+        visibleDurationMs,
         startTickDate,
         {
           className: 'birthday-marker',
@@ -79,9 +74,6 @@ export const birthdayLayer: TimelineLayer = {
     activeScaleLevel,
     focusTimeMs,
     visibleDurationMs,
-    timelineActiveScaleLevel,
-    timelineFocusTimeMs,
-    timelineVisibleDurationMs,
     startTickDate,
     environment,
   }) =>
@@ -90,9 +82,6 @@ export const birthdayLayer: TimelineLayer = {
       focusTimeMs,
       visibleDurationMs,
       startTickDate,
-      timelineActiveScaleLevel,
-      timelineFocusTimeMs,
-      timelineVisibleDurationMs,
       birthDate: environment.birthDate,
     }),
   getSpans: () => [],

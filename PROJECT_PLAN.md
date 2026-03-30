@@ -253,8 +253,10 @@ Current progress:
 - scroll-based panning is in place
 - points and spans are first-class render primitives
 - Gregorian structure and birthday markers both render through the layer system
-- the main remaining Phase 1 risk areas are zoom polish, `now` motion, and
-  label strategy
+- duration-driven zoom is in place with derived scale bands
+- Phase 1 zoom polish is complete at the current fidelity level, using clean
+  structural band switches rather than misleading transitional animation
+- the main remaining Phase 1 risk areas are `now` motion and label strategy
 
 ### Phase 1.5: Add Regression Protection
 
@@ -344,6 +346,8 @@ Milestones:
 - extend zoom range beyond decade
 - improve performance for dense views and long spans
 - refine interaction design for advanced navigation
+- smooth transitions between structural scale bands, including button-triggered
+  HQ zoom interactions
 - further separate scale bands from Gregorian-backed structural defaults when
   layer architecture is ready
 

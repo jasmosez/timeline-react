@@ -6,7 +6,6 @@ import {
   type TimelineEnvironment,
   type TimelineLayer,
 } from '../timeline/layers';
-import { useAnimatedTimelineState } from '../hooks/useAnimatedTimelineState';
 import { TickPoint } from './Tick';
 import type {
   PositionedTimelinePoint,
@@ -39,15 +38,6 @@ function Timeline({
   const [tickPoints, setTickPoints] = useState<PositionedTimelinePoint[]>([]);
   const [timelineSpans, setTimelineSpans] = useState<PositionedTimelineSpan[]>([]);
   const viewportRef = useRef<HTMLDivElement>(null);
-  const {
-    timelineActiveScaleLevel,
-    timelineFocusTimeMs,
-    timelineVisibleDurationMs,
-    prevActiveScaleLevel,
-    prevFocusTimeMs,
-    prevVisibleDurationMs,
-    isZoomTransitioning,
-  } = useAnimatedTimelineState(activeScaleLevel, focusTimeMs, visibleDurationMs);
 
   useEffect(() => {
     const context = {
@@ -56,12 +46,6 @@ function Timeline({
       focusTimeMs,
       visibleDurationMs,
       startTickDate,
-      timelineActiveScaleLevel,
-      timelineFocusTimeMs,
-      timelineVisibleDurationMs,
-      prevActiveScaleLevel,
-      prevFocusTimeMs,
-      prevVisibleDurationMs,
     };
 
     setTickPoints(combineLayerPoints(activeLayers, context));
@@ -73,12 +57,6 @@ function Timeline({
     focusTimeMs,
     visibleDurationMs,
     startTickDate,
-    timelineActiveScaleLevel,
-    timelineFocusTimeMs,
-    timelineVisibleDurationMs,
-    prevActiveScaleLevel,
-    prevFocusTimeMs,
-    prevVisibleDurationMs,
   ]);
 
   useEffect(() => {
@@ -111,7 +89,7 @@ function Timeline({
   }, [visibleDurationMs, onPanTimeDelta, onZoomByFactor]);
 
   return (
-    <div ref={viewportRef} className='timeline-root' data-animate={isZoomTransitioning}>
+    <div ref={viewportRef} className='timeline-root'>
       <div className='timeline line' />
       {timelineSpans.map((span) => <Span key={span.id} span={span} />)}
       {tickPoints.map((point) => <TickPoint key={point.id} point={point} />)}
