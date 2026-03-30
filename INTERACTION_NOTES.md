@@ -64,6 +64,14 @@ Current implementation:
 
 This keeps the model simple and aligns with the current architectural direction.
 
+Current implementation:
+
+- `Lock Now` can be toggled in HQ
+- if `now` is already visible, locking preserves its current vertical position
+- if `now` is off screen, locking recenters it and parks it at mid-screen
+- while locked, the timeline moves to keep `now` parked
+- manual pan disables `Lock Now` and returns the app to free exploration
+
 ### Zoom Center
 
 For MVP, zoom should center around the viewport center rather than the pointer.
@@ -114,6 +122,9 @@ Implications:
 For MVP interaction work, `now` should remain visible when in range, but should
 not constrain the viewport model.
 
+`now` can now optionally influence the viewport via `Lock Now`, without
+becoming the permanent default behavior of the app.
+
 ## Interaction Philosophy
 
 The long-term target is closer to map navigation than mode switching.
@@ -156,6 +167,8 @@ Google Earth is a useful inspiration for this interaction philosophy.
 - Should live-follow behavior exist as a separate mode later?
 - When should pointer-centered zoom replace or augment viewport-centered zoom?
 - What is the right recenter affordance once scroll navigation becomes primary?
+- Should `Lock Now` default to exact center when re-entering from off screen,
+  or should it eventually use a slight vertical bias?
 - How should label density adapt during faster, more fluid navigation?
 - When should the project move from discrete zoom levels to semi-continuous or
   continuous zoom?

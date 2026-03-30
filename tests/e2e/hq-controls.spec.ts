@@ -24,4 +24,15 @@ test.describe('HQ controls', () => {
     await page.getByLabel('Reset timeline').click()
     await expect(startTick).toHaveText(initialStartTick ?? '')
   })
+
+  test('manual pan disables lock now mode immediately', async ({ page }) => {
+    await page.goto('/')
+
+    const lockNowToggle = page.getByTestId('lock-now-toggle')
+    await lockNowToggle.check()
+    await expect(lockNowToggle).toBeChecked()
+
+    await page.getByLabel('Pan forward').click()
+    await expect(lockNowToggle).not.toBeChecked()
+  })
 })

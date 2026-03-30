@@ -61,8 +61,8 @@ The current implementation already has several important seams in place:
 - shared timeline environment data passed to layers
 - normalized point and span primitives
 - a layout step that positions semantic primitives against the visible range
-- a dedicated animation hook that separates zoom-transition state from ordinary
-  pan updates
+- direct duration-driven rendering from the current viewport state, without the
+  older snapshot-based zoom transition hook
 
 This means the code is no longer organized around “render ticks directly from a
 single monolithic zoom config.” It is already partway into the intended engine
@@ -118,6 +118,8 @@ Key issues:
 - `startTickDate` is still a useful structural anchor, but its role should stay
   secondary to `focusTimeMs`
 - `NowTick` is still special-cased outside the layer system
+- `Lock Now` now exists as an optional live-viewing mode layered on top of the
+  free-exploration viewport model
 - zoom interaction remains discrete even though pan is now continuous
 - label strategy is still tuned more for static views than for fluid motion
 - current scale definitions are still backed by Gregorian default structure,

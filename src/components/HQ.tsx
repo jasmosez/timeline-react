@@ -11,6 +11,8 @@ interface HQProps {
     firstVisibleTickDate: Date;
     handleZoom: (direction: '+' | '-') => void;
     handlePan: (direction: '+' | '-' | 'reset') => void;
+    lockNow: boolean;
+    onToggleLockNow: () => void;
     birthDate: Date;
     availableLayers: TimelineLayer[];
     activeLayerIds: TimelineLayerId[];
@@ -25,6 +27,8 @@ export default function HQ({
   firstVisibleTickDate,
   handleZoom,
   handlePan,
+  lockNow,
+  onToggleLockNow,
   birthDate,
   availableLayers,
   activeLayerIds,
@@ -58,7 +62,19 @@ export default function HQ({
                 
               </div>
             </div>
-            <div className='hq-controls-info'>
+              <div className='hq-controls-info'>
+              <div style={{fontWeight: 'bold', marginTop: '10px'}}>Navigation</div>
+              <label className='hq-layer-option'>
+                <input
+                  type='checkbox'
+                  checked={lockNow}
+                  onChange={onToggleLockNow}
+                  aria-label='Lock now'
+                  data-testid='lock-now-toggle'
+                />
+                <span>Lock Now</span>
+              </label>
+
               <div style={{fontWeight: 'bold', marginTop: '10px'}}>First visible tick</div>
               <div data-testid='start-tick-value'>{firstVisibleTickDate.toLocaleString(LOCALE, scaleLevel === -1 ? {...FULL_DATE_FORMAT, ...{second: '2-digit'}} : FULL_DATE_FORMAT)}</div>
               

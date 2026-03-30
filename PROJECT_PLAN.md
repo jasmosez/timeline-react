@@ -233,6 +233,7 @@ Milestones:
 - improve tick rendering and animation architecture
 - replace button-only panning with scroll and/or drag interaction
 - support smoother recentering and navigation behavior
+- add an optional `Lock Now` navigation mode for live viewing
 - introduce a proper span rendering primitive
 - establish a cleaner styling and layout foundation
 - make Phase 1 abstractions compatible with future continuous or semi-continuous
@@ -256,7 +257,8 @@ Current progress:
 - duration-driven zoom is in place with derived scale bands
 - Phase 1 zoom polish is complete at the current fidelity level, using clean
   structural band switches rather than misleading transitional animation
-- the main remaining Phase 1 risk areas are `now` motion and label strategy
+- `Lock Now` is in place for live viewing, with manual pan returning the app to
+  free exploration
 
 ### Phase 1.5: Add Regression Protection
 

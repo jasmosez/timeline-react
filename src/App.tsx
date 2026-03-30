@@ -12,6 +12,7 @@ import type { TimelineEnvironment, TimelineLayerId } from './timeline/layers'
 import { createInitialViewport, getViewportStartTickDate, type Viewport } from './viewport'
 import {
   SCALE_LEVEL_CONFIG,
+  getVisibleTimeRange,
   getFirstVisibleTickDate,
   getNearestScaleLevel,
   getScaleDurationBounds,
@@ -20,12 +21,15 @@ import {
 } from './timeline/scales'
 
 const AVAILABLE_TIMELINE_LAYERS = [gregorianLayer, birthdayLayer]
+const LOCK_NOW_DEFAULT_PERCENT = 0.5
 
 function App() {
   const [now, setNow] = useState(getNow)
   const [viewport, setViewport] = useState<Viewport>(() => createInitialViewport(now))
   const [birthDate] = useState(DEFAULT_BIRTH_DATE)
   const [activeLayerIds, setActiveLayerIds] = useState<TimelineLayerId[]>(['gregorian'])
+  const [lockNow, setLockNow] = useState(false)
+  const [lockNowAnchorPercent, setLockNowAnchorPercent] = useState<number | null>(null)
 
   const activeScaleLevel = getNearestScaleLevel(viewport.visibleDurationMs)
   const startTickDate = getViewportStartTickDate(viewport)
@@ -41,6 +45,10 @@ function App() {
   }
   const scaleLevelOrder = getScaleLevelOrder()
   const { minVisibleDurationMs, maxVisibleDurationMs } = getScaleDurationBounds()
+  const getNowPercent = (focusTimeMs: number, visibleDurationMs: number) => {
+    const { startTimeMs } = getVisibleTimeRange(focusTimeMs, visibleDurationMs)
+    return (now.getTime() - startTimeMs) / visibleDurationMs
+  }
 
   useEffect(() => {
     const updateIntervalMs = SCALE_LEVEL_CONFIG[activeScaleLevel].key === 'minute' ? 10 : 1000
@@ -63,6 +71,25 @@ function App() {
       }
     }
   }, [activeScaleLevel])
+
+  useEffect(() => {
+    if (!lockNow) {
+      if (lockNowAnchorPercent !== null) {
+        setLockNowAnchorPercent(null)
+      }
+      return
+    }
+
+    const anchorPercent = lockNowAnchorPercent ?? LOCK_NOW_DEFAULT_PERCENT
+    const nextFocusTimeMs = now.getTime() - (anchorPercent - 0.5) * viewport.visibleDurationMs
+    if (nextFocusTimeMs !== viewport.focusTimeMs) {
+      setViewport({
+        focusTimeMs: nextFocusTimeMs,
+        visibleDurationMs: viewport.visibleDurationMs,
+        rangeStrategy: 'centered',
+      })
+    }
+  }, [lockNow, lockNowAnchorPercent, now, viewport])
 
   // + zooms out, counter-intuitively. That is because it selects a larger time scale.
   // TODO: make this more intuitive
@@ -95,6 +122,11 @@ function App() {
   }
 
   const handlePan = (direction: '+' | '-' | 'reset') => {
+    if (direction !== 'reset') {
+      setLockNow(false)
+      setLockNowAnchorPercent(null)
+    }
+
     setViewport((prevViewport) => {
       if (direction === 'reset') {
         return {
@@ -110,9 +142,10 @@ function App() {
         ? SCALE_LEVEL_CONFIG[activeScaleLevel].calculateTickTimeFunc(prevStartTickDate, PAN_AMOUNT)
         : SCALE_LEVEL_CONFIG[activeScaleLevel].calculateTickTimeFunc(prevStartTickDate, -PAN_AMOUNT)
       const boundaryDeltaMs = nextBoundaryTimeMs - prevStartTickDate.getTime()
+      const nextFocusTimeMs = prevViewport.focusTimeMs + boundaryDeltaMs
 
       return {
-        focusTimeMs: prevViewport.focusTimeMs + boundaryDeltaMs,
+        focusTimeMs: nextFocusTimeMs,
         visibleDurationMs: prevViewport.visibleDurationMs,
         rangeStrategy: 'centered',
       }
@@ -134,12 +167,13 @@ function App() {
       return
     }
 
-    setViewport((prevViewport) => {
-      return {
-        focusTimeMs: prevViewport.focusTimeMs + deltaMs,
-        visibleDurationMs: prevViewport.visibleDurationMs,
-        rangeStrategy: 'centered',
-      }
+    setLockNow(false)
+    setLockNowAnchorPercent(null)
+
+    setViewport({
+      focusTimeMs: viewport.focusTimeMs + deltaMs,
+      visibleDurationMs: viewport.visibleDurationMs,
+      rangeStrategy: 'centered',
     })
   }
 
@@ -158,6 +192,30 @@ function App() {
     }))
   }
 
+  const handleToggleLockNow = () => {
+    if (lockNow) {
+      setLockNow(false)
+      setLockNowAnchorPercent(null)
+      return
+    }
+
+    const nowPercent = getNowPercent(viewport.focusTimeMs, viewport.visibleDurationMs)
+    const anchorPercent = nowPercent >= 0 && nowPercent <= 1
+      ? nowPercent
+      : LOCK_NOW_DEFAULT_PERCENT
+
+    setLockNowAnchorPercent(anchorPercent)
+    setLockNow(true)
+
+    if (anchorPercent === LOCK_NOW_DEFAULT_PERCENT && (nowPercent < 0 || nowPercent > 1)) {
+      setViewport({
+        focusTimeMs: now.getTime(),
+        visibleDurationMs: viewport.visibleDurationMs,
+        rangeStrategy: 'centered',
+      })
+    }
+  }
+
   return (
     <>
       <HQ
@@ -166,6 +224,8 @@ function App() {
         firstVisibleTickDate={firstVisibleTickDate}
         handleZoom={handleZoom}
         handlePan={handlePan}
+        lockNow={lockNow}
+        onToggleLockNow={handleToggleLockNow}
         birthDate={birthDate}
         availableLayers={AVAILABLE_TIMELINE_LAYERS}
         activeLayerIds={activeLayerIds}
