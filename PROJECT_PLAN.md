@@ -159,6 +159,7 @@ Likely future layers:
 
 - astrology layer
 - twilight layer (civil, nautical, astronomical; morning and evening)
+- Hebrew parsha / weekly Torah-portion contextual layer
 
 A layer may provide:
 

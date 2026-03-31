@@ -32,6 +32,35 @@ const repeatsPreviousLocalHour = (tickDate: Date) => {
     && tickDate.getMinutes() === previousHour.getMinutes()
 }
 
+const DAY_IN_MS = 24 * 60 * 60 * 1000
+
+const getIsoWeekInfo = (date: Date) => {
+  const localDate = new Date(date)
+  localDate.setHours(0, 0, 0, 0)
+  localDate.setDate(localDate.getDate() + 3 - ((localDate.getDay() + 6) % 7))
+  const weekYear = localDate.getFullYear()
+  const weekOne = new Date(weekYear, 0, 4)
+  weekOne.setHours(0, 0, 0, 0)
+
+  const weekNumber = 1 + Math.round(
+    (
+      localDate.getTime()
+      - weekOne.getTime()
+      - (3 - ((weekOne.getDay() + 6) % 7)) * DAY_IN_MS
+    ) / (7 * DAY_IN_MS),
+  )
+
+  return { weekYear, weekNumber }
+}
+
+export const getSundayStartWeekInfo = (date: Date) => {
+  const shiftedDate = new Date(date)
+  shiftedDate.setDate(shiftedDate.getDate() + 1)
+  return getIsoWeekInfo(shiftedDate)
+}
+
+const formatWeekNumber = (date: Date) => `W${getSundayStartWeekInfo(date).weekNumber}`
+
 const formatHourWithOptionalTimezone = (tickDate: Date) =>
   tickDate.toLocaleTimeString(
     LOCALE,
@@ -95,6 +124,11 @@ export const getGregorianDayTickLabel = (tickTime: number) => {
 
 export const getGregorianWeekTickLabel = (tickTime: number) => {
   const tickDate = new Date(tickTime)
+
+  if (tickDate.getDay() === 0) {
+    return `${formatWeekNumber(tickDate)}, ${tickDate.toLocaleDateString(LOCALE, WEEKDAY)} ${tickDate.toLocaleDateString(LOCALE, DAY)}`
+  }
+
   return `${tickDate.toLocaleDateString(LOCALE, WEEKDAY)} ${tickDate.toLocaleDateString(LOCALE, DAY)}`
 }
 
@@ -105,7 +139,7 @@ export const getGregorianMonthTickLabel = (tickTime: number, isFirstTick: boolea
   const isSunday = tickDate.getDay() === 0
 
   if (isSunday && showMonth) {
-    return `${tickDate.toLocaleDateString(LOCALE, WEEKDAY)} ${tickDate.toLocaleDateString(LOCALE, {
+    return `${formatWeekNumber(tickDate)}, ${tickDate.toLocaleDateString(LOCALE, {
       ...DAY,
       ...MONTH,
       ...(showYear ? YEAR : {}),
@@ -113,7 +147,7 @@ export const getGregorianMonthTickLabel = (tickTime: number, isFirstTick: boolea
   }
 
   if (isSunday && !showYear) {
-    return `${tickDate.toLocaleDateString(LOCALE, WEEKDAY)} ${tickDate.toLocaleDateString(LOCALE, DAY)}`
+    return `${formatWeekNumber(tickDate)}, ${tickDate.toLocaleDateString(LOCALE, DAY)}`
   }
 
   return tickDate.toLocaleDateString(LOCALE, {
@@ -123,14 +157,18 @@ export const getGregorianMonthTickLabel = (tickTime: number, isFirstTick: boolea
   })
 }
 
-export const getGregorianQuarterTickLabel = (tickTime: number, isFirstTick: boolean) => {
+export const getGregorianQuarterWeekTickLabel = (tickTime: number) => {
+  return formatWeekNumber(new Date(tickTime))
+}
+
+export const getGregorianQuarterBoundaryLabel = (tickTime: number) => {
   const tickDate = new Date(tickTime)
 
   if (isStartOfQuarter(tickDate)) {
     return `Q${Math.floor(tickDate.getMonth() / 3) + 1}, ${tickDate.toLocaleDateString(LOCALE, MONTH)}`
   }
 
-  return tickDate.toLocaleDateString(LOCALE, isFirstTick ? { ...MONTH, ...YEAR } : MONTH)
+  return tickDate.toLocaleDateString(LOCALE, MONTH)
 }
 
 export const getGregorianYearTickLabel = (tickTime: number, isFirstTick: boolean) => {

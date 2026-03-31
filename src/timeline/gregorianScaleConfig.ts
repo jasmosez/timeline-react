@@ -6,7 +6,7 @@ import {
   getGregorianHourTickLabel,
   getGregorianMinuteTickLabel,
   getGregorianMonthTickLabel,
-  getGregorianQuarterTickLabel,
+  getGregorianQuarterWeekTickLabel,
   getGregorianWeekTickLabel,
   getGregorianYearTickLabel,
 } from './gregorianLabels'
@@ -77,17 +77,6 @@ const startOfMonth = (date: Date) => {
   newDate.setMinutes(0)
   newDate.setSeconds(0)
   newDate.setMilliseconds(0)
-  newDate.setDate(1)
-  return newDate
-}
-
-const startOfQuarter = (date: Date) => {
-  const newDate = new Date(date)
-  newDate.setHours(0)
-  newDate.setMinutes(0)
-  newDate.setSeconds(0)
-  newDate.setMilliseconds(0)
-  newDate.setMonth(Math.floor(date.getMonth() / 3) * 3)
   newDate.setDate(1)
   return newDate
 }
@@ -172,12 +161,12 @@ export const GREGORIAN_SCALE_LEVEL_CONFIG: Record<ScaleLevel, ScaleLevelConfig> 
   4: {
     key: 'quarter',
     label: 'Quarter',
-    visibleTicks: 4,
-    unit: 'month',
-    screenSpan: 120 * DAY_IN_MS,
-    calculateTickTimeFunc: addMonths,
-    startTickDateFunc: startOfQuarter,
-    getTickLabel: getGregorianQuarterTickLabel,
+    visibleTicks: 18,
+    unit: 'week',
+    screenSpan: 18 * 7 * DAY_IN_MS,
+    calculateTickTimeFunc: (date, weeks) => addDays(date, weeks * 7),
+    startTickDateFunc: startOfWeek,
+    getTickLabel: getGregorianQuarterWeekTickLabel,
   },
   5: {
     key: 'year',

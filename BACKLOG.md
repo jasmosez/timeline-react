@@ -52,6 +52,17 @@ Usage:
   app-wide mode choice
   Target: Phase 2
 
+- Month-view week spans outside day spans
+  Notes: Gregorian week spans could sit farther from the axis than day spans,
+  using the existing Sunday/week boundary hierarchy
+  Target: Phase 2
+
+- Revisit secondary-label ordering across structural layers
+  Notes: when a calendar is secondary, it may read better if the element closest
+  to the timeline appears first in the label string, for example `5, Shabbat`
+  instead of `Shabbat 5`; explore implications by scale and calendar
+  Target: Phase 2
+
 ## Later
 
 - Smooth band-transition treatment for gesture zoom and HQ button zoom
@@ -63,6 +74,11 @@ Usage:
   boundaries or spans
   Notes: likely starts as a marker/span layer and may later interact with
   Hebrew-time sunrise/sunset context
+  Target: Phase 3
+
+- Hebrew parsha labeling as a possible analogue to Gregorian week numbers
+  Notes: likely a separate Hebrew toggle or contextual layer rather than part
+  of baseline Hebrew structural labels
   Target: Phase 3
 
 - Mobile / responsive layout strategy

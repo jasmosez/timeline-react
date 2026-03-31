@@ -5,7 +5,7 @@
  * @property {'minute' | 'hour' | 'day' | 'week' | 'month' | 'quarter' | 'year' | 'shmita' | 'decade'} key
  * @property {string} label
  * @property {number} visibleTicks
- * @property {'second' | 'minute' | 'hour' | 'day' | 'month' | 'quarter' | 'year'} unit
+ * @property {'second' | 'minute' | 'hour' | 'day' | 'week' | 'month' | 'quarter' | 'year'} unit
  * @property {number} screenSpan
  * @property {(firstTick: Date, addedUnits: number) => number} calculateTickTimeFunc
  * @property {(date: Date) => Date} startTickDateFunc
@@ -15,7 +15,7 @@ export type ScaleLevelConfig = {
   key: 'minute' | 'hour' | 'day' | 'week' | 'month' | 'quarter' | 'year' | 'shmita' | 'decade',
   label: string,
   visibleTicks: number,
-  unit: 'second' | 'minute' | 'hour' | 'day' | 'month' | 'quarter' | 'year'
+  unit: 'second' | 'minute' | 'hour' | 'day' | 'week' | 'month' | 'quarter' | 'year'
   screenSpan: number
   calculateTickTimeFunc: (firstTick: Date, addedUnits: number) => number
   startTickDateFunc: (date: Date) => Date

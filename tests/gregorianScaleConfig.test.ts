@@ -1,4 +1,5 @@
 import { getGregorianStickyContextLabel, GREGORIAN_SCALE_LEVEL_CONFIG } from '../src/timeline/gregorianScaleConfig'
+import { getSundayStartWeekInfo } from '../src/timeline/gregorianLabels'
 
 describe('gregorian scale label helpers', () => {
   it('provides sticky context labels for non-decade scales', () => {
@@ -16,7 +17,7 @@ describe('gregorian scale label helpers', () => {
       false,
     )
 
-    expect(label).toBe('Sun 22')
+    expect(label).toBe('W13, 22')
   })
 
   it('shows both Sunday and month context when a month boundary lands on Sunday', () => {
@@ -25,7 +26,7 @@ describe('gregorian scale label helpers', () => {
       false,
     )
 
-    expect(label).toBe('Sun Aug 1')
+    expect(label).toBe('W31, Aug 1')
   })
 
   it('keeps week view labels local even at month boundaries', () => {
@@ -35,6 +36,15 @@ describe('gregorian scale label helpers', () => {
     )
 
     expect(label).toBe('Wed 1')
+  })
+
+  it('shows sunday-start week numbers on Sundays in week view', () => {
+    const label = GREGORIAN_SCALE_LEVEL_CONFIG[2].getTickLabel(
+      new Date('2026-03-29T00:00:00-04:00').getTime(),
+      false,
+    )
+
+    expect(label).toBe('W14, Sun 29')
   })
 
   it('labels every midnight boundary locally in day view', () => {
@@ -97,12 +107,17 @@ describe('gregorian scale label helpers', () => {
     expect(label).toBe(':05')
   })
 
-  it('shows quarter boundary months as quarter plus month', () => {
+  it('shows week numbers on quarter internal ticks', () => {
     const label = GREGORIAN_SCALE_LEVEL_CONFIG[4].getTickLabel(
-      new Date('2026-04-01T00:00:00-04:00').getTime(),
+      new Date('2026-04-05T00:00:00-04:00').getTime(),
       false,
     )
 
-    expect(label).toBe('Q2, Apr')
+    expect(label).toBe('W15')
+  })
+
+  it('computes custom sunday-start week numbers by shifting iso week boundaries one day earlier', () => {
+    expect(getSundayStartWeekInfo(new Date('2026-03-29T00:00:00-04:00')).weekNumber).toBe(14)
+    expect(getSundayStartWeekInfo(new Date('2026-12-27T00:00:00-05:00')).weekNumber).toBe(53)
   })
 })

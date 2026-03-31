@@ -1,6 +1,7 @@
 import { SCALE_LEVEL_CONFIG, getVisibleRangeStartTickDate, getVisibleTimeRange, type ScaleLevel } from './scales'
 import { createStructuralSpansForRange, positionTimelinePoint, positionTimelineSpan } from './layout'
 import type { PrimaryCalendarSystemId, TimelineLayer } from './layers'
+import { getGregorianQuarterBoundaryLabel } from './gregorianLabels'
 import type {
   PositionedTimelinePoint,
   PositionedTimelineSpan,
@@ -90,7 +91,7 @@ const getGregorianTickRankClass = (scaleLevel: ScaleLevel, tickTime: number) => 
       }
       return 'tick-rank-ordinary'
     case 4:
-      return tickDate.getMonth() % 3 === 0 ? 'tick-rank-primary' : 'tick-rank-ordinary'
+      return 'tick-rank-ordinary'
     case 5:
       return tickDate.getMonth() % 3 === 0 ? 'tick-rank-primary' : 'tick-rank-ordinary'
     case 6:
@@ -111,6 +112,19 @@ const createTickPoint = (tickTime: number): TimelinePoint => ({
   kind: 'tick',
   timeMs: tickTime,
 })
+
+const addMonths = (date: Date, months: number) => {
+  const nextDate = new Date(date)
+  nextDate.setMonth(nextDate.getMonth() + months)
+  return nextDate.getTime()
+}
+
+const startOfMonth = (date: Date) => {
+  const nextDate = new Date(date)
+  nextDate.setHours(0, 0, 0, 0)
+  nextDate.setDate(1)
+  return nextDate
+}
 
 const addPositionedTicksForScaleLevel = (
   points: Map<number, PositionedTimelinePoint>,
@@ -154,6 +168,53 @@ const addPositionedTicksForScaleLevel = (
   }
 }
 
+const addQuarterBoundaryTicks = (
+  points: Map<number, PositionedTimelinePoint>,
+  primaryCalendarSystemId: PrimaryCalendarSystemId,
+  focusTimeMs: number,
+  visibleDurationMs: number,
+) => {
+  const bufferedRange = getVisibleTimeRange(focusTimeMs, visibleDurationMs)
+  const bufferedStartMs = bufferedRange.startTimeMs - visibleDurationMs * 0.5
+  const bufferedEndMs = bufferedRange.endTimeMs + visibleDurationMs * 0.5
+  let tickTime = startOfMonth(new Date(bufferedStartMs)).getTime()
+
+  while (tickTime <= bufferedEndMs) {
+    const tickDate = new Date(tickTime)
+    const isQuarterStart = tickDate.getMonth() % 3 === 0
+    const point: TimelinePoint = {
+      id: `quarter-boundary-${tickTime}`,
+      kind: 'tick',
+      timeMs: tickTime,
+      label: getGregorianQuarterBoundaryLabel(tickTime),
+    }
+
+    points.set(
+      tickTime,
+      positionTimelinePoint(
+        point,
+        4,
+        focusTimeMs,
+        visibleDurationMs,
+        getVisibleRangeStartTickDate(4, focusTimeMs, visibleDurationMs),
+        {
+          className: [
+            primaryCalendarSystemId === 'gregorian'
+              ? 'structural-tick-primary'
+              : 'structural-tick-secondary',
+            isQuarterStart ? 'tick-rank-primary' : 'tick-rank-secondary',
+          ].join(' '),
+          labelClassName: primaryCalendarSystemId === 'gregorian'
+            ? 'structural-label-primary'
+            : 'structural-label-secondary',
+        },
+      ),
+    )
+
+    tickTime = addMonths(tickDate, 1)
+  }
+}
+
 export const createGregorianTickPoints = ({
   primaryCalendarSystemId,
   activeScaleLevel,
@@ -169,6 +230,10 @@ export const createGregorianTickPoints = ({
     focusTimeMs,
     visibleDurationMs,
   )
+
+  if (activeScaleLevel === 4) {
+    addQuarterBoundaryTicks(points, primaryCalendarSystemId, focusTimeMs, visibleDurationMs)
+  }
 
   return Array.from(points.values())
 }
