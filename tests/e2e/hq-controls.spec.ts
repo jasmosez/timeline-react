@@ -117,8 +117,8 @@ test.describe('HQ controls', () => {
 
     await expect(page.getByTestId('navigation-mode-value')).toHaveText('currentContainingPeriod')
 
-    await page.evaluate(() => {
-      window.dispatchEvent(
+    await page.locator('.timeline-root').evaluate((element) => {
+      element.dispatchEvent(
         new WheelEvent('wheel', {
           deltaY: 120,
           bubbles: true,
@@ -135,8 +135,8 @@ test.describe('HQ controls', () => {
 
     await expect(page.getByTestId('navigation-mode-value')).toHaveText('currentContainingPeriod')
 
-    await page.evaluate(() => {
-      window.dispatchEvent(
+    await page.locator('.timeline-root').evaluate((element) => {
+      element.dispatchEvent(
         new WheelEvent('wheel', {
           deltaY: 120,
           ctrlKey: true,
@@ -155,8 +155,8 @@ test.describe('HQ controls', () => {
     await page.getByLabel('Pan forward').click()
     await expect(page.getByTestId('navigation-mode-value')).toHaveText('centered')
 
-    await page.evaluate(() => {
-      window.dispatchEvent(
+    await page.locator('.timeline-root').evaluate((element) => {
+      element.dispatchEvent(
         new WheelEvent('wheel', {
           deltaY: 120,
           ctrlKey: true,

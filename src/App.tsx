@@ -239,11 +239,11 @@ function App() {
     setLockNow(false)
     setLockNowAnchorPercent(null)
 
-    setViewport({
-      focusTimeMs: viewport.focusTimeMs + deltaMs,
-      visibleDurationMs: viewport.visibleDurationMs,
+    setViewport((prevViewport) => ({
+      focusTimeMs: prevViewport.focusTimeMs + deltaMs,
+      visibleDurationMs: prevViewport.visibleDurationMs,
       rangeStrategy: 'centered',
-    })
+    }))
   }
 
   const handleWheelZoom = (zoomFactor: number) => {

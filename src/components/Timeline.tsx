@@ -73,6 +73,13 @@ function Timeline({
 
   useEffect(() => {
     const handleWheel = (event: WheelEvent) => {
+      const viewportElement = viewportRef.current
+      const eventTarget = event.target
+
+      if (!(eventTarget instanceof Node) || !viewportElement?.contains(eventTarget)) {
+        return
+      }
+
       event.preventDefault();
 
       if (event.ctrlKey || event.metaKey) {

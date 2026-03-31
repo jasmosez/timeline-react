@@ -32,7 +32,7 @@ export interface TimelineLayer {
 }
 
 export type TimelineLayerId = TimelineLayer['id']
-export type StructuralLayerId = TimelineLayerId
+export type StructuralLayerId = 'gregorian' | 'hebrew'
 export type PrimaryCalendarSystemId = StructuralLayerId
 
 export const combineLayerPoints = (

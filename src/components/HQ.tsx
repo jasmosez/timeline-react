@@ -25,7 +25,10 @@ interface HQProps {
     locationLabel: string;
 }
 
-
+const isStructuralLayer = (
+  layer: TimelineLayer,
+): layer is TimelineLayer & { id: PrimaryCalendarSystemId; role: 'structural' } =>
+  layer.role === 'structural'
 
 export default function HQ({
   now,
@@ -45,7 +48,7 @@ export default function HQ({
   timezone,
   locationLabel,
 }: HQProps) {
-  const structuralLayers = availableLayers.filter((layer) => layer.role === 'structural')
+  const structuralLayers = availableLayers.filter(isStructuralLayer)
 
   return (
       <div className='hq-container'>
