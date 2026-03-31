@@ -333,6 +333,8 @@ Phase 2 notes:
   point after the current Hebrew labeling pass
 - gestural zoom should move from viewport-centered behavior to pointer/cursor-
   based zooming during Phase 2 so direct manipulation feels more map-like
+- optional 24-hour display mode is worth exploring later as a deliberate
+  whole-app time-format choice, not an ad hoc label fix
 
 ### Phase 3: Add Notes and Planning Primitives
 

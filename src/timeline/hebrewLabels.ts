@@ -131,19 +131,20 @@ export const getHebrewContextLabel = (
   timeMs: number,
   environment: TimelineEnvironment,
 ) => {
-  const dayInfo = getHebrewDayInfo(new Date(timeMs), environment)
+  const time = new Date(timeMs)
+  const dayInfo = getHebrewDayInfo(time, environment)
   const weekdayName = getHebrewWeekdayName(dayInfo)
 
   if (activeScaleLevel === -1) {
-    return `${weekdayName} ${dayInfo.hebrewDate.day} ${dayInfo.hebrewDate.monthName} ${dayInfo.hebrewDate.year}, ${formatCivilTime(new Date(timeMs))}`
+    return `${weekdayName}, ${dayInfo.hebrewDate.day} ${dayInfo.hebrewDate.monthName}, ${formatCivilTime(time)}`
   }
 
   if (activeScaleLevel === 0) {
-    return `${weekdayName} ${dayInfo.hebrewDate.day} ${dayInfo.hebrewDate.monthName} ${dayInfo.hebrewDate.year}, ${formatCivilHour(new Date(timeMs))}`
+    return `${weekdayName}, ${dayInfo.hebrewDate.day} ${dayInfo.hebrewDate.monthName}, ${formatCivilHour(time)}`
   }
 
   if (activeScaleLevel === 1) {
-    return `${dayInfo.hebrewDate.monthName} ${dayInfo.hebrewDate.year}`
+    return `${weekdayName}, ${dayInfo.hebrewDate.day} ${dayInfo.hebrewDate.monthName} ${dayInfo.hebrewDate.year}`
   }
 
   if (activeScaleLevel === 2 || activeScaleLevel === 3) {

@@ -47,6 +47,11 @@ Usage:
   are not yet distinct enough from one another
   Target: Phase 2
 
+- Explore optional 24-hour display mode for time labels and sticky context
+  Notes: could simplify dense minute/hour labeling, but should be a deliberate
+  app-wide mode choice
+  Target: Phase 2
+
 ## Later
 
 - Smooth band-transition treatment for gesture zoom and HQ button zoom

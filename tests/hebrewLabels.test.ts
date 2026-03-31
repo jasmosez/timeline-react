@@ -19,16 +19,16 @@ describe('hebrew label helpers', () => {
   it('uses Hebrew date context at day scale', () => {
     expect(
       getHebrewContextLabel(1, new Date('2026-04-01T12:00:00-04:00').getTime(), TEST_ENVIRONMENT),
-    ).toBe('Nisan 5786')
+    ).toBe('Revi\'i, 14 Nisan 5786')
   })
 
   it('includes weekday in minute/hour-scale Hebrew context', () => {
     expect(
       getHebrewContextLabel(0, new Date('2026-04-01T12:00:00-04:00').getTime(), TEST_ENVIRONMENT),
-    ).toBe('Revi\'i 14 Nisan 5786, 12 PM')
+    ).toBe('Revi\'i, 14 Nisan, 12 PM')
     expect(
       getHebrewContextLabel(-1, new Date('2026-04-01T12:00:00-04:00').getTime(), TEST_ENVIRONMENT),
-    ).toBe('Revi\'i 14 Nisan 5786, 12:00 PM')
+    ).toBe('Revi\'i, 14 Nisan, 12:00 PM')
   })
 
   it('uses Hebrew year context at quarter scale', () => {
