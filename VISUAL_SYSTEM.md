@@ -168,13 +168,31 @@ same intensity.
 Color should not do all the work.
 Placement and geometry should carry a large share of the distinction.
 
+### Named Lanes
+
+The timeline now uses a small set of named horizontal lanes.
+These are presentation concepts, not data-model concepts.
+
+- reference lane: the far-left lane reserved for `now`
+- primary structural lane: the left-side label lane for the primary visible
+  structural system
+- secondary structural lane: the right-side label lane for the secondary
+  visible structural system
+- personal overlay lane: the right-side lane used by birthday and future
+  personal overlays
+- context lane: the top/bottom sticky-label lane on either side of the axis
+
+These lane names are helpful because they explain why multiple systems can
+coexist without sharing the same horizontal real estate.
+
 ### Labels
 
-The current lane idea is strong and should continue:
+The current lane system is strong and should continue:
 
-- far-left lane: `now`
-- near-left lane: primary structural labels
-- right lane: secondary structural labels and secondary contextual elements
+- `now` uses the reference lane
+- primary structural labels use the primary structural lane
+- secondary structural labels use the secondary structural lane
+- birthday and future personal overlays use the personal overlay lane
 
 Sticky context labels are outside these ordinary tick-label lanes and should be
 treated as viewport chrome.
@@ -200,6 +218,25 @@ Important follow-up tuning areas:
 - span thickness
 - span opacity
 - distance from the axis
+
+### Tick Rank
+
+Tick rank is now an explicit part of the visual system.
+It is a local, per-scale presentation signal rather than a global truth about
+time.
+
+Current ranks:
+
+- `primary`
+- `secondary`
+- `ordinary`
+
+For now, rank affects tick length only.
+It does not yet change label richness or label logic.
+
+This is intentional.
+Tick rank gives us structural hierarchy inside a stable scale without forcing us
+to solve cross-band transition labeling all at once.
 
 ## Sticky Context Labels
 

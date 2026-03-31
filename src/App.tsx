@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 
 import './App.css'
+import './timelinePresentation.css'
 import { getNow } from './utils'
 import HQ from './components/HQ'
 import Timeline from './components/Timeline'

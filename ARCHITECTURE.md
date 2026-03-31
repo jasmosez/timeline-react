@@ -324,6 +324,24 @@ Rendering then becomes:
 - layers contribute items
 - the viewport decides whether items are visible
 
+Presentation then applies a small shared visual grammar on top of those
+primitives:
+
+- `lane` decides horizontal placement family
+  - reference lane
+  - primary structural lane
+  - secondary structural lane
+  - personal overlay lane
+  - context lane
+- tick `rank` decides local structural hierarchy inside a scale
+  - `primary`
+  - `secondary`
+  - `ordinary`
+
+These are presentation concepts rather than calendar concepts.
+They help multiple systems coexist without forcing the data model itself to
+become layout-specific.
+
 Important distinction:
 
 - some spans are structural periods derived from a layer or calendar system
