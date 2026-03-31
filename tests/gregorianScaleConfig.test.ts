@@ -9,7 +9,7 @@ describe('gregorian scale label helpers', () => {
   })
 
   it('shows Sundays explicitly in month view labels', () => {
-    const label = GREGORIAN_SCALE_LEVEL_CONFIG[3].renderTickLabel(
+    const label = GREGORIAN_SCALE_LEVEL_CONFIG[3].getTickLabel(
       new Date('2026-03-22T00:00:00-04:00').getTime(),
       false,
     )
@@ -18,7 +18,7 @@ describe('gregorian scale label helpers', () => {
   })
 
   it('shows both Sunday and month context when a month boundary lands on Sunday', () => {
-    const label = GREGORIAN_SCALE_LEVEL_CONFIG[3].renderTickLabel(
+    const label = GREGORIAN_SCALE_LEVEL_CONFIG[3].getTickLabel(
       new Date('2027-08-01T00:00:00-04:00').getTime(),
       false,
     )
@@ -27,7 +27,7 @@ describe('gregorian scale label helpers', () => {
   })
 
   it('keeps week view labels local even at month boundaries', () => {
-    const label = GREGORIAN_SCALE_LEVEL_CONFIG[2].renderTickLabel(
+    const label = GREGORIAN_SCALE_LEVEL_CONFIG[2].getTickLabel(
       new Date('2026-04-01T00:00:00-04:00').getTime(),
       false,
     )
@@ -36,7 +36,7 @@ describe('gregorian scale label helpers', () => {
   })
 
   it('labels every midnight boundary locally in day view', () => {
-    const label = GREGORIAN_SCALE_LEVEL_CONFIG[1].renderTickLabel(
+    const label = GREGORIAN_SCALE_LEVEL_CONFIG[1].getTickLabel(
       new Date('2026-04-01T00:00:00-04:00').getTime(),
       false,
     )
@@ -45,7 +45,7 @@ describe('gregorian scale label helpers', () => {
   })
 
   it('labels midnight boundaries explicitly in hour view', () => {
-    const label = GREGORIAN_SCALE_LEVEL_CONFIG[0].renderTickLabel(
+    const label = GREGORIAN_SCALE_LEVEL_CONFIG[0].getTickLabel(
       new Date('2026-04-01T00:00:00-04:00').getTime(),
       false,
     )
@@ -62,11 +62,11 @@ describe('gregorian scale label helpers', () => {
   })
 
   it('disambiguates repeated local hours across DST fall-back', () => {
-    const firstOneAm = GREGORIAN_SCALE_LEVEL_CONFIG[0].renderTickLabel(
+    const firstOneAm = GREGORIAN_SCALE_LEVEL_CONFIG[0].getTickLabel(
       new Date('2026-11-01T01:00:00-04:00').getTime(),
       false,
     )
-    const secondOneAm = GREGORIAN_SCALE_LEVEL_CONFIG[0].renderTickLabel(
+    const secondOneAm = GREGORIAN_SCALE_LEVEL_CONFIG[0].getTickLabel(
       new Date('2026-11-01T01:00:00-05:00').getTime(),
       false,
     )
@@ -77,7 +77,7 @@ describe('gregorian scale label helpers', () => {
   })
 
   it('labels the hour where the timezone offset changes in spring forward', () => {
-    const label = GREGORIAN_SCALE_LEVEL_CONFIG[0].renderTickLabel(
+    const label = GREGORIAN_SCALE_LEVEL_CONFIG[0].getTickLabel(
       new Date('2026-03-08T03:00:00-04:00').getTime(),
       false,
     )
@@ -87,7 +87,7 @@ describe('gregorian scale label helpers', () => {
   })
 
   it('labels every 10 seconds within minute view', () => {
-    const label = GREGORIAN_SCALE_LEVEL_CONFIG[-1].renderTickLabel(
+    const label = GREGORIAN_SCALE_LEVEL_CONFIG[-1].getTickLabel(
       new Date('2026-03-17T12:34:10-04:00').getTime(),
       false,
     )
@@ -96,7 +96,7 @@ describe('gregorian scale label helpers', () => {
   })
 
   it('shows quarter boundary months as quarter plus month', () => {
-    const label = GREGORIAN_SCALE_LEVEL_CONFIG[4].renderTickLabel(
+    const label = GREGORIAN_SCALE_LEVEL_CONFIG[4].getTickLabel(
       new Date('2026-04-01T00:00:00-04:00').getTime(),
       false,
     )

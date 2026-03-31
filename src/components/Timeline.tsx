@@ -7,7 +7,7 @@ import {
   type TimelineEnvironment,
   type TimelineLayer,
 } from '../timeline/layers';
-import { getGregorianStickyContextLabel } from '../timeline/gregorianScaleConfig';
+import { getGregorianContextLabel } from '../timeline/gregorianScaleConfig';
 import { getVisibleTimeRange } from '../timeline/scales';
 import { TickPoint } from './Tick';
 import type {
@@ -99,13 +99,13 @@ function Timeline({
 
   const visibleTimeRange = getVisibleTimeRange(focusTimeMs, visibleDurationMs)
   const gregorianStickyContextLabelTop = isGregorianVisible
-    ? getGregorianStickyContextLabel(
+    ? getGregorianContextLabel(
         activeScaleLevel,
         visibleTimeRange.startTimeMs,
       )
     : undefined
   const gregorianStickyContextLabelBottom = isGregorianVisible
-    ? getGregorianStickyContextLabel(
+    ? getGregorianContextLabel(
         activeScaleLevel,
         visibleTimeRange.endTimeMs - 1,
       )

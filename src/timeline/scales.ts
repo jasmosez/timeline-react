@@ -9,7 +9,7 @@
  * @property {number} screenSpan
  * @property {(firstTick: Date, addedUnits: number) => number} calculateTickTimeFunc
  * @property {(date: Date) => Date} startTickDateFunc
- * @property {(tickTime: number, isFirstTick: boolean) => string | undefined} renderTickLabel
+ * @property {(tickTime: number, isFirstTick: boolean) => string | undefined} getTickLabel
  */
 export type ScaleLevelConfig = {
   key: 'minute' | 'hour' | 'day' | 'week' | 'month' | 'quarter' | 'year' | 'shmita' | 'decade',
@@ -19,11 +19,12 @@ export type ScaleLevelConfig = {
   screenSpan: number
   calculateTickTimeFunc: (firstTick: Date, addedUnits: number) => number
   startTickDateFunc: (date: Date) => Date
-  renderTickLabel: (tickTime: number, isFirstTick: boolean) => string | undefined
+  getTickLabel: (tickTime: number, isFirstTick: boolean) => string | undefined
 }
 import { GREGORIAN_SCALE_LEVEL_CONFIG } from './gregorianScaleConfig'
 
-export const SCALE_LEVEL_CONFIG: Record<number, ScaleLevelConfig> = GREGORIAN_SCALE_LEVEL_CONFIG
+export const DEFAULT_SCALE_LEVEL_CONFIG: Record<number, ScaleLevelConfig> = GREGORIAN_SCALE_LEVEL_CONFIG
+export const SCALE_LEVEL_CONFIG = DEFAULT_SCALE_LEVEL_CONFIG
 
 export type ScaleLevel = keyof typeof SCALE_LEVEL_CONFIG
 
@@ -60,8 +61,8 @@ export const getNearestScaleLevel = (visibleDurationMs: number): ScaleLevel => {
 }
 
 export const getTickLabel = (tickTime: number, scaleLevel: ScaleLevel, startTickDate: Date) => {
-  const { renderTickLabel, calculateTickTimeFunc } = SCALE_LEVEL_CONFIG[scaleLevel]
-  return renderTickLabel(tickTime, tickTime === calculateTickTimeFunc(startTickDate, 0))
+  const { getTickLabel, calculateTickTimeFunc } = SCALE_LEVEL_CONFIG[scaleLevel]
+  return getTickLabel(tickTime, tickTime === calculateTickTimeFunc(startTickDate, 0))
 }
 
 export const getVisibleTimeRange = (focusTimeMs: number, visibleDurationMs: number) => {

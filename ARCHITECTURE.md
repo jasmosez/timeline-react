@@ -98,6 +98,15 @@ For now, the default structural rendering path is still Gregorian-backed. That
 is intentional for the current phase: the interaction and viewport model are
 being generalized faster than the structural segmentation rules.
 
+That separation is now a little clearer in code too:
+
+- scale-band mechanics live in
+  [src/timeline/scales.ts](/Users/jms/code/timeline-react/src/timeline/scales.ts)
+- default Gregorian-backed boundary stepping lives in
+  [src/timeline/gregorianScaleConfig.ts](/Users/jms/code/timeline-react/src/timeline/gregorianScaleConfig.ts)
+- Gregorian label/context policy lives in
+  [src/timeline/gregorianLabels.ts](/Users/jms/code/timeline-react/src/timeline/gregorianLabels.ts)
+
 That is beginning to change in Phase 2. The codebase now has a first Hebrew
 time adapter plus an initial Hebrew structural layer that can coexist with
 Gregorian structure while still using one continuous viewport model.
@@ -121,6 +130,9 @@ Key issues:
 
 - scale config still carries Gregorian assumptions around boundaries and label
   formatting
+- even with the recent extraction of Gregorian label policy, the default scale
+  band config is still Gregorian-backed and should eventually become more
+  neutral
 - `startTickDate` is still a useful structural anchor, but its role should stay
   secondary to `focusTimeMs`
 - `NowTick` is still special-cased outside the layer system

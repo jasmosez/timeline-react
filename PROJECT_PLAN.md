@@ -216,6 +216,8 @@ Known current limitations include:
 - `now` marker motion still needs cleanup so it feels correct and intentional
 - the README does not yet describe the actual project
 - timezone handling is minimal
+- Gregorian label behavior is improving, but Hebrew label policy still needs a
+  first real design pass
 - the birth date settings UI currently captures only a date, not a full
   date-time with timezone intent
 - marker-style and segmentation-style layers still share one lightweight
@@ -312,6 +314,8 @@ Current progress:
   semantics
 - dual-structure rendering is working with first-pass left/right label
   separation
+- Gregorian label policy is being separated from generic scale-band mechanics,
+  which should make Hebrew labeling cleaner to implement next
 
 Phase 2 notes:
 

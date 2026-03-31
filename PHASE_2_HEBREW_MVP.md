@@ -334,17 +334,20 @@ The first implementation slice has now landed:
 
 - Hebrew date conversion and sunset-aware day identity exist in code
 - Hebrew day/week/month/year structure can render
+- Hebrew quarter and decade structure now render too
 - Gregorian and Hebrew can both be active at once
 - one primary calendar system now drives anchored reset/current-period
   semantics
 - day view currently uses civil-hour intraday ticks and spans inside the Hebrew
   structure
+- Gregorian label/context policy is now being separated from generic scale-band
+  mechanics so Hebrew label policy can follow a cleaner seam
 
 What remains notably rough:
 
 - Hebrew labels are still first-pass and need richer formatting rules
-- Gregorian labels also need a more durable dynamic strategy
-- the `now` marker is not yet primary-calendar-aware in its labeling
+- the `now` marker is now primary-calendar-aware, but its long-term label
+  design still needs refinement
 - dual-structure visual tuning is still ongoing, especially around spans and
   dense label moments
 - zoom is still viewport-centered rather than pointer/cursor-based
