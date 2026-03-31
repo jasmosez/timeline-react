@@ -41,7 +41,6 @@ export default function HQ({
   const structuralLayers = availableLayers.filter((layer) => layer.role === 'structural')
 
   return (
-    // TODO: abstract styles to css file
       <div className='hq-container'>
           <div className='hq-title' data-testid='scale-title'>{SCALE_LEVEL_CONFIG[scaleLevel].label} View</div>
           <div className='hq-controls-container'>
@@ -49,7 +48,6 @@ export default function HQ({
               <div className='hq-control'>
                 <div>Zoom</div>
 
-                {/* TODO: see comment on handlezoom definition */}
                 <div className='hq-control-buttons'>
                   <button aria-label='Zoom out' disabled={scaleLevel === scaleLevelMax} onClick={() => handleZoom('+')}>-</button>
                   <button aria-label='Zoom in' disabled={scaleLevel === scaleLevelMin} onClick={() => handleZoom('-')}>+</button>
@@ -59,7 +57,6 @@ export default function HQ({
               <div className='hq-control'>
                 <div>Pan</div>
 
-                {/* TODO: see comment on handlezoom definition */}
                 <div className='hq-control-buttons'>
                   <button aria-label='Pan backward' onClick={() => handlePan('-')}>-</button>
                   <button aria-label='Pan forward' onClick={() => handlePan('+')}>+</button>
@@ -121,11 +118,6 @@ export default function HQ({
                   </label>
                 ))}
               </div>
-              {/* <div>Viewing one {SCALE_LEVEL_CONFIG[scaleLevel].key}</div> */}
-              {/* <div>Each tick is the start of a {SCALE_LEVEL_CONFIG[scaleLevel].unit}</div> */}
-              {/* <div>Each span between ticks represents one whole {SCALE_LEVEL_CONFIG[scaleLevel].unit}</div> */}
-              
-              {/* <div>Birthday-based Week {birthdayBasedWeekNumber(firstVisibleTickDate)}</div> */}
             </div>
           </div>
       </div>

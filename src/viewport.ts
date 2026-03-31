@@ -1,6 +1,7 @@
 import { STARTING_SCALE_LEVEL } from './config'
+import type { TimelineEnvironment } from './timeline/layers'
+import { getContainingPeriodFocusTimeMs } from './timeline/periodAnchoring'
 import {
-  SCALE_LEVEL_CONFIG,
   getNearestScaleLevel,
   getScaleLevelVisibleDurationMs,
   getVisibleRangeStartTickDate,
@@ -14,8 +15,19 @@ export interface Viewport {
   rangeStrategy: ViewportRangeStrategy
 }
 
-export const createInitialViewport = (now: Date): Viewport => ({
-  focusTimeMs: now.getTime(),
+export const createInitialViewport = (
+  now: Date,
+  environment: Pick<TimelineEnvironment, 'birthDate' | 'timezone' | 'location'>,
+): Viewport => ({
+  focusTimeMs: getContainingPeriodFocusTimeMs(
+    'gregorian',
+    STARTING_SCALE_LEVEL,
+    now,
+    {
+      now,
+      ...environment,
+    },
+  ),
   visibleDurationMs: getScaleLevelVisibleDurationMs(STARTING_SCALE_LEVEL),
   rangeStrategy: 'currentContainingPeriod',
 })
@@ -23,12 +35,9 @@ export const createInitialViewport = (now: Date): Viewport => ({
 export const getViewportActiveScaleLevel = (viewport: Viewport) =>
   getNearestScaleLevel(viewport.visibleDurationMs)
 
-export const getViewportStartTickDate = (viewport: Viewport) => {
-  const activeScaleLevel = getViewportActiveScaleLevel(viewport)
-
-  if (viewport.rangeStrategy === 'centered') {
-    return getVisibleRangeStartTickDate(activeScaleLevel, viewport.focusTimeMs, viewport.visibleDurationMs)
-  }
-
-  return SCALE_LEVEL_CONFIG[activeScaleLevel].startTickDateFunc(new Date(viewport.focusTimeMs))
-}
+export const getViewportStartTickDate = (viewport: Viewport) =>
+  getVisibleRangeStartTickDate(
+    getViewportActiveScaleLevel(viewport),
+    viewport.focusTimeMs,
+    viewport.visibleDurationMs,
+  )

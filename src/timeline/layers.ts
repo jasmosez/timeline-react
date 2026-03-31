@@ -16,6 +16,7 @@ export type TimelineEnvironment = {
 
 export type LayerRenderContext = {
   environment: TimelineEnvironment
+  primaryCalendarSystemId: PrimaryCalendarSystemId
   activeScaleLevel: ScaleLevel
   focusTimeMs: number
   visibleDurationMs: number

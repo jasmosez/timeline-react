@@ -1,4 +1,8 @@
-import { getFirstVisibleTickDate, getScaleLevelVisibleDurationMs } from '../src/timeline/scales'
+import {
+  getFirstVisibleTickDate,
+  getScaleLevelVisibleDurationMs,
+  getVisibleTimeRange,
+} from '../src/timeline/scales'
 import {
   createInitialViewport,
   getViewportActiveScaleLevel,
@@ -12,6 +16,14 @@ describe('viewport', () => {
     const viewport = createInitialViewport(now)
 
     expect(viewport.visibleDurationMs).toBe(getScaleLevelVisibleDurationMs(2))
+  })
+
+  it('initializes the starting view at the containing-period boundary', () => {
+    const now = new Date('2026-03-30T12:34:56.000Z')
+    const viewport = createInitialViewport(now)
+    const { startTimeMs } = getVisibleTimeRange(viewport.focusTimeMs, viewport.visibleDurationMs)
+
+    expect(startTimeMs).toBe(new Date('2026-03-28T12:00:00.000-04:00').getTime())
   })
 
   it('derives the active scale level from visible duration', () => {

@@ -31,6 +31,17 @@ Usage:
   once label strategy is stronger
   Target: Phase 5
 
+- Switch from viewport-centered zoom to pointer/cursor-based zoom
+  Notes: especially important for trackpad and map-like direct manipulation
+  feel
+  Target: Phase 5
+
+- Twilight layer with civil, nautical, and astronomical morning/evening
+  boundaries or spans
+  Notes: likely starts as a marker/span layer and may later interact with
+  Hebrew-time sunrise/sunset context
+  Target: Phase 3
+
 - Mobile / responsive layout strategy
   Notes: rail collapse, touch interaction, and preserving timeline-first
   composition on small screens

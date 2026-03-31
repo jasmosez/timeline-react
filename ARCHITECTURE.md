@@ -42,6 +42,7 @@ Today, [src/App.tsx](/Users/jms/code/timeline-react/src/App.tsx) owns:
 - `viewport`
 - `birthDate`
 - `activeLayerIds`
+- `primaryCalendarSystemId`
 - shared timeline environment data passed to layers
 
 The most important current shift is that `focusTimeMs` inside the viewport is
@@ -58,6 +59,7 @@ The current implementation already has several important seams in place:
 
 - a real viewport object in app state
 - a layer registry and active layer selection in app state
+- a separate primary calendar system concept for anchored semantics
 - shared timeline environment data passed to layers
 - normalized point and span primitives
 - a layout step that positions semantic primitives against the visible range
@@ -96,6 +98,10 @@ For now, the default structural rendering path is still Gregorian-backed. That
 is intentional for the current phase: the interaction and viewport model are
 being generalized faster than the structural segmentation rules.
 
+That is beginning to change in Phase 2. The codebase now has a first Hebrew
+time adapter plus an initial Hebrew structural layer that can coexist with
+Gregorian structure while still using one continuous viewport model.
+
 ### Strengths of the Current Prototype
 
 - It already proves the core visual metaphor.
@@ -120,13 +126,16 @@ Key issues:
 - `NowTick` is still special-cased outside the layer system
 - `Lock Now` now exists as an optional live-viewing mode layered on top of the
   free-exploration viewport model
-- zoom interaction remains discrete even though pan is now continuous
+- manual zoom currently moves the viewport into centered exploration mode
+  rather than keeping anchored current-period semantics
 - label strategy is still tuned more for static views than for fluid motion
 - current scale definitions are still backed by Gregorian default structure,
   even though the long-term model should allow other layers to become primary
   at the same visible duration
 - the layout now assumes a real left rail plus a reserved left gutter for the
   persistent `now` label, but responsive/mobile adaptations are still ahead
+- Hebrew rendering is now real enough that structural span/tick styling and
+  label sophistication are becoming the next pressure points
 
 ## Recommended Direction
 

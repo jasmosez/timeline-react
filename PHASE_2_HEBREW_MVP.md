@@ -209,7 +209,16 @@ These are the current working decisions for the first implementation:
   with Shabbat
 - Within a Hebrew day, intraday tick marks should continue to use civil
   Gregorian hours for MVP
+- Within a Hebrew day, structural spans should also follow those civil-hour
+  subdivisions so the day view reads coherently
 - Proportional / seasonal Hebrew hours remain out of scope for this first slice
+
+## Follow-Up Notes
+
+- the `now` marker should eventually adopt primary-calendar-aware labeling
+- Hebrew labeling will need richer rules than the current first-pass labels
+- Gregorian labeling should also be refactored toward a more durable dynamic
+  strategy so both systems can coexist gracefully during motion and zoom
 
 ## Success Criteria
 
@@ -220,3 +229,24 @@ We should consider the Hebrew MVP successful if:
 - one calendar system can be primary for anchored navigation semantics
 - reset/current-period behavior still feels coherent
 - the layer architecture is healthier afterward, not more tangled
+
+## Current Implementation Status
+
+The first implementation slice has now landed:
+
+- Hebrew date conversion and sunset-aware day identity exist in code
+- Hebrew day/week/month/year structure can render
+- Gregorian and Hebrew can both be active at once
+- one primary calendar system now drives anchored reset/current-period
+  semantics
+- day view currently uses civil-hour intraday ticks and spans inside the Hebrew
+  structure
+
+What remains notably rough:
+
+- Hebrew labels are still first-pass and need richer formatting rules
+- Gregorian labels also need a more durable dynamic strategy
+- the `now` marker is not yet primary-calendar-aware in its labeling
+- dual-structure visual tuning is still ongoing, especially around spans and
+  dense label moments
+- zoom is still viewport-centered rather than pointer/cursor-based

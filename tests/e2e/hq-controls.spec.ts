@@ -47,4 +47,43 @@ test.describe('HQ controls', () => {
     await expect(gregorianLayerToggle).not.toBeChecked()
     await expect(primaryGregorian).toBeChecked()
   })
+
+  test('hebrew structure can be enabled and made primary', async ({ page }) => {
+    await page.goto('/')
+
+    const hebrewLayerToggle = page.getByRole('checkbox', { name: 'Hebrew' })
+    await hebrewLayerToggle.check()
+    await expect(hebrewLayerToggle).toBeChecked()
+
+    const primaryHebrew = page.getByTestId('primary-structure-hebrew')
+    await primaryHebrew.check()
+    await expect(primaryHebrew).toBeChecked()
+  })
+
+  test('initial anchored week view starts at the containing-period boundary', async ({ page }) => {
+    await page.goto('/')
+
+    await expect(page.getByTestId('scale-title')).toHaveText('Week View')
+    await expect(page.getByTestId('start-tick-value')).toHaveText('Sun, Mar 29, 2026, 12:00 AM')
+  })
+
+  test('timeline surface stays clipped to the viewport height', async ({ page }) => {
+    await page.goto('/')
+
+    const metrics = await page.evaluate(() => {
+      const line = document.querySelector('.line') as HTMLElement | null
+      const root = document.querySelector('.timeline-root') as HTMLElement | null
+
+      return {
+        lineHeight: line?.getBoundingClientRect().height ?? 0,
+        windowHeight: window.innerHeight,
+        documentHeight: document.documentElement.scrollHeight,
+        rootHeight: root?.getBoundingClientRect().height ?? 0,
+      }
+    })
+
+    expect(metrics.rootHeight).toBe(metrics.windowHeight)
+    expect(metrics.lineHeight).toBe(metrics.windowHeight)
+    expect(metrics.documentHeight).toBe(metrics.windowHeight)
+  })
 })

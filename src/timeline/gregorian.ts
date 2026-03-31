@@ -1,6 +1,6 @@
 import { SCALE_LEVEL_CONFIG, getVisibleRangeStartTickDate, getVisibleTimeRange, type ScaleLevel } from './scales'
 import { createStructuralSpansForRange, positionTimelinePoint, positionTimelineSpan } from './layout'
-import type { TimelineLayer } from './layers'
+import type { PrimaryCalendarSystemId, TimelineLayer } from './layers'
 import type {
   PositionedTimelinePoint,
   PositionedTimelineSpan,
@@ -8,6 +8,7 @@ import type {
 } from './types'
 
 type TickCollectionParams = {
+  primaryCalendarSystemId: PrimaryCalendarSystemId
   activeScaleLevel: ScaleLevel
   focusTimeMs: number
   visibleDurationMs: number
@@ -21,6 +22,7 @@ const createTickPoint = (tickTime: number): TimelinePoint => ({
 
 const addPositionedTicksForScaleLevel = (
   points: Map<number, PositionedTimelinePoint>,
+  primaryCalendarSystemId: PrimaryCalendarSystemId,
   scaleLevel: ScaleLevel,
   focusTimeMs: number,
   visibleDurationMs: number,
@@ -42,6 +44,11 @@ const addPositionedTicksForScaleLevel = (
         focusTimeMs,
         visibleDurationMs,
         getVisibleRangeStartTickDate(scaleLevel, focusTimeMs, visibleDurationMs),
+        {
+          labelClassName: primaryCalendarSystemId === 'gregorian'
+            ? 'structural-label-primary'
+            : 'structural-label-secondary',
+        },
       ),
     )
 
@@ -50,6 +57,7 @@ const addPositionedTicksForScaleLevel = (
 }
 
 export const createGregorianTickPoints = ({
+  primaryCalendarSystemId,
   activeScaleLevel,
   focusTimeMs,
   visibleDurationMs,
@@ -58,6 +66,7 @@ export const createGregorianTickPoints = ({
 
   addPositionedTicksForScaleLevel(
     points,
+    primaryCalendarSystemId,
     activeScaleLevel,
     focusTimeMs,
     visibleDurationMs,
@@ -67,6 +76,7 @@ export const createGregorianTickPoints = ({
 }
 
 export const createGregorianStructuralSpans = (
+  primaryCalendarSystemId: PrimaryCalendarSystemId,
   activeScaleLevel: ScaleLevel,
   focusTimeMs: number,
   visibleDurationMs: number,
@@ -76,7 +86,11 @@ export const createGregorianStructuralSpans = (
   const bufferedEndMs = bufferedRange.endTimeMs + visibleDurationMs * 0.5
 
   return createStructuralSpansForRange(activeScaleLevel, bufferedStartMs, bufferedEndMs).map((span) =>
-    positionTimelineSpan(span, focusTimeMs, visibleDurationMs, { className: 'structural-span' }),
+    positionTimelineSpan(span, focusTimeMs, visibleDurationMs, {
+      className: primaryCalendarSystemId === 'gregorian'
+        ? 'structural-span structural-span-primary'
+        : 'structural-span structural-span-secondary',
+    }),
   )
 }
 
@@ -85,6 +99,6 @@ export const gregorianLayer: TimelineLayer = {
   label: 'Gregorian',
   role: 'structural',
   getPoints: createGregorianTickPoints,
-  getSpans: ({ activeScaleLevel, focusTimeMs, visibleDurationMs }) =>
-    createGregorianStructuralSpans(activeScaleLevel, focusTimeMs, visibleDurationMs),
+  getSpans: ({ primaryCalendarSystemId, activeScaleLevel, focusTimeMs, visibleDurationMs }) =>
+    createGregorianStructuralSpans(primaryCalendarSystemId, activeScaleLevel, focusTimeMs, visibleDurationMs),
 }

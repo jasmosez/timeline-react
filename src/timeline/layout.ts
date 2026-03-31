@@ -44,8 +44,8 @@ export const positionTimelineSpan = (
 
   return {
     ...span,
-    top: `calc(${startTop}% + 2px)`,
-    height: `calc(${Math.max(endTop - startTop, 0)}% - 4px)`,
+    top: `calc(${startTop}% + 1px)`,
+    height: `calc(${Math.max(endTop - startTop, 0)}% - 2px)`,
     opacity: presentation.opacity,
     className: presentation.className,
   }

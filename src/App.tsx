@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-// import { HDate, HebrewCalendar } from '@hebcal/core'
 
 import './App.css'
 import { getNow } from './utils'
@@ -8,8 +7,10 @@ import Timeline from './components/Timeline'
 import { PAN_AMOUNT, DEFAULT_BIRTH_DATE } from './config'
 import { birthdayLayer } from './timeline/birthday'
 import { gregorianLayer } from './timeline/gregorian'
+import { hebrewLayer } from './timeline/hebrew'
 import type { PrimaryCalendarSystemId, TimelineEnvironment, TimelineLayerId } from './timeline/layers'
 import { createInitialViewport, getViewportStartTickDate, type Viewport } from './viewport'
+import { getContainingPeriodFocusTimeMs } from './timeline/periodAnchoring'
 import {
   SCALE_LEVEL_CONFIG,
   getVisibleTimeRange,
@@ -20,7 +21,7 @@ import {
   getScaleLevelVisibleDurationMs,
 } from './timeline/scales'
 
-const AVAILABLE_TIMELINE_LAYERS = [gregorianLayer, birthdayLayer]
+const AVAILABLE_TIMELINE_LAYERS = [gregorianLayer, hebrewLayer, birthdayLayer]
 const LOCK_NOW_DEFAULT_PERCENT = 0.5
 const DEFAULT_TIMELINE_LOCATION = {
   city: 'Northampton',
@@ -33,12 +34,17 @@ const DEFAULT_TIMELINE_TIMEZONE = 'America/New_York'
 
 function App() {
   const [now, setNow] = useState(getNow)
-  const [viewport, setViewport] = useState<Viewport>(() => createInitialViewport(now))
   const [birthDate] = useState(DEFAULT_BIRTH_DATE)
+  const initialEnvironment = {
+    birthDate,
+    timezone: DEFAULT_TIMELINE_TIMEZONE,
+    location: DEFAULT_TIMELINE_LOCATION,
+  } as const
   const [activeLayerIds, setActiveLayerIds] = useState<TimelineLayerId[]>(['gregorian'])
   const [primaryCalendarSystemId, setPrimaryCalendarSystemId] = useState<PrimaryCalendarSystemId>('gregorian')
   const [lockNow, setLockNow] = useState(false)
   const [lockNowAnchorPercent, setLockNowAnchorPercent] = useState<number | null>(null)
+  const [viewport, setViewport] = useState<Viewport>(() => createInitialViewport(now, initialEnvironment))
 
   const activeScaleLevel = getNearestScaleLevel(viewport.visibleDurationMs)
   const startTickDate = getViewportStartTickDate(viewport)
@@ -50,9 +56,7 @@ function App() {
   const activeLayers = AVAILABLE_TIMELINE_LAYERS.filter((layer) => activeLayerIds.includes(layer.id))
   const timelineEnvironment: TimelineEnvironment = {
     now,
-    birthDate,
-    timezone: DEFAULT_TIMELINE_TIMEZONE,
-    location: DEFAULT_TIMELINE_LOCATION,
+    ...initialEnvironment,
   }
   const scaleLevelOrder = getScaleLevelOrder()
   const { minVisibleDurationMs, maxVisibleDurationMs } = getScaleDurationBounds()
@@ -84,6 +88,31 @@ function App() {
   }, [activeScaleLevel])
 
   useEffect(() => {
+    if (viewport.rangeStrategy !== 'currentContainingPeriod') {
+      return
+    }
+
+    setViewport((prevViewport) => {
+      const nextFocusTimeMs = getContainingPeriodFocusTimeMs(
+        primaryCalendarSystemId,
+        getNearestScaleLevel(prevViewport.visibleDurationMs),
+        now,
+        timelineEnvironment,
+      )
+
+      if (nextFocusTimeMs === prevViewport.focusTimeMs) {
+        return prevViewport
+      }
+
+      return {
+        focusTimeMs: nextFocusTimeMs,
+        visibleDurationMs: prevViewport.visibleDurationMs,
+        rangeStrategy: prevViewport.rangeStrategy,
+      }
+    })
+  }, [now, primaryCalendarSystemId, viewport.rangeStrategy])
+
+  useEffect(() => {
     if (!lockNow) {
       if (lockNowAnchorPercent !== null) {
         setLockNowAnchorPercent(null)
@@ -102,8 +131,7 @@ function App() {
     }
   }, [lockNow, lockNowAnchorPercent, now, viewport])
 
-  // + zooms out, counter-intuitively. That is because it selects a larger time scale.
-  // TODO: make this more intuitive
+  // Button zoom still walks the discrete scale bands one step at a time.
   const updateZoomByScaleSteps = (steps: number) => {
     if (steps === 0) {
       return
@@ -141,7 +169,12 @@ function App() {
     setViewport((prevViewport) => {
       if (direction === 'reset') {
         return {
-          focusTimeMs: now.getTime(),
+          focusTimeMs: getContainingPeriodFocusTimeMs(
+            primaryCalendarSystemId,
+            getNearestScaleLevel(prevViewport.visibleDurationMs),
+            now,
+            timelineEnvironment,
+          ),
           visibleDurationMs: prevViewport.visibleDurationMs,
           rangeStrategy: 'currentContainingPeriod',
         }
@@ -250,6 +283,7 @@ function App() {
       />
       <Timeline
         environment={timelineEnvironment}
+        primaryCalendarSystemId={primaryCalendarSystemId}
         activeScaleLevel={activeScaleLevel}
         focusTimeMs={viewport.focusTimeMs}
         visibleDurationMs={viewport.visibleDurationMs}

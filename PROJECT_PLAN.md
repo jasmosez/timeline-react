@@ -158,6 +158,7 @@ Initial target layers:
 Likely future layers:
 
 - astrology layer
+- twilight layer (civil, nautical, astronomical; morning and evening)
 
 A layer may provide:
 
@@ -304,6 +305,24 @@ Current progress:
 - the first layer interface exists
 - Gregorian is the default structural layer
 - birthday-relative rendering has begun in marker form, not yet structural form
+- a Hebrew time adapter exists for sunset-aware date identity in Northampton /
+  `America/New_York`
+- Gregorian and Hebrew can both render as structural layers
+- one primary calendar system can now drive anchored reset/current-period
+  semantics
+- dual-structure rendering is working with first-pass left/right label
+  separation
+
+Phase 2 notes:
+
+- the `now` marker should eventually reflect the primary calendar system in its
+  label treatment, not only Gregorian civil labeling
+- Hebrew labeling will need a smarter, more expressive strategy as the Hebrew
+  layer matures
+- Gregorian labeling should also evolve into a more sustainable dynamic-label
+  system rather than relying on ad hoc special cases
+- zoom should eventually move from viewport-centered behavior to pointer/cursor-
+  based zooming for more map-like direct manipulation
 
 ### Phase 3: Add Notes and Planning Primitives
 

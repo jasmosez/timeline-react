@@ -1,5 +1,6 @@
 #root {
   width: 100%;
+  min-height: 100vh;
   margin: 0 auto;
   padding: 0;
   text-align: left;
@@ -85,16 +86,19 @@
 
 .timeline-root {
   position: relative;
+  height: 100vh;
   min-height: 100vh;
+  overflow: hidden;
   z-index: 0;
 }
 
 .line {
   background-color: black;
-  height: 100%;
   width: 1px;
   left: var(--timeline-axis-x);
   top: 0;
+  bottom: 0;
+  height: auto;
 }
 
 .tick {
@@ -107,7 +111,6 @@
 
 .span {
   width: 14px;
-  transform: translateX(-50%);
   left: var(--timeline-axis-x);
 }
 
@@ -116,11 +119,31 @@
   border: 1px solid rgba(255, 99, 132, 0.35);
 }
 
+.structural-span-primary {
+  transform: translateX(-100%);
+}
+
+.structural-span-secondary {
+  transform: translateX(0);
+}
+
 .tick-label {
   font-size: .5rem;
-  left: 15px;
   transform: translateY(-50%);
   white-space: nowrap;
+}
+
+.structural-label-primary {
+  transform: translateY(0);
+  left: auto;
+  right: 15px;
+  text-align: right;
+}
+
+.structural-label-secondary {
+  transform: translateY(0);
+  left: 15px;
+  text-align: left;
 }
 
 .now-tick {
@@ -150,4 +173,23 @@
 .birthday-marker-label {
   color: #0f766e;
   font-weight: 600;
+}
+
+.hebrew-tick {
+  width: 14px;
+  background-color: #1d4ed8;
+}
+
+.hebrew-label {
+  color: #1d4ed8;
+}
+
+.hebrew-subtick {
+  width: 8px;
+  background-color: rgba(29, 78, 216, 0.7);
+}
+
+.hebrew-structural-span {
+  background-color: rgba(29, 78, 216, 0.16);
+  border-color: rgba(29, 78, 216, 0.35);
 }

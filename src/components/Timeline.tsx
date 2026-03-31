@@ -3,6 +3,7 @@ import type { ScaleLevel } from '../timeline/scales';
 import {
   combineLayerPoints,
   combineLayerSpans,
+  type PrimaryCalendarSystemId,
   type TimelineEnvironment,
   type TimelineLayer,
 } from '../timeline/layers';
@@ -16,6 +17,7 @@ import Span from './Span';
 
 interface TimelineProps {
     environment: TimelineEnvironment;
+    primaryCalendarSystemId: PrimaryCalendarSystemId;
     activeScaleLevel: ScaleLevel;
     focusTimeMs: number;
     visibleDurationMs: number;
@@ -27,6 +29,7 @@ interface TimelineProps {
 
 function Timeline({
   environment,
+  primaryCalendarSystemId,
   activeScaleLevel,
   focusTimeMs,
   visibleDurationMs,
@@ -42,6 +45,7 @@ function Timeline({
   useEffect(() => {
     const context = {
       environment,
+      primaryCalendarSystemId,
       activeScaleLevel,
       focusTimeMs,
       visibleDurationMs,
@@ -53,6 +57,7 @@ function Timeline({
   }, [
     activeLayers,
     environment,
+    primaryCalendarSystemId,
     activeScaleLevel,
     focusTimeMs,
     visibleDurationMs,
