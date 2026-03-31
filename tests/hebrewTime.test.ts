@@ -1,6 +1,10 @@
 import { HDate } from '@hebcal/core'
 
-import { getHebrewDayInfo, getSunsetForCivilDate } from '../src/timeline/hebrewTime'
+import {
+  formatHebrewPrimaryNowLabel,
+  getHebrewDayInfo,
+  getSunsetForCivilDate,
+} from '../src/timeline/hebrewTime'
 import type { TimelineEnvironment } from '../src/timeline/layers'
 
 const TEST_ENVIRONMENT: TimelineEnvironment = {
@@ -39,5 +43,25 @@ describe('hebrew time adapter', () => {
 
     expect(info.startsAtSunset.getTime()).toBeLessThanOrEqual(timestamp.getTime())
     expect(info.endsAtSunset.getTime()).toBeGreaterThan(timestamp.getTime())
+  })
+
+  it('formats a compact hebrew-primary now label with civil time', () => {
+    const label = formatHebrewPrimaryNowLabel(
+      new Date('2026-04-01T12:00:00-04:00'),
+      TEST_ENVIRONMENT,
+    )
+
+    expect(label).toContain("Revi'i")
+    expect(label).toContain('14 Nisan 5786')
+    expect(label).toContain('12:00 PM')
+  })
+
+  it('advances hebrew weekday naming after sundown', () => {
+    const label = formatHebrewPrimaryNowLabel(
+      new Date('2026-03-30T20:00:00-04:00'),
+      TEST_ENVIRONMENT,
+    )
+
+    expect(label).toContain('Shlishi')
   })
 })

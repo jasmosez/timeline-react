@@ -208,6 +208,9 @@ function App() {
 
   const handleSetPrimaryCalendarSystem = (layerId: PrimaryCalendarSystemId) => {
     setPrimaryCalendarSystemId(layerId)
+    setActiveLayerIds((prevLayerIds) =>
+      prevLayerIds.includes(layerId) ? prevLayerIds : [...prevLayerIds, layerId]
+    )
   }
 
   const handleWheelPan = (deltaMs: number) => {

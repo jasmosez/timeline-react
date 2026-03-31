@@ -60,6 +60,19 @@ test.describe('HQ controls', () => {
     await expect(primaryHebrew).toBeChecked()
   })
 
+  test('selecting a primary structure turns that layer on if needed', async ({ page }) => {
+    await page.goto('/')
+
+    const hebrewLayerToggle = page.getByRole('checkbox', { name: 'Hebrew' })
+    await expect(hebrewLayerToggle).not.toBeChecked()
+
+    const primaryHebrew = page.getByTestId('primary-structure-hebrew')
+    await primaryHebrew.check()
+
+    await expect(primaryHebrew).toBeChecked()
+    await expect(hebrewLayerToggle).toBeChecked()
+  })
+
   test('initial anchored week view starts at the containing-period boundary', async ({ page }) => {
     await page.goto('/')
 

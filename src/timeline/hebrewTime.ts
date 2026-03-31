@@ -17,6 +17,16 @@ export type HebrewDayInfo = {
   endsAtSunset: Date
 }
 
+const HEBREW_WEEKDAY_NAMES = [
+  'Rishon',
+  'Sheni',
+  'Shlishi',
+  "Revi'i",
+  'Chamishi',
+  'Shishi',
+  'Shabbat',
+]
+
 const CIVIL_DATE_FORMATTERS = new Map<string, Intl.DateTimeFormat>()
 
 const getCivilDateFormatter = (timezone: string) => {
@@ -101,6 +111,21 @@ export const getHebrewDayInfo = (timestamp: Date, environment: TimelineEnvironme
     startsAtSunset: getSunsetForCivilDate(previousCivilDate, environment),
     endsAtSunset: currentDaySunset,
   }
+}
+
+export const formatHebrewPrimaryNowLabel = (
+  timestamp: Date,
+  environment: TimelineEnvironment,
+) => {
+  const dayInfo = getHebrewDayInfo(timestamp, environment)
+  const weekdayName = HEBREW_WEEKDAY_NAMES[dayInfo.hdate.getDay()]
+  const civilTime = timestamp.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  })
+
+  return `${weekdayName} • ${dayInfo.hebrewDate.day} ${dayInfo.hebrewDate.monthName} ${dayInfo.hebrewDate.year} • ${civilTime}`
 }
 
 export const getHebrewContainingPeriodStartTimeMs = (

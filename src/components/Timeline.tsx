@@ -100,6 +100,8 @@ function Timeline({
       {tickPoints.map((point) => <TickPoint key={point.id} point={point} />)}
       <NowTick
         now={environment.now}
+        environment={environment}
+        primaryCalendarSystemId={primaryCalendarSystemId}
         scaleLevel={activeScaleLevel}
         focusTimeMs={focusTimeMs}
         visibleDurationMs={visibleDurationMs}
