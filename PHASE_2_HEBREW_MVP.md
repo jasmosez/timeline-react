@@ -247,6 +247,8 @@ Rationale:
 - Hebrew day boundaries are sunset-based
 - intraday ticks remain civil-hour ticks
 - intraday spans also follow civil-hour subdivision
+- civil midnight is not a meaningful Hebrew boundary and should not receive
+  special boundary treatment
 - when Hebrew is primary, Hebrew labels and anchored semantics define which day
   is “current”
 
@@ -272,6 +274,9 @@ Rationale:
 - Hebrew month transitions should be labeled clearly
 - Hebrew-primary month should be framed by the current Hebrew month rather than
   the Gregorian month
+- `Shabbat` should be the recurring weekly rhythm cue at this scale
+- `Rosh Chodesh` can later appear as a holiday/marker layer rather than a
+  structural label rule
 
 Rationale:
 
@@ -310,6 +315,124 @@ Rationale:
 
 - decade view can still usefully express Hebrew year identity without requiring
   a more exotic long-span interpretation
+
+## Hebrew Label Policy
+
+The Hebrew labeling system should mirror the current Gregorian direction where
+that is useful:
+
+- sticky labels carry container context
+- tick labels carry local identity
+- especially meaningful boundaries gain context rather than replacing local
+  identity
+
+### Minute
+
+- sticky top/bottom:
+  Hebrew date only
+  Example: `12 Nisan 5786`
+- tick labels:
+  keep civil-time labeling for now
+  Example: `10:23 PM`, `:10`, `:20`
+- midnight is just another civil hour boundary, not a Hebrew day boundary
+
+### Hour
+
+- sticky top/bottom:
+  Hebrew date only
+  Example: `12 Nisan 5786`
+- sunset boundary:
+  explicit Hebrew boundary label with civil sunset time
+  Example: `Shlishi 12 Nisan, 7:18 PM`
+- ordinary hour ticks:
+  civil hour labels
+  Example: `1 AM`, `2 AM`
+- midnight remains an ordinary civil hour boundary
+
+### Day
+
+- sticky top/bottom:
+  Hebrew date only
+  Example: `12 Nisan 5786`
+- sunset boundary:
+  explicit Hebrew boundary label with civil sunset time
+  Example: `Shlishi 12 Nisan, 7:18 PM`
+- interior ticks:
+  civil hours
+- midnight remains an ordinary civil hour boundary
+
+### Week
+
+- sticky top/bottom:
+  Hebrew month + year
+  Example: `Nisan 5786`
+- daily ticks:
+  Hebrew weekday name + Hebrew day number
+  Examples:
+  - `Sheni 11`
+  - `Shlishi 12`
+  - `Shabbat 16`
+- if a day is also the first of a Hebrew month:
+  include the month name
+  Example: `Rishon 1 Iyar`
+
+### Month
+
+- sticky top/bottom:
+  Hebrew month + year
+  Example: `Nisan 5786`
+- daily ticks:
+  mostly day numbers
+  Example: `12`
+- `Shabbat` days:
+  richer weekly rhythm cue
+  Example: `Shabbat 16`
+- month transitions:
+  include the month name
+  Example: `1 Iyar`
+
+### Quarter
+
+- sticky top/bottom:
+  Hebrew year
+  Example: `5786`
+- ordinary month ticks:
+  month names
+  Example: `Tevet`, `Shevat`
+- quarter starts:
+  richer label
+  Example: `Q2, Tevet`
+
+### Year
+
+- sticky top/bottom:
+  Hebrew year
+  Example: `5786`
+- month ticks:
+  month names
+  Example: `Nisan`, `Iyar`
+- year boundary:
+  fuller label when needed
+  Example: `Tishrei 5787`
+
+### Decade
+
+- no sticky labels
+- year ticks:
+  Hebrew year numbers only
+  Example: `5780`, `5781`
+
+### Naming Defaults
+
+Default Hebrew weekday names:
+
+- `Rishon`
+- `Sheni`
+- `Shlishi`
+- `Revi'i`
+- `Chamishi`
+- `Shishi`
+- `Shabbat`
 
 ## Follow-Up Notes
 

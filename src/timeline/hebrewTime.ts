@@ -191,6 +191,18 @@ export const getHebrewContainingPeriodStartTimeMs = (
 ) => {
   const dayInfo = getHebrewDayInfo(timestamp, environment)
 
+  if (scaleLevel === -1) {
+    const minuteStart = new Date(timestamp)
+    minuteStart.setSeconds(0, 0)
+    return minuteStart.getTime()
+  }
+
+  if (scaleLevel === 0) {
+    const hourStart = new Date(timestamp)
+    hourStart.setMinutes(0, 0, 0)
+    return hourStart.getTime()
+  }
+
   if (scaleLevel === 1) {
     return dayInfo.startsAtSunset.getTime()
   }
@@ -231,6 +243,20 @@ export const getHebrewContainingPeriodEndTimeMs = (
   environment: TimelineEnvironment,
 ) => {
   const dayInfo = getHebrewDayInfo(timestamp, environment)
+
+  if (scaleLevel === -1) {
+    const minuteEnd = new Date(timestamp)
+    minuteEnd.setSeconds(0, 0)
+    minuteEnd.setMinutes(minuteEnd.getMinutes() + 1)
+    return minuteEnd.getTime()
+  }
+
+  if (scaleLevel === 0) {
+    const hourEnd = new Date(timestamp)
+    hourEnd.setMinutes(0, 0, 0)
+    hourEnd.setHours(hourEnd.getHours() + 1)
+    return hourEnd.getTime()
+  }
 
   if (scaleLevel === 1) {
     return dayInfo.endsAtSunset.getTime()

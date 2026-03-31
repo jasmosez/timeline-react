@@ -2,7 +2,7 @@ import { getGregorianStickyContextLabel, GREGORIAN_SCALE_LEVEL_CONFIG } from '..
 
 describe('gregorian scale label helpers', () => {
   it('provides sticky context labels for non-decade scales', () => {
-    expect(getGregorianStickyContextLabel(-1, new Date('2026-03-17T12:34:56-04:00').getTime())).toBe('Tue, Mar 17, 2026')
+    expect(getGregorianStickyContextLabel(-1, new Date('2026-03-17T12:34:56-04:00').getTime())).toBe('Tue, Mar 17, 2026, 12:34 PM')
     expect(getGregorianStickyContextLabel(3, new Date('2026-03-17T12:00:00-04:00').getTime())).toBe('Mar 2026')
     expect(getGregorianStickyContextLabel(3, new Date('2026-04-02T12:00:00-04:00').getTime())).toBe('Apr 2026')
     expect(getGregorianStickyContextLabel(6, new Date('2026-03-17T12:00:00-04:00').getTime())).toBeUndefined()

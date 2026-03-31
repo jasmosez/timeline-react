@@ -133,15 +133,26 @@
   white-space: nowrap;
 }
 
-.gregorian-context-label {
+.structural-context-label {
   left: auto;
-  right: calc(100% - var(--timeline-axis-x) + 15px);
   font-size: 0.625rem;
   font-weight: 600;
-  text-align: right;
   white-space: nowrap;
-  color: #374151;
   z-index: 2;
+}
+
+.structural-context-label-primary {
+  right: calc(100% - var(--timeline-axis-x) + 15px);
+  text-align: right;
+}
+
+.structural-context-label-secondary {
+  left: calc(var(--timeline-axis-x) + 15px);
+  text-align: left;
+}
+
+.gregorian-context-label {
+  color: #374151;
 }
 
 .gregorian-context-label-top {
@@ -203,9 +214,21 @@
   color: #1d4ed8;
 }
 
+.hebrew-context-label {
+  color: #1d4ed8;
+}
+
 .hebrew-subtick {
   width: 8px;
   background-color: rgba(29, 78, 216, 0.7);
+}
+
+.hebrew-context-label-top {
+  top: 24px;
+}
+
+.hebrew-context-label-bottom {
+  bottom: 24px;
 }
 
 .hebrew-structural-span {

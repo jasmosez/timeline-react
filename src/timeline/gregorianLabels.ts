@@ -139,13 +139,19 @@ export const getGregorianContextLabel = (scaleLevel: ScaleLevel, timeMs: number)
 
   switch (scaleLevel) {
     case -1:
+      return contextDate.toLocaleDateString(LOCALE, {
+        ...WEEKDAY,
+        ...MONTH,
+        ...DAY,
+        ...YEAR,
+      }) + `, ${contextDate.toLocaleTimeString(LOCALE, { ...HOUR, ...MINUTE })}`
     case 0:
       return contextDate.toLocaleDateString(LOCALE, {
         ...WEEKDAY,
         ...MONTH,
         ...DAY,
         ...YEAR,
-      })
+      }) + `, ${contextDate.toLocaleTimeString(LOCALE, HOUR)}`
     case 1:
     case 2:
     case 3:

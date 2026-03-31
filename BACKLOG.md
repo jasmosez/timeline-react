@@ -24,6 +24,19 @@ Usage:
   offsetting or lane assignment
   Target: Phase 2
 
+- Hebrew sunset times in week view and other broader scales
+  Notes: likely optional or context-sensitive rather than always-on by default
+  Target: Phase 2
+
+- Density-aware suppression for Hebrew day-view boundary labels
+  Notes: especially near `now` or other high-attention regions
+  Target: Phase 2
+
+- Scale-aware label suppression near primary boundary labels
+  Notes: suppress secondary labels within one default increment of a primary
+  label, for example 1 hour in day view or 1 minute in hour view
+  Target: Phase 2
+
 ## Later
 
 - Smooth band-transition treatment for gesture zoom and HQ button zoom

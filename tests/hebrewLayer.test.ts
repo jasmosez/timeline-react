@@ -15,6 +15,42 @@ const TEST_ENVIRONMENT: TimelineEnvironment = {
 }
 
 describe('hebrew structural layer', () => {
+  it('renders civil subdivision points and spans at minute and hour scales', () => {
+    const minutePoints = createHebrewStructuralPoints({
+      primaryCalendarSystemId: 'hebrew',
+      activeScaleLevel: -1,
+      focusTimeMs: new Date('2026-04-01T12:00:30-04:00').getTime(),
+      visibleDurationMs: 61 * 1000,
+      environment: TEST_ENVIRONMENT,
+    })
+    const minuteSpans = createHebrewStructuralSpans({
+      primaryCalendarSystemId: 'hebrew',
+      activeScaleLevel: -1,
+      focusTimeMs: new Date('2026-04-01T12:00:30-04:00').getTime(),
+      visibleDurationMs: 61 * 1000,
+      environment: TEST_ENVIRONMENT,
+    })
+    const hourPoints = createHebrewStructuralPoints({
+      primaryCalendarSystemId: 'hebrew',
+      activeScaleLevel: 0,
+      focusTimeMs: new Date('2026-04-01T12:30:00-04:00').getTime(),
+      visibleDurationMs: 61 * 60 * 1000,
+      environment: TEST_ENVIRONMENT,
+    })
+    const hourSpans = createHebrewStructuralSpans({
+      primaryCalendarSystemId: 'hebrew',
+      activeScaleLevel: 0,
+      focusTimeMs: new Date('2026-04-01T12:30:00-04:00').getTime(),
+      visibleDurationMs: 61 * 60 * 1000,
+      environment: TEST_ENVIRONMENT,
+    })
+
+    expect(minutePoints.some((point) => point.className?.includes('hebrew-subtick'))).toBe(true)
+    expect(minuteSpans.length).toBeGreaterThan(10)
+    expect(hourPoints.some((point) => point.className?.includes('hebrew-subtick'))).toBe(true)
+    expect(hourSpans.length).toBeGreaterThan(10)
+  })
+
   it('creates sunset-based structural points at day scale', () => {
     const points = createHebrewStructuralPoints({
       primaryCalendarSystemId: 'hebrew',
@@ -27,6 +63,7 @@ describe('hebrew structural layer', () => {
     expect(points.length).toBeGreaterThan(0)
     expect(points.some((point) => point.labelClassName?.includes('structural-label-primary'))).toBe(true)
     expect(points.some((point) => point.className?.includes('hebrew-subtick'))).toBe(true)
+    expect(points.some((point) => (point.label ?? '').includes('PM'))).toBe(true)
 
     const spans = createHebrewStructuralSpans({
       primaryCalendarSystemId: 'hebrew',
@@ -52,6 +89,30 @@ describe('hebrew structural layer', () => {
 
     expect(spans.length).toBeGreaterThan(0)
     expect(spans.length).toBeGreaterThan(20)
+  })
+
+  it('uses Hebrew weekday labels at week scale', () => {
+    const points = createHebrewStructuralPoints({
+      primaryCalendarSystemId: 'hebrew',
+      activeScaleLevel: 2,
+      focusTimeMs: new Date('2026-04-01T12:00:00-04:00').getTime(),
+      visibleDurationMs: 8 * 24 * 60 * 60 * 1000,
+      environment: TEST_ENVIRONMENT,
+    })
+
+    expect(points.some((point) => /Sheni|Shlishi|Shabbat/.test(point.label ?? ''))).toBe(true)
+  })
+
+  it('marks shabbat within month view labels', () => {
+    const points = createHebrewStructuralPoints({
+      primaryCalendarSystemId: 'hebrew',
+      activeScaleLevel: 3,
+      focusTimeMs: new Date('2026-04-04T12:00:00-04:00').getTime(),
+      visibleDurationMs: 32 * 24 * 60 * 60 * 1000,
+      environment: TEST_ENVIRONMENT,
+    })
+
+    expect(points.some((point) => (point.label ?? '').includes('Shabbat'))).toBe(true)
   })
 
   it('limits year-scale hebrew points to month boundaries', () => {
@@ -81,6 +142,7 @@ describe('hebrew structural layer', () => {
     expect(quarterPoints.some((point) => point.label.includes('Nisan'))).toBe(true)
     expect(quarterPoints.some((point) => point.label.includes('Iyyar'))).toBe(true)
     expect(quarterPoints.some((point) => point.label.includes('Sivan'))).toBe(true)
+    expect(quarterPoints.some((point) => point.label.includes('Q'))).toBe(true)
 
     const decadePoints = createHebrewStructuralPoints({
       primaryCalendarSystemId: 'hebrew',
@@ -91,6 +153,6 @@ describe('hebrew structural layer', () => {
     })
 
     expect(decadePoints.length).toBeGreaterThan(0)
-    expect(decadePoints.every((point) => /^\d{4}$/.test(point.label ?? ''))).toBe(true)
+    expect(decadePoints.every((point) => /^\d{4}(, Shmita)?$/.test(point.label ?? ''))).toBe(true)
   })
 })

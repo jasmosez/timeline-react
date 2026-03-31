@@ -3,6 +3,7 @@ import { createStructuralSpansForRange, positionTimelinePoint, positionTimelineS
 import { getVisibleRangeStartTickDate, getVisibleTimeRange, SCALE_LEVEL_CONFIG, type ScaleLevel } from './scales'
 import type { PositionedTimelinePoint, PositionedTimelineSpan, TimelinePoint, TimelineSpan } from './types'
 import { getHebrewDayInfo } from './hebrewTime'
+import { getHebrewTickLabel } from './hebrewLabels'
 
 type HebrewLayerParams = {
   primaryCalendarSystemId: PrimaryCalendarSystemId
@@ -12,36 +13,10 @@ type HebrewLayerParams = {
   environment: Parameters<TimelineLayer['getPoints']>[0]['environment']
 }
 
-const HEBREW_ENABLED_SCALES: ScaleLevel[] = [1, 2, 3, 4, 5, 6]
+const HEBREW_ENABLED_SCALES: ScaleLevel[] = [-1, 0, 1, 2, 3, 4, 5, 6]
 
 const getCivilDateAtNoonUtc = (date: Date) =>
   new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 12))
-
-const getHebrewLabel = (activeScaleLevel: ScaleLevel, dayInfo: ReturnType<typeof getHebrewDayInfo>) => {
-  if (activeScaleLevel === 1 || activeScaleLevel === 2) {
-    return dayInfo.hebrewDate.label
-  }
-
-  if (activeScaleLevel === 3) {
-    if (dayInfo.hebrewDate.day === 1) {
-      return `${dayInfo.hebrewDate.monthName} ${dayInfo.hebrewDate.year}`
-    }
-
-    return String(dayInfo.hebrewDate.day)
-  }
-
-  if (activeScaleLevel === 4) {
-    return dayInfo.hebrewDate.day === 1
-      ? `${dayInfo.hebrewDate.monthName} ${dayInfo.hebrewDate.year}`
-      : undefined
-  }
-
-  if (activeScaleLevel === 6) {
-    return String(dayInfo.hebrewDate.year)
-  }
-
-  return dayInfo.hebrewDate.day === 1 ? dayInfo.hebrewDate.monthName : undefined
-}
 
 const shouldEmitHebrewBoundary = (
   activeScaleLevel: ScaleLevel,
@@ -97,7 +72,7 @@ const collectHebrewBoundaries = (
     ) {
       boundaries.push({
         timeMs: boundaryTimeMs,
-        label: getHebrewLabel(activeScaleLevel, hebrewDayInfo) ?? '',
+        label: getHebrewTickLabel(activeScaleLevel, hebrewDayInfo, boundaryTimeMs) ?? '',
       })
     }
 
@@ -145,24 +120,31 @@ export const createHebrewStructuralPoints = ({
     )
   })
 
-  if (activeScaleLevel === 1 && primaryCalendarSystemId === 'hebrew') {
+  if ((activeScaleLevel === -1 || activeScaleLevel === 0 || activeScaleLevel === 1) && primaryCalendarSystemId === 'hebrew') {
     const { calculateTickTimeFunc } = SCALE_LEVEL_CONFIG[activeScaleLevel]
-    let tickTime = getVisibleRangeStartTickDate(activeScaleLevel, focusTimeMs, visibleDurationMs).getTime()
+    const visibleRangeStartTickDate = getVisibleRangeStartTickDate(activeScaleLevel, focusTimeMs, visibleDurationMs)
+    let tickTime = visibleRangeStartTickDate.getTime()
 
     while (tickTime <= bufferedEnd) {
       if (tickTime >= bufferedStart) {
-        const tickDate = new Date(tickTime)
-        const hourLabel = tickDate.getMinutes() === 0
-          ? tickDate.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true })
-          : ''
+        const civilSubdivisionLabel = activeScaleLevel === 1
+          ? (
+              new Date(tickTime).getMinutes() === 0
+                ? new Date(tickTime).toLocaleTimeString('en-US', { hour: 'numeric', hour12: true })
+                : ''
+            )
+          : SCALE_LEVEL_CONFIG[activeScaleLevel].getTickLabel(
+              tickTime,
+              tickTime === visibleRangeStartTickDate.getTime(),
+            ) ?? ''
 
         points.push(
           positionTimelinePoint(
             {
-              id: `hebrew-hour-${tickTime}`,
+              id: `hebrew-civil-${tickTime}`,
               kind: 'tick',
               timeMs: tickTime,
-              label: hourLabel,
+              label: civilSubdivisionLabel,
             },
             activeScaleLevel,
             focusTimeMs,
@@ -194,7 +176,7 @@ export const createHebrewStructuralSpans = ({
     return []
   }
 
-  if (activeScaleLevel === 1) {
+  if (activeScaleLevel === -1 || activeScaleLevel === 0 || activeScaleLevel === 1) {
     const { startTimeMs, endTimeMs } = getVisibleTimeRange(focusTimeMs, visibleDurationMs)
     const bufferedStart = startTimeMs - visibleDurationMs * 0.5
     const bufferedEnd = endTimeMs + visibleDurationMs * 0.5

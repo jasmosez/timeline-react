@@ -15,6 +15,28 @@ const TEST_ENVIRONMENT: TimelineEnvironment = {
 }
 
 describe('period anchoring', () => {
+  it('centers hebrew current minute around the containing civil minute', () => {
+    const focusTimeMs = getContainingPeriodFocusTimeMs(
+      'hebrew',
+      -1,
+      new Date('2026-04-01T12:00:30-04:00'),
+      TEST_ENVIRONMENT,
+    )
+
+    expect(focusTimeMs).toBe(new Date('2026-04-01T12:00:30-04:00').getTime())
+  })
+
+  it('centers hebrew current hour around the containing civil hour', () => {
+    const focusTimeMs = getContainingPeriodFocusTimeMs(
+      'hebrew',
+      0,
+      new Date('2026-04-01T12:30:00-04:00'),
+      TEST_ENVIRONMENT,
+    )
+
+    expect(focusTimeMs).toBe(new Date('2026-04-01T12:30:00-04:00').getTime())
+  })
+
   it('centers gregorian current week around its containing period', () => {
     const focusTimeMs = getContainingPeriodFocusTimeMs(
       'gregorian',

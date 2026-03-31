@@ -298,6 +298,7 @@ function App() {
         startTickDate={startTickDate}
         activeLayers={activeLayers}
         isGregorianVisible={activeLayerIds.includes('gregorian')}
+        isHebrewVisible={activeLayerIds.includes('hebrew')}
         onPanTimeDelta={handleWheelPan}
         onZoomByFactor={handleWheelZoom}
       />

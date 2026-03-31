@@ -323,8 +323,14 @@ Phase 2 notes:
   label treatment, not only Gregorian civil labeling
 - Hebrew labeling will need a smarter, more expressive strategy as the Hebrew
   layer matures
+- Hebrew sunset boundary times should eventually be optionally visible at
+  broader scales such as week view
+- Hebrew day-view labels will likely need density-aware suppression near
+  high-attention areas such as the current moment
 - Gregorian labeling should also evolve into a more sustainable dynamic-label
   system rather than relying on ad hoc special cases
+- Gregorian week numbers should be introduced as an additional contextual data
+  point after the current Hebrew labeling pass
 - zoom should eventually move from viewport-centered behavior to pointer/cursor-
   based zooming for more map-like direct manipulation
 

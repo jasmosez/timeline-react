@@ -8,6 +8,7 @@ import {
   type TimelineLayer,
 } from '../timeline/layers';
 import { getGregorianContextLabel } from '../timeline/gregorianScaleConfig';
+import { getHebrewContextLabel } from '../timeline/hebrewLabels';
 import { getVisibleTimeRange } from '../timeline/scales';
 import { TickPoint } from './Tick';
 import type {
@@ -26,6 +27,7 @@ interface TimelineProps {
     startTickDate: Date;
     activeLayers: TimelineLayer[];
     isGregorianVisible: boolean;
+    isHebrewVisible: boolean;
     onPanTimeDelta: (deltaMs: number) => void;
     onZoomByFactor: (factor: number) => void;
 }
@@ -39,6 +41,7 @@ function Timeline({
   startTickDate,
   activeLayers,
   isGregorianVisible,
+  isHebrewVisible,
   onPanTimeDelta,
   onZoomByFactor,
 }: TimelineProps) {
@@ -98,6 +101,13 @@ function Timeline({
   }, [visibleDurationMs, onPanTimeDelta, onZoomByFactor]);
 
   const visibleTimeRange = getVisibleTimeRange(focusTimeMs, visibleDurationMs)
+  const singleStructuralContextVisible = Number(isGregorianVisible) + Number(isHebrewVisible) <= 1
+  const gregorianContextSideClass = singleStructuralContextVisible || primaryCalendarSystemId === 'gregorian'
+    ? 'structural-context-label-primary'
+    : 'structural-context-label-secondary'
+  const hebrewContextSideClass = singleStructuralContextVisible || primaryCalendarSystemId === 'hebrew'
+    ? 'structural-context-label-primary'
+    : 'structural-context-label-secondary'
   const gregorianStickyContextLabelTop = isGregorianVisible
     ? getGregorianContextLabel(
         activeScaleLevel,
@@ -110,18 +120,44 @@ function Timeline({
         visibleTimeRange.endTimeMs - 1,
       )
     : undefined
+  const hebrewStickyContextLabelTop = isHebrewVisible
+    ? getHebrewContextLabel(
+        activeScaleLevel,
+        visibleTimeRange.startTimeMs,
+        environment,
+      )
+    : undefined
+  const hebrewStickyContextLabelBottom = isHebrewVisible
+    ? getHebrewContextLabel(
+        activeScaleLevel,
+        visibleTimeRange.endTimeMs - 1,
+        environment,
+      )
+    : undefined
 
   return (
     <div ref={viewportRef} className='timeline-root'>
       <div className='timeline line' />
       {gregorianStickyContextLabelTop ? (
         <>
-          <div className='timeline gregorian-context-label gregorian-context-label-top'>
+          <div className={`timeline structural-context-label gregorian-context-label gregorian-context-label-top ${gregorianContextSideClass}`}>
             {gregorianStickyContextLabelTop}
           </div>
           {gregorianStickyContextLabelBottom ? (
-            <div className='timeline gregorian-context-label gregorian-context-label-bottom'>
+            <div className={`timeline structural-context-label gregorian-context-label gregorian-context-label-bottom ${gregorianContextSideClass}`}>
               {gregorianStickyContextLabelBottom}
+            </div>
+          ) : null}
+        </>
+      ) : null}
+      {hebrewStickyContextLabelTop ? (
+        <>
+          <div className={`timeline structural-context-label hebrew-context-label hebrew-context-label-top ${hebrewContextSideClass}`}>
+            {hebrewStickyContextLabelTop}
+          </div>
+          {hebrewStickyContextLabelBottom ? (
+            <div className={`timeline structural-context-label hebrew-context-label hebrew-context-label-bottom ${hebrewContextSideClass}`}>
+              {hebrewStickyContextLabelBottom}
             </div>
           ) : null}
         </>
