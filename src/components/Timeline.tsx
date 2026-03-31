@@ -7,6 +7,8 @@ import {
   type TimelineEnvironment,
   type TimelineLayer,
 } from '../timeline/layers';
+import { getGregorianStickyContextLabel } from '../timeline/gregorianScaleConfig';
+import { getVisibleTimeRange } from '../timeline/scales';
 import { TickPoint } from './Tick';
 import type {
   PositionedTimelinePoint,
@@ -93,9 +95,35 @@ function Timeline({
     };
   }, [visibleDurationMs, onPanTimeDelta, onZoomByFactor]);
 
+  const visibleTimeRange = getVisibleTimeRange(focusTimeMs, visibleDurationMs)
+  const gregorianStickyContextLabelTop = primaryCalendarSystemId === 'gregorian'
+    ? getGregorianStickyContextLabel(
+        activeScaleLevel,
+        visibleTimeRange.startTimeMs,
+      )
+    : undefined
+  const gregorianStickyContextLabelBottom = primaryCalendarSystemId === 'gregorian'
+    ? getGregorianStickyContextLabel(
+        activeScaleLevel,
+        visibleTimeRange.endTimeMs - 1,
+      )
+    : undefined
+
   return (
     <div ref={viewportRef} className='timeline-root'>
       <div className='timeline line' />
+      {gregorianStickyContextLabelTop ? (
+        <>
+          <div className='timeline gregorian-context-label gregorian-context-label-top'>
+            {gregorianStickyContextLabelTop}
+          </div>
+          {gregorianStickyContextLabelBottom ? (
+            <div className='timeline gregorian-context-label gregorian-context-label-bottom'>
+              {gregorianStickyContextLabelBottom}
+            </div>
+          ) : null}
+        </>
+      ) : null}
       {timelineSpans.map((span) => <Span key={span.id} span={span} />)}
       {tickPoints.map((point) => <TickPoint key={point.id} point={point} />)}
       <NowTick
