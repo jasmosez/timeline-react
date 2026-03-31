@@ -119,8 +119,24 @@ A mature browser suite would likely cover:
 This is a rough qualitative estimate, not a measured percentage from a coverage
 tool.
 
-- core unit coverage of high-risk timeline math: roughly 25%
-- browser coverage of critical user-facing behavior: roughly 15%
+- Current unit suite:
+  - 6 test files
+  - 15 tests
+  - covers scale math, viewport derivation, layout positioning, Hebrew time
+    conversion, period anchoring, and Hebrew structural layer behavior
+
+- Current browser suite:
+  - 1 Playwright file
+  - 7 tests
+  - covers HQ clickability, reset behavior, `Lock Now` disabling on manual pan,
+    primary-calendar persistence, Hebrew enable/primary selection, initial
+    anchored week framing, and viewport clipping
+
+- core unit coverage of high-risk timeline math: roughly 50-60%
+- unit coverage of the new Hebrew MVP engine logic: roughly 60-70%
+- browser coverage of critical user-facing behavior: roughly 15-20%
+- browser coverage of the specific interaction regressions we have recently
+  fixed: substantially higher than the broad percentage suggests
 - regression protection for the most recently changed interaction paths: much
   higher than those percentages imply
 

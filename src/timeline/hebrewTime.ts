@@ -128,6 +128,62 @@ export const formatHebrewPrimaryNowLabel = (
   return `${weekdayName} • ${dayInfo.hebrewDate.day} ${dayInfo.hebrewDate.monthName} ${dayInfo.hebrewDate.year} • ${civilTime}`
 }
 
+const HEBREW_QUARTER_START_MONTHS = [7, 10, 1, 4]
+
+export const isHebrewQuarterStartMonth = (month: number) =>
+  HEBREW_QUARTER_START_MONTHS.includes(month)
+
+export const getHebrewQuarterStartMonth = (month: number) => {
+  if (month >= 7 && month <= 9) {
+    return 7
+  }
+
+  if (month >= 10) {
+    return 10
+  }
+
+  if (month >= 1 && month <= 3) {
+    return 1
+  }
+
+  return 4
+}
+
+export const getHebrewQuarterLabel = (year: number, startMonth: number) => {
+  const isLeapYear = HDate.isLeapYear(year)
+  const endMonth = startMonth === 7
+    ? 9
+    : startMonth === 10
+      ? (isLeapYear ? 13 : 12)
+      : startMonth === 1
+        ? 3
+        : 6
+
+  const startMonthName = new HDate(1, startMonth, year).getMonthName()
+  const endMonthName = new HDate(1, endMonth, year).getMonthName()
+
+  return `${startMonthName}–${endMonthName} ${year}`
+}
+
+const getNextHebrewQuarterStartHDate = (startQuarterHDate: HDate) => {
+  const month = startQuarterHDate.getMonth()
+  const year = startQuarterHDate.getFullYear()
+
+  if (month === 7) {
+    return new HDate(1, 10, year)
+  }
+
+  if (month === 10) {
+    return new HDate(1, 1, year)
+  }
+
+  if (month === 1) {
+    return new HDate(1, 4, year)
+  }
+
+  return new HDate(1, 7, year + 1)
+}
+
 export const getHebrewContainingPeriodStartTimeMs = (
   scaleLevel: number,
   timestamp: Date,
@@ -149,9 +205,21 @@ export const getHebrewContainingPeriodStartTimeMs = (
     return getStartOfHebrewHDate(monthStartHDate, environment).getTime()
   }
 
+  if (scaleLevel === 4) {
+    const quarterStartMonth = getHebrewQuarterStartMonth(dayInfo.hdate.getMonth())
+    const quarterStartHDate = new HDate(1, quarterStartMonth, dayInfo.hdate.getFullYear())
+    return getStartOfHebrewHDate(quarterStartHDate, environment).getTime()
+  }
+
   if (scaleLevel === 5) {
     const yearStartHDate = new HDate(1, 7, dayInfo.hdate.getFullYear())
     return getStartOfHebrewHDate(yearStartHDate, environment).getTime()
+  }
+
+  if (scaleLevel === 6) {
+    const decadeStartYear = Math.floor(dayInfo.hdate.getFullYear() / 10) * 10
+    const decadeStartHDate = new HDate(1, 7, decadeStartYear)
+    return getStartOfHebrewHDate(decadeStartHDate, environment).getTime()
   }
 
   return dayInfo.startsAtSunset.getTime()
@@ -189,9 +257,21 @@ export const getHebrewContainingPeriodEndTimeMs = (
     return getStartOfHebrewHDate(nextMonthStartHDate, environment).getTime()
   }
 
+  if (scaleLevel === 4) {
+    const quarterStartMonth = getHebrewQuarterStartMonth(dayInfo.hdate.getMonth())
+    const quarterStartHDate = new HDate(1, quarterStartMonth, dayInfo.hdate.getFullYear())
+    return getStartOfHebrewHDate(getNextHebrewQuarterStartHDate(quarterStartHDate), environment).getTime()
+  }
+
   if (scaleLevel === 5) {
     const nextYearStartHDate = new HDate(1, 7, dayInfo.hdate.getFullYear() + 1)
     return getStartOfHebrewHDate(nextYearStartHDate, environment).getTime()
+  }
+
+  if (scaleLevel === 6) {
+    const nextDecadeStartYear = Math.floor(dayInfo.hdate.getFullYear() / 10) * 10 + 10
+    const nextDecadeStartHDate = new HDate(1, 7, nextDecadeStartYear)
+    return getStartOfHebrewHDate(nextDecadeStartHDate, environment).getTime()
   }
 
   return dayInfo.endsAtSunset.getTime()

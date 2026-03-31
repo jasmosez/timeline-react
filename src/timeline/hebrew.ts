@@ -12,7 +12,7 @@ type HebrewLayerParams = {
   environment: Parameters<TimelineLayer['getPoints']>[0]['environment']
 }
 
-const HEBREW_ENABLED_SCALES: ScaleLevel[] = [1, 2, 3, 5]
+const HEBREW_ENABLED_SCALES: ScaleLevel[] = [1, 2, 3, 4, 5, 6]
 
 const getCivilDateAtNoonUtc = (date: Date) =>
   new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 12))
@@ -30,6 +30,16 @@ const getHebrewLabel = (activeScaleLevel: ScaleLevel, dayInfo: ReturnType<typeof
     return String(dayInfo.hebrewDate.day)
   }
 
+  if (activeScaleLevel === 4) {
+    return dayInfo.hebrewDate.day === 1
+      ? `${dayInfo.hebrewDate.monthName} ${dayInfo.hebrewDate.year}`
+      : undefined
+  }
+
+  if (activeScaleLevel === 6) {
+    return String(dayInfo.hebrewDate.year)
+  }
+
   return dayInfo.hebrewDate.day === 1 ? dayInfo.hebrewDate.monthName : undefined
 }
 
@@ -39,6 +49,14 @@ const shouldEmitHebrewBoundary = (
 ) => {
   if (activeScaleLevel === 5) {
     return dayInfo.hebrewDate.day === 1
+  }
+
+  if (activeScaleLevel === 4) {
+    return dayInfo.hebrewDate.day === 1
+  }
+
+  if (activeScaleLevel === 6) {
+    return dayInfo.hebrewDate.day === 1 && dayInfo.hebrewDate.month === 7
   }
 
   return true

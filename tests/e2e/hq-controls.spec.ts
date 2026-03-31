@@ -80,6 +80,15 @@ test.describe('HQ controls', () => {
     await expect(page.getByTestId('start-tick-value')).toHaveText('Sun, Mar 29, 2026, 12:00 AM')
   })
 
+  test('HQ button zoom keeps anchored current-period framing', async ({ page }) => {
+    await page.goto('/')
+
+    await page.getByLabel('Zoom out').click()
+
+    await expect(page.getByTestId('scale-title')).toHaveText('Month View')
+    await expect(page.getByTestId('start-tick-value')).toHaveText('Sun, Mar 1, 2026, 12:00 AM')
+  })
+
   test('timeline surface stays clipped to the viewport height', async ({ page }) => {
     await page.goto('/')
 

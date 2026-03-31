@@ -66,4 +66,31 @@ describe('hebrew structural layer', () => {
     expect(points.length).toBeLessThan(30)
     expect(points.every((point) => point.label === '' || /[A-Za-z]/.test(point.label ?? ''))).toBe(true)
   })
+
+  it('renders quarter-scale hebrew quarter boundaries and decade-scale hebrew year boundaries', () => {
+    const quarterPoints = createHebrewStructuralPoints({
+      primaryCalendarSystemId: 'hebrew',
+      activeScaleLevel: 4,
+      focusTimeMs: new Date('2026-04-01T12:00:00-04:00').getTime(),
+      visibleDurationMs: 120 * 24 * 60 * 60 * 1000,
+      environment: TEST_ENVIRONMENT,
+    })
+
+    expect(quarterPoints.length).toBeGreaterThan(0)
+    expect(quarterPoints.length).toBeGreaterThan(2)
+    expect(quarterPoints.some((point) => point.label.includes('Nisan'))).toBe(true)
+    expect(quarterPoints.some((point) => point.label.includes('Iyyar'))).toBe(true)
+    expect(quarterPoints.some((point) => point.label.includes('Sivan'))).toBe(true)
+
+    const decadePoints = createHebrewStructuralPoints({
+      primaryCalendarSystemId: 'hebrew',
+      activeScaleLevel: 6,
+      focusTimeMs: new Date('2026-04-01T12:00:00-04:00').getTime(),
+      visibleDurationMs: 4015 * 24 * 60 * 60 * 1000,
+      environment: TEST_ENVIRONMENT,
+    })
+
+    expect(decadePoints.length).toBeGreaterThan(0)
+    expect(decadePoints.every((point) => /^\d{4}$/.test(point.label ?? ''))).toBe(true)
+  })
 })

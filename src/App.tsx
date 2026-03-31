@@ -149,9 +149,14 @@ function App() {
       }
 
       return {
-        focusTimeMs: prevViewport.focusTimeMs,
+        focusTimeMs: getContainingPeriodFocusTimeMs(
+          primaryCalendarSystemId,
+          nextScaleLevel,
+          now,
+          timelineEnvironment,
+        ),
         visibleDurationMs: nextVisibleDurationMs,
-        rangeStrategy: 'centered',
+        rangeStrategy: 'currentContainingPeriod',
       }
     })
   }

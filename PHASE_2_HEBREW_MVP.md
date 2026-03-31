@@ -213,6 +213,104 @@ These are the current working decisions for the first implementation:
   subdivisions so the day view reads coherently
 - Proportional / seasonal Hebrew hours remain out of scope for this first slice
 
+## Proposed Scale-by-Scale Hebrew Behavior
+
+This section is meant to make explicit what Hebrew contributes at each scale,
+including where we are intentionally conservative.
+
+### Minute View
+
+- keep Gregorian / civil seconds as the structural ticks
+- do not introduce Hebrew proportional-hour or zmanim logic yet
+- Hebrew may eventually contribute contextual labeling, but not primary
+  structural subdivision in this MVP
+
+Rationale:
+
+- minute view is too fine-grained to benefit from Hebrew structural
+  reinterpretation before zmanim / halachic-hour choices are settled
+
+### Hour View
+
+- keep Gregorian / civil minute ticks as the structural ticks
+- do not attempt to reinterpret the hour using halachic-hour logic yet
+- Hebrew may eventually contribute contextual day identity or nearby sunset
+  awareness, but not full structural subdivision in this MVP
+
+Rationale:
+
+- hour view still depends on unresolved halachic-time choices
+- civil-time structure remains the clearest interim model
+
+### Day View
+
+- Hebrew day boundaries are sunset-based
+- intraday ticks remain civil-hour ticks
+- intraday spans also follow civil-hour subdivision
+- when Hebrew is primary, Hebrew labels and anchored semantics define which day
+  is “current”
+
+Rationale:
+
+- this gives a strong non-Gregorian day identity without pretending we have
+  chosen a proportional-hour interpretation yet
+
+### Week View
+
+- Hebrew contributes sunset-based day boundaries and Hebrew day labels
+- Hebrew-primary week is interpreted as a 7-day span ending with Shabbat
+- intraday structure is not emphasized at this scale
+
+Rationale:
+
+- week view is the first scale where alternate day identity and week framing
+  become strongly legible
+
+### Month View
+
+- Hebrew contributes day-level boundaries and Hebrew day numbering
+- Hebrew month transitions should be labeled clearly
+- Hebrew-primary month should be framed by the current Hebrew month rather than
+  the Gregorian month
+
+Rationale:
+
+- month view is where Hebrew month identity becomes an important structural
+  difference
+
+### Quarter View
+
+- Hebrew-primary quarter should be framed by the current Hebrew quarter
+- internal ticks and spans should still be month-by-month within that quarter
+- Hebrew quarter 1 is `Tishrei–Kislev`
+- in leap years, both `Adar I` and `Adar II` belong to quarter 2
+
+Rationale:
+
+- quarter view is still a meaningful aggregate of Hebrew months, and a clear
+  quarter definition is sufficient for MVP
+
+### Year View
+
+- Hebrew contributes month boundaries and month labels
+- Hebrew year identity should be visible
+- Hebrew-primary year should be framed by the current Hebrew year
+
+Rationale:
+
+- year view is where Hebrew month/year identity diverges meaningfully from
+  Gregorian structure without requiring finer-grained halachic-time choices
+
+### Decade View
+
+- Hebrew contributes year boundaries inside the current Hebrew decade
+- Hebrew-primary decade should be framed by the current 10-year Hebrew interval
+
+Rationale:
+
+- decade view can still usefully express Hebrew year identity without requiring
+  a more exotic long-span interpretation
+
 ## Follow-Up Notes
 
 - the `now` marker should eventually adopt primary-calendar-aware labeling

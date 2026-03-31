@@ -2,6 +2,9 @@ import { HDate } from '@hebcal/core'
 
 import {
   formatHebrewPrimaryNowLabel,
+  getHebrewContainingPeriodEndTimeMs,
+  getHebrewContainingPeriodStartTimeMs,
+  getHebrewQuarterLabel,
   getHebrewDayInfo,
   getSunsetForCivilDate,
 } from '../src/timeline/hebrewTime'
@@ -63,5 +66,36 @@ describe('hebrew time adapter', () => {
     )
 
     expect(label).toContain('Shlishi')
+  })
+
+  it('derives the expected hebrew quarter label in a leap year', () => {
+    expect(getHebrewQuarterLabel(5787, 10)).toBe('Tevet–Adar II 5787')
+  })
+
+  it('anchors hebrew quarter and decade containing periods', () => {
+    const timestamp = new Date('2026-04-01T12:00:00-04:00')
+
+    const quarterStart = getHebrewContainingPeriodStartTimeMs(4, timestamp, TEST_ENVIRONMENT)
+    const quarterEnd = getHebrewContainingPeriodEndTimeMs(4, timestamp, TEST_ENVIRONMENT)
+    const decadeStart = getHebrewContainingPeriodStartTimeMs(6, timestamp, TEST_ENVIRONMENT)
+    const decadeEnd = getHebrewContainingPeriodEndTimeMs(6, timestamp, TEST_ENVIRONMENT)
+
+    expect(quarterStart).toBeLessThan(timestamp.getTime())
+    expect(quarterEnd).toBeGreaterThan(timestamp.getTime())
+    expect(decadeStart).toBeLessThan(timestamp.getTime())
+    expect(decadeEnd).toBeGreaterThan(timestamp.getTime())
+  })
+
+  it('starts the hebrew decade on the year ending in zero', () => {
+    const decadeStart = getHebrewContainingPeriodStartTimeMs(
+      6,
+      new Date('2026-04-01T12:00:00-04:00'),
+      TEST_ENVIRONMENT,
+    )
+
+    const firstVisibleHebrewYear = new HDate(new Date(decadeStart + 12 * 60 * 60 * 1000))
+    expect(firstVisibleHebrewYear.getFullYear()).toBe(5780)
+    expect(firstVisibleHebrewYear.getMonth()).toBe(7)
+    expect(firstVisibleHebrewYear.getDate()).toBe(1)
   })
 })
