@@ -42,6 +42,95 @@ type HebrewBoundary = {
   label: string
 }
 
+const getHebrewSpanStripeClass = (
+  activeScaleLevel: ScaleLevel,
+  startTimeMs: number,
+  environment: HebrewLayerParams['environment'],
+) => {
+  const startDate = new Date(startTimeMs)
+
+  if (activeScaleLevel === -1) {
+    const stripeIndex = Math.floor(startTimeMs / 1000)
+    return stripeIndex % 2 === 0 ? 'structural-span-stripe-a' : 'structural-span-stripe-b'
+  }
+
+  if (activeScaleLevel === 0) {
+    const stripeIndex = Math.floor(startTimeMs / (60 * 1000))
+    return stripeIndex % 2 === 0 ? 'structural-span-stripe-a' : 'structural-span-stripe-b'
+  }
+
+  if (activeScaleLevel === 1) {
+    const stripeIndex = startDate.getHours()
+    return stripeIndex % 2 === 0 ? 'structural-span-stripe-a' : 'structural-span-stripe-b'
+  }
+
+  const dayInfo = getHebrewDayInfo(startDate, environment)
+  const year = dayInfo.hebrewDate.year
+  const monthsInYear = HEBREW_LEAP_POSITIONS.includes(((year - 1) % 19) + 1) ? 13 : 12
+  const monthOrdinal = dayInfo.hebrewDate.month >= 7
+    ? dayInfo.hebrewDate.month - 7
+    : monthsInYear - 7 + dayInfo.hebrewDate.month
+  const absoluteHebrewMonthIndex = getLeapYearsBeforeHebrewYear(year) + (year - 1) * 12 + monthOrdinal
+
+  if (activeScaleLevel === 2 || activeScaleLevel === 3) {
+    return dayInfo.hebrewDate.day % 2 === 0 ? 'structural-span-stripe-a' : 'structural-span-stripe-b'
+  }
+
+  if (activeScaleLevel === 4 || activeScaleLevel === 5) {
+    return absoluteHebrewMonthIndex % 2 === 0 ? 'structural-span-stripe-a' : 'structural-span-stripe-b'
+  }
+
+  return dayInfo.hebrewDate.year % 2 === 0 ? 'structural-span-stripe-a' : 'structural-span-stripe-b'
+}
+
+const HEBREW_LEAP_POSITIONS = [3, 6, 8, 11, 14, 17, 19]
+
+const getLeapYearsBeforeHebrewYear = (year: number) => {
+  const priorYears = year - 1
+  const fullCycles = Math.floor(priorYears / 19)
+  const cycleRemainder = priorYears % 19
+
+  return fullCycles * HEBREW_LEAP_POSITIONS.length
+    + HEBREW_LEAP_POSITIONS.filter((position) => position <= cycleRemainder).length
+}
+
+const getHebrewTickRankClass = (
+  activeScaleLevel: ScaleLevel,
+  dayInfo: ReturnType<typeof getHebrewDayInfo>,
+) => {
+  switch (activeScaleLevel) {
+    case -1:
+    case 0:
+    case 1:
+      return 'tick-rank-primary'
+    case 2:
+    case 3:
+      if (dayInfo.hebrewDate.day === 1) {
+        return 'tick-rank-primary'
+      }
+      if (dayInfo.hdate.getDay() === 6) {
+        return 'tick-rank-secondary'
+      }
+      return 'tick-rank-ordinary'
+    case 4:
+      return new Set([7, 10, 1, 4]).has(dayInfo.hebrewDate.month)
+        ? 'tick-rank-primary'
+        : 'tick-rank-ordinary'
+    case 5:
+      return dayInfo.hebrewDate.month === 7 ? 'tick-rank-primary' : 'tick-rank-ordinary'
+    case 6:
+      if (dayInfo.hebrewDate.year % 10 === 0) {
+        return 'tick-rank-primary'
+      }
+      if (dayInfo.hebrewDate.year % 7 === 0) {
+        return 'tick-rank-secondary'
+      }
+      return 'tick-rank-ordinary'
+    default:
+      return 'tick-rank-ordinary'
+  }
+}
+
 const collectHebrewBoundaries = (
   activeScaleLevel: ScaleLevel,
   focusTimeMs: number,
@@ -96,6 +185,7 @@ export const createHebrewStructuralPoints = ({
   const boundaries = collectHebrewBoundaries(activeScaleLevel, focusTimeMs, visibleDurationMs, environment)
 
   boundaries.forEach(({ timeMs, label }) => {
+    const dayInfo = getHebrewDayInfo(new Date(timeMs), environment)
     const point: TimelinePoint = {
       id: `hebrew-${timeMs}`,
       kind: 'tick',
@@ -111,7 +201,13 @@ export const createHebrewStructuralPoints = ({
         visibleDurationMs,
         new Date(timeMs),
         {
-          className: 'hebrew-tick',
+          className: [
+            primaryCalendarSystemId === 'hebrew'
+              ? 'structural-tick-primary'
+              : 'structural-tick-secondary',
+            'hebrew-tick',
+            getHebrewTickRankClass(activeScaleLevel, dayInfo),
+          ].join(' '),
           labelClassName: primaryCalendarSystemId === 'hebrew'
             ? 'hebrew-label structural-label-primary'
             : 'hebrew-label structural-label-secondary',
@@ -151,7 +247,7 @@ export const createHebrewStructuralPoints = ({
             visibleDurationMs,
             new Date(tickTime),
             {
-              className: 'hebrew-subtick',
+              className: 'hebrew-subtick structural-tick-primary',
               labelClassName: 'hebrew-label structural-label-primary',
             },
           ),
@@ -186,9 +282,12 @@ export const createHebrewStructuralSpans = ({
         ...span,
         id: `hebrew-${span.id}`,
       }, focusTimeMs, visibleDurationMs, {
-        className: primaryCalendarSystemId === 'hebrew'
-          ? 'hebrew-structural-span structural-span structural-span-primary'
-          : 'hebrew-structural-span structural-span structural-span-secondary',
+        className: [
+          primaryCalendarSystemId === 'hebrew'
+            ? 'hebrew-structural-span structural-span structural-span-primary'
+            : 'hebrew-structural-span structural-span structural-span-secondary',
+          getHebrewSpanStripeClass(activeScaleLevel, span.startTimeMs, environment),
+        ].join(' '),
       }),
     )
   }
@@ -215,9 +314,12 @@ export const createHebrewStructuralSpans = ({
 
   return spans.map((span) =>
     positionTimelineSpan(span, focusTimeMs, visibleDurationMs, {
-      className: primaryCalendarSystemId === 'hebrew'
-        ? 'hebrew-structural-span structural-span structural-span-primary'
-        : 'hebrew-structural-span structural-span structural-span-secondary',
+      className: [
+        primaryCalendarSystemId === 'hebrew'
+          ? 'hebrew-structural-span structural-span structural-span-primary'
+          : 'hebrew-structural-span structural-span structural-span-secondary',
+        getHebrewSpanStripeClass(activeScaleLevel, span.startTimeMs, environment),
+      ].join(' '),
     }),
   )
 }

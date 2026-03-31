@@ -7,6 +7,41 @@
   --hq-rail-width: 350px;
   --timeline-left-gutter: 190px;
   --timeline-axis-x: calc(var(--hq-rail-width) + var(--timeline-left-gutter));
+  --timeline-axis-color: #111827;
+  --gregorian-tick-color: #1f2937;
+  --gregorian-label-color: #6b7280;
+  --gregorian-context-color: #4b5563;
+  --gregorian-span-fill: rgba(120, 113, 108, 0.12);
+  --gregorian-span-border: rgba(120, 113, 108, 0.26);
+  --gregorian-span-fill-alt: rgba(120, 113, 108, 0.24);
+  --gregorian-span-border-alt: rgba(120, 113, 108, 0.4);
+  --hebrew-tick-color: #2563eb;
+  --hebrew-label-color: #4f6b95;
+  --hebrew-context-color: #56718f;
+  --hebrew-subtick-color: rgba(37, 99, 235, 0.58);
+  --hebrew-span-fill: rgba(96, 165, 250, 0.13);
+  --hebrew-span-border: rgba(96, 165, 250, 0.28);
+  --hebrew-span-fill-alt: rgba(96, 165, 250, 0.28);
+  --hebrew-span-border-alt: rgba(96, 165, 250, 0.42);
+  --now-color: #dc2626;
+  --birthday-color: #b45309;
+  --birthday-fill: rgba(180, 83, 9, 0.14);
+  --tick-label-gap: 10px;
+  --context-lane-gap: 28px;
+  --birthday-secondary-lane-gap: 48px;
+  --birthday-outer-lane-gap: 62px;
+  --birthday-marker-width: 38px;
+  --birthday-marker-width-outer: 52px;
+  --now-tick-width: 50px;
+  --span-width: 5px;
+  --structural-tick-width: 10px;
+  --tick-rank-primary-width: 20px;
+  --tick-rank-secondary-width: 14px;
+  --tick-rank-ordinary-width: 10px;
+  --hebrew-subtick-width: 7px;
+  --context-top-offset: 12px;
+  --structural-label-column-offset: calc(var(--tick-rank-primary-width) + var(--tick-label-gap));
+  --now-label-column-offset: calc(var(--now-tick-width) + var(--tick-label-gap));
 }
 
 /* hq */
@@ -93,7 +128,7 @@
 }
 
 .line {
-  background-color: black;
+  background-color: var(--timeline-axis-color);
   width: 1px;
   left: var(--timeline-axis-x);
   top: 0;
@@ -103,20 +138,38 @@
 
 .tick {
   left: var(--timeline-axis-x);
-  background-color: black;
+  background-color: var(--gregorian-tick-color);
   height: 1px;
-  width: 10px;
+  width: var(--tick-rank-ordinary-width);
   transform: translateX(-50%);
 }
 
+.structural-tick-primary {
+  transform: translateX(-100%);
+}
+
+.structural-tick-secondary {
+  transform: translateX(0);
+}
+
 .span {
-  width: 14px;
+  width: var(--span-width);
   left: var(--timeline-axis-x);
 }
 
 .structural-span {
-  background-color: rgba(255, 99, 132, 0.18);
-  border: 1px solid rgba(255, 99, 132, 0.35);
+  background-color: var(--gregorian-span-fill);
+  border: 1px solid var(--gregorian-span-border);
+}
+
+.structural-span-stripe-a {
+  background-color: var(--gregorian-span-fill);
+  border-color: var(--gregorian-span-border);
+}
+
+.structural-span-stripe-b {
+  background-color: var(--gregorian-span-fill-alt);
+  border-color: var(--gregorian-span-border-alt);
 }
 
 .structural-span-primary {
@@ -128,110 +181,157 @@
 }
 
 .tick-label {
-  font-size: .5rem;
+  font-size: .52rem;
+  color: var(--gregorian-label-color);
   transform: translateY(-50%);
   white-space: nowrap;
+  left: auto;
 }
 
 .structural-context-label {
   left: auto;
-  font-size: 0.625rem;
-  font-weight: 600;
+  font-size: 0.88rem;
+  font-weight: 300;
+  letter-spacing: 0.01em;
   white-space: nowrap;
-  z-index: 2;
+  z-index: 25;
+  opacity: 0.66;
+  background: rgba(255, 255, 255, 0.82);
+  padding: 1px 6px;
+  border-radius: 4px;
+  backdrop-filter: blur(1px);
 }
 
 .structural-context-label-primary {
-  right: calc(100% - var(--timeline-axis-x) + 15px);
+  right: calc(100% - var(--timeline-axis-x) + var(--context-lane-gap));
   text-align: right;
 }
 
 .structural-context-label-secondary {
-  left: calc(var(--timeline-axis-x) + 15px);
+  left: calc(var(--timeline-axis-x) + var(--context-lane-gap));
   text-align: left;
 }
 
 .gregorian-context-label {
-  color: #374151;
+  color: var(--gregorian-context-color);
 }
 
 .gregorian-context-label-top {
-  top: 8px;
+  top: var(--context-top-offset);
 }
 
 .gregorian-context-label-bottom {
-  bottom: 8px;
+  bottom: var(--context-top-offset);
 }
 
 .structural-label-primary {
-  transform: translateY(0);
-  left: auto;
-  right: 15px;
+  right: calc(100% - var(--timeline-axis-x) + var(--structural-label-column-offset));
   text-align: right;
 }
 
 .structural-label-secondary {
-  transform: translateY(0);
-  left: 15px;
+  left: calc(var(--timeline-axis-x) + var(--structural-label-column-offset));
   text-align: left;
 }
 
 .now-tick {
   height: 1px;
-  width: 50px;
-  transform: translateX(-90%);
-  background-color: red;
+  width: var(--now-tick-width);
+  transform: translateX(-100%);
+  background-color: var(--now-color);
   transition: opacity var(--timeline-transition-duration, 1000ms) cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .now-tick-label {
-  left:auto;
-  right: 65px;
+  right: calc(100% - var(--timeline-axis-x) + var(--now-label-column-offset));
   text-align: right;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.82);
+  padding: 0 2px;
+  border-radius: 2px;
 }
 
 .now-tick-label, .now {
-  color: red;
+  color: var(--now-color);
 }
 
 .birthday-marker {
-  width: 24px;
-  transform: translateX(-65%);
-  background-color: #0f766e;
+  width: var(--birthday-marker-width);
+  transform: translateX(0);
+  background-color: var(--birthday-color);
+}
+
+.birthday-marker-secondary-lane {
+  width: var(--birthday-marker-width);
+}
+
+.birthday-marker-outer-lane {
+  width: var(--birthday-marker-width-outer);
 }
 
 .birthday-marker-label {
-  color: #0f766e;
+  color: var(--birthday-color);
   font-weight: 600;
 }
 
 .hebrew-tick {
-  width: 14px;
-  background-color: #1d4ed8;
+  background-color: var(--hebrew-tick-color);
 }
 
 .hebrew-label {
-  color: #1d4ed8;
+  color: var(--hebrew-label-color);
 }
 
 .hebrew-context-label {
-  color: #1d4ed8;
+  color: var(--hebrew-context-color);
 }
 
 .hebrew-subtick {
-  width: 8px;
-  background-color: rgba(29, 78, 216, 0.7);
+  width: var(--hebrew-subtick-width);
+  background-color: var(--hebrew-subtick-color);
+}
+
+.tick-rank-primary {
+  width: var(--tick-rank-primary-width);
+}
+
+.tick-rank-secondary {
+  width: var(--tick-rank-secondary-width);
+}
+
+.tick-rank-ordinary {
+  width: var(--tick-rank-ordinary-width);
 }
 
 .hebrew-context-label-top {
-  top: 24px;
+  top: var(--context-top-offset);
 }
 
 .hebrew-context-label-bottom {
-  bottom: 24px;
+  bottom: var(--context-top-offset);
+}
+
+.birthday-marker-label-secondary-lane {
+  left: calc(var(--timeline-axis-x) + calc(var(--birthday-marker-width) + var(--tick-label-gap)));
+  text-align: left;
+}
+
+.birthday-marker-label-outer-lane {
+  left: calc(var(--timeline-axis-x) + calc(var(--birthday-marker-width-outer) + var(--tick-label-gap)));
+  text-align: left;
 }
 
 .hebrew-structural-span {
-  background-color: rgba(29, 78, 216, 0.16);
-  border-color: rgba(29, 78, 216, 0.35);
+  background-color: var(--hebrew-span-fill);
+  border-color: var(--hebrew-span-border);
+}
+
+.hebrew-structural-span.structural-span-stripe-a {
+  background-color: var(--hebrew-span-fill);
+  border-color: var(--hebrew-span-border);
+}
+
+.hebrew-structural-span.structural-span-stripe-b {
+  background-color: var(--hebrew-span-fill-alt);
+  border-color: var(--hebrew-span-border-alt);
 }

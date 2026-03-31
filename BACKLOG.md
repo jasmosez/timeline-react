@@ -42,6 +42,11 @@ Usage:
   feel
   Target: Phase 2
 
+- Rebalance Gregorian and Hebrew structural visual weight
+  Notes: Gregorian gray/black still feels too primary, while some Hebrew blues
+  are not yet distinct enough from one another
+  Target: Phase 2
+
 ## Later
 
 - Smooth band-transition treatment for gesture zoom and HQ button zoom

@@ -141,6 +141,18 @@ function Timeline({
         environment,
       )
     : undefined
+  const birthdayLabelLaneClass = singleStructuralContextVisible
+    ? 'birthday-marker-label-secondary-lane'
+    : 'birthday-marker-label-outer-lane'
+  const displayTickPoints = tickPoints.map((point) =>
+    point.className?.includes('birthday-marker')
+      ? {
+          ...point,
+          className: `${point.className} ${singleStructuralContextVisible ? 'birthday-marker-secondary-lane' : 'birthday-marker-outer-lane'}`.trim(),
+          labelClassName: `${point.labelClassName ?? ''} ${birthdayLabelLaneClass}`.trim(),
+        }
+      : point,
+  )
 
   return (
     <div ref={viewportRef} className='timeline-root'>
@@ -170,7 +182,7 @@ function Timeline({
         </>
       ) : null}
       {timelineSpans.map((span) => <Span key={span.id} span={span} />)}
-      {tickPoints.map((point) => <TickPoint key={point.id} point={point} />)}
+      {displayTickPoints.map((point) => <TickPoint key={point.id} point={point} />)}
       <NowTick
         now={environment.now}
         environment={environment}
