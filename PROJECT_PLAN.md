@@ -331,8 +331,8 @@ Phase 2 notes:
   system rather than relying on ad hoc special cases
 - Gregorian week numbers should be introduced as an additional contextual data
   point after the current Hebrew labeling pass
-- zoom should eventually move from viewport-centered behavior to pointer/cursor-
-  based zooming for more map-like direct manipulation
+- gestural zoom should move from viewport-centered behavior to pointer/cursor-
+  based zooming during Phase 2 so direct manipulation feels more map-like
 
 ### Phase 3: Add Notes and Planning Primitives
 

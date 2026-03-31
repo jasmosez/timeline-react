@@ -83,10 +83,101 @@ test.describe('HQ controls', () => {
   test('HQ button zoom keeps anchored current-period framing', async ({ page }) => {
     await page.goto('/')
 
+    await expect(page.getByTestId('navigation-mode-value')).toHaveText('currentContainingPeriod')
     await page.getByLabel('Zoom out').click()
 
     await expect(page.getByTestId('scale-title')).toHaveText('Month View')
+    await expect(page.getByTestId('navigation-mode-value')).toHaveText('currentContainingPeriod')
     await expect(page.getByTestId('start-tick-value')).toHaveText('Sun, Mar 1, 2026, 12:00 AM')
+  })
+
+  test('HQ button zoom preserves exploratory mode after manual pan', async ({ page }) => {
+    await page.goto('/')
+
+    await page.getByLabel('Pan forward').click()
+    await expect(page.getByTestId('navigation-mode-value')).toHaveText('centered')
+
+    await page.getByLabel('Zoom out').click()
+
+    await expect(page.getByTestId('navigation-mode-value')).toHaveText('centered')
+  })
+
+  test('HQ button pan enters exploratory mode', async ({ page }) => {
+    await page.goto('/')
+
+    await expect(page.getByTestId('navigation-mode-value')).toHaveText('currentContainingPeriod')
+
+    await page.getByLabel('Pan forward').click()
+
+    await expect(page.getByTestId('navigation-mode-value')).toHaveText('centered')
+  })
+
+  test('gesture pan enters exploratory mode', async ({ page }) => {
+    await page.goto('/')
+
+    await expect(page.getByTestId('navigation-mode-value')).toHaveText('currentContainingPeriod')
+
+    await page.evaluate(() => {
+      window.dispatchEvent(
+        new WheelEvent('wheel', {
+          deltaY: 120,
+          bubbles: true,
+          cancelable: true,
+        }),
+      )
+    })
+
+    await expect(page.getByTestId('navigation-mode-value')).toHaveText('centered')
+  })
+
+  test('gesture zoom enters exploratory mode even from anchored view', async ({ page }) => {
+    await page.goto('/')
+
+    await expect(page.getByTestId('navigation-mode-value')).toHaveText('currentContainingPeriod')
+
+    await page.evaluate(() => {
+      window.dispatchEvent(
+        new WheelEvent('wheel', {
+          deltaY: 120,
+          ctrlKey: true,
+          bubbles: true,
+          cancelable: true,
+        }),
+      )
+    })
+
+    await expect(page.getByTestId('navigation-mode-value')).toHaveText('centered')
+  })
+
+  test('gesture zoom stays exploratory when already exploring', async ({ page }) => {
+    await page.goto('/')
+
+    await page.getByLabel('Pan forward').click()
+    await expect(page.getByTestId('navigation-mode-value')).toHaveText('centered')
+
+    await page.evaluate(() => {
+      window.dispatchEvent(
+        new WheelEvent('wheel', {
+          deltaY: 120,
+          ctrlKey: true,
+          bubbles: true,
+          cancelable: true,
+        }),
+      )
+    })
+
+    await expect(page.getByTestId('navigation-mode-value')).toHaveText('centered')
+  })
+
+  test('reset returns exploratory navigation to anchored current-period mode', async ({ page }) => {
+    await page.goto('/')
+
+    await page.getByLabel('Pan forward').click()
+    await expect(page.getByTestId('navigation-mode-value')).toHaveText('centered')
+
+    await page.getByLabel('Reset timeline').click()
+
+    await expect(page.getByTestId('navigation-mode-value')).toHaveText('currentContainingPeriod')
   })
 
   test('timeline surface stays clipped to the viewport height', async ({ page }) => {

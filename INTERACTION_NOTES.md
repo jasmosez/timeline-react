@@ -35,6 +35,11 @@ Current implementation:
 - buttons may remain during transition, but should become secondary controls
 - zoom changes `visibleDurationMs` continuously and derives the active scale
   band from duration
+- gesture zoom always switches to exploratory `centered` mode
+- HQ button zoom preserves the current navigation mode:
+  - if the viewport is in `currentContainingPeriod`, button zoom remains
+    anchored
+  - if the viewport is in `centered`, button zoom remains exploratory
 - structural band changes currently swap cleanly rather than trying to animate
   between incompatible structural snapshots
 - HQ button zoom uses the same band-switch model and may later receive its own
@@ -71,10 +76,13 @@ Current implementation:
 - if `now` is off screen, locking recenters it and parks it at mid-screen
 - while locked, the timeline moves to keep `now` parked
 - manual pan disables `Lock Now` and returns the app to free exploration
+- reset/recenter is the explicit way to return from exploratory `centered` mode
+  to `currentContainingPeriod`
 
 ### Zoom Center
 
-For MVP, zoom should center around the viewport center rather than the pointer.
+For MVP, gesture zoom still centers around the viewport center rather than the
+pointer.
 
 Why:
 
@@ -82,7 +90,8 @@ Why:
 - less surprising while interaction behavior is still being established
 - easier to test before more advanced gesture behavior is introduced
 
-Pointer-centered zoom remains a possible future improvement.
+Pointer-centered zoom is now an active next-step candidate rather than a distant
+future idea.
 
 ## Scale Transition Direction
 

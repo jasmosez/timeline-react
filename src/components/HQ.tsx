@@ -3,11 +3,13 @@ import { LOCALE, } from '../config';
 import { FULL_DATE_FORMAT, dayNumber, sundayBasedWeekNumber } from '../utils';
 import { SCALE_LEVEL_CONFIG, scaleLevelMax, scaleLevelMin } from '../timeline/scales';
 import type { PrimaryCalendarSystemId, TimelineLayer, TimelineLayerId } from '../timeline/layers';
+import type { ViewportRangeStrategy } from '../viewport';
 
 
 interface HQProps {
     now: Date;
     scaleLevel: keyof typeof SCALE_LEVEL_CONFIG;
+    rangeStrategy: ViewportRangeStrategy;
     firstVisibleTickDate: Date;
     handleZoom: (direction: '+' | '-') => void;
     handlePan: (direction: '+' | '-' | 'reset') => void;
@@ -19,6 +21,8 @@ interface HQProps {
     primaryCalendarSystemId: PrimaryCalendarSystemId;
     onSetPrimaryCalendarSystem: (layerId: PrimaryCalendarSystemId) => void;
     onToggleLayer: (layerId: TimelineLayerId) => void;
+    timezone: string;
+    locationLabel: string;
 }
 
 
@@ -26,6 +30,7 @@ interface HQProps {
 export default function HQ({
   now,
   scaleLevel,
+  rangeStrategy,
   firstVisibleTickDate,
   handleZoom,
   handlePan,
@@ -37,6 +42,8 @@ export default function HQ({
   primaryCalendarSystemId,
   onSetPrimaryCalendarSystem,
   onToggleLayer,
+  timezone,
+  locationLabel,
 }: HQProps) {
   const structuralLayers = availableLayers.filter((layer) => layer.role === 'structural')
 
@@ -80,6 +87,15 @@ export default function HQ({
 
               <div style={{fontWeight: 'bold', marginTop: '10px'}}>First visible tick</div>
               <div data-testid='start-tick-value'>{firstVisibleTickDate.toLocaleString(LOCALE, scaleLevel === -1 ? {...FULL_DATE_FORMAT, ...{second: '2-digit'}} : FULL_DATE_FORMAT)}</div>
+
+              <div style={{fontWeight: 'bold', marginTop: '10px'}}>Navigation mode</div>
+              <div data-testid='navigation-mode-value'>{rangeStrategy}</div>
+
+              <div style={{fontWeight: 'bold', marginTop: '10px'}}>Location</div>
+              <div>{locationLabel}</div>
+
+              <div style={{fontWeight: 'bold', marginTop: '10px'}}>Timezone</div>
+              <div>{timezone}</div>
               
               <div className='now' style={{fontWeight: 'bold', marginTop: '10px'}}>Currently</div>
               <div className='now'>{now.toLocaleString(LOCALE, FULL_DATE_FORMAT)}</div>

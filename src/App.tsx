@@ -58,6 +58,7 @@ function App() {
     now,
     ...initialEnvironment,
   }
+  const locationLabel = `${timelineEnvironment.location.city}, ${timelineEnvironment.location.region} ${timelineEnvironment.location.postalCode}`
   const scaleLevelOrder = getScaleLevelOrder()
   const { minVisibleDurationMs, maxVisibleDurationMs } = getScaleDurationBounds()
   const getNowPercent = (focusTimeMs: number, visibleDurationMs: number) => {
@@ -131,6 +132,27 @@ function App() {
     }
   }, [lockNow, lockNowAnchorPercent, now, viewport])
 
+  const getZoomedViewport = (prevViewport: Viewport, nextVisibleDurationMs: number): Viewport => {
+    if (prevViewport.rangeStrategy === 'currentContainingPeriod') {
+      return {
+        focusTimeMs: getContainingPeriodFocusTimeMs(
+          primaryCalendarSystemId,
+          getNearestScaleLevel(nextVisibleDurationMs),
+          now,
+          timelineEnvironment,
+        ),
+        visibleDurationMs: nextVisibleDurationMs,
+        rangeStrategy: 'currentContainingPeriod',
+      }
+    }
+
+    return {
+      focusTimeMs: prevViewport.focusTimeMs,
+      visibleDurationMs: nextVisibleDurationMs,
+      rangeStrategy: 'centered',
+    }
+  }
+
   // Button zoom still walks the discrete scale bands one step at a time.
   const updateZoomByScaleSteps = (steps: number) => {
     if (steps === 0) {
@@ -148,16 +170,7 @@ function App() {
         return prevViewport
       }
 
-      return {
-        focusTimeMs: getContainingPeriodFocusTimeMs(
-          primaryCalendarSystemId,
-          nextScaleLevel,
-          now,
-          timelineEnvironment,
-        ),
-        visibleDurationMs: nextVisibleDurationMs,
-        rangeStrategy: 'currentContainingPeriod',
-      }
+      return getZoomedViewport(prevViewport, nextVisibleDurationMs)
     })
   }
 
@@ -238,14 +251,18 @@ function App() {
       return
     }
 
-    setViewport((prevViewport) => ({
-      focusTimeMs: prevViewport.focusTimeMs,
-      visibleDurationMs: Math.min(
+    setViewport((prevViewport) => {
+      const nextVisibleDurationMs = Math.min(
         Math.max(prevViewport.visibleDurationMs * zoomFactor, minVisibleDurationMs),
         maxVisibleDurationMs,
-      ),
-      rangeStrategy: 'centered',
-    }))
+      )
+
+      return {
+        focusTimeMs: prevViewport.focusTimeMs,
+        visibleDurationMs: nextVisibleDurationMs,
+        rangeStrategy: 'centered',
+      }
+    })
   }
 
   const handleToggleLockNow = () => {
@@ -277,6 +294,7 @@ function App() {
       <HQ
         now={now}
         scaleLevel={activeScaleLevel}
+        rangeStrategy={viewport.rangeStrategy}
         firstVisibleTickDate={firstVisibleTickDate}
         handleZoom={handleZoom}
         handlePan={handlePan}
@@ -288,6 +306,8 @@ function App() {
         primaryCalendarSystemId={primaryCalendarSystemId}
         onSetPrimaryCalendarSystem={handleSetPrimaryCalendarSystem}
         onToggleLayer={handleToggleLayer}
+        timezone={timelineEnvironment.timezone}
+        locationLabel={locationLabel}
       />
       <Timeline
         environment={timelineEnvironment}

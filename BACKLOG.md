@@ -37,16 +37,16 @@ Usage:
   label, for example 1 hour in day view or 1 minute in hour view
   Target: Phase 2
 
+- Switch gestural zoom from viewport-centered to pointer/cursor-based zoom
+  Notes: especially important for trackpad and map-like direct manipulation
+  feel
+  Target: Phase 2
+
 ## Later
 
 - Smooth band-transition treatment for gesture zoom and HQ button zoom
   Notes: prefer honest transitions; revisit crossfade or progressive reveal
   once label strategy is stronger
-  Target: Phase 5
-
-- Switch from viewport-centered zoom to pointer/cursor-based zoom
-  Notes: especially important for trackpad and map-like direct manipulation
-  feel
   Target: Phase 5
 
 - Twilight layer with civil, nautical, and astronomical morning/evening
