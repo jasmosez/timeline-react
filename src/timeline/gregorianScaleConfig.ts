@@ -123,6 +123,7 @@ const is3rdHour = (tickDate: Date) => tickDate.getHours() % 3 === 0
 const is5thMin = (tickDate: Date) => tickDate.getMinutes() % 5 === 0
 const is1stOfMonth = (tickDate: Date) => tickDate.getDate() === 1
 const is1stOfYear = (tickDate: Date) => tickDate.getMonth() === 0 && tickDate.getDate() === 1
+const isStartOfQuarter = (tickDate: Date) => tickDate.getMonth() % 3 === 0 && is1stOfMonth(tickDate)
 const is10thSec = (tickDate: Date) => tickDate.getSeconds() % 10 === 0
 const isTopOfMinute = (tickDate: Date) => tickDate.getSeconds() === 0
 const hasTimezoneOffsetChange = (tickDate: Date) =>
@@ -217,6 +218,10 @@ const renderTickLabelMonth = (tickTime: number, isFirstTick: boolean) => {
 
 const renderTickLabelQuarter = (tickTime: number, isFirstTick: boolean) => {
   const tickDate = new Date(tickTime)
+  if (isStartOfQuarter(tickDate)) {
+    return `Q${Math.floor(tickDate.getMonth() / 3) + 1}, ${tickDate.toLocaleDateString(LOCALE, MONTH)}`
+  }
+
   return tickDate.toLocaleDateString(LOCALE, isFirstTick ? { ...MONTH, ...YEAR } : MONTH)
 }
 

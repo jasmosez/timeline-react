@@ -94,4 +94,13 @@ describe('gregorian scale label helpers', () => {
 
     expect(label).toBe(':10')
   })
+
+  it('shows quarter boundary months as quarter plus month', () => {
+    const label = GREGORIAN_SCALE_LEVEL_CONFIG[4].renderTickLabel(
+      new Date('2026-04-01T00:00:00-04:00').getTime(),
+      false,
+    )
+
+    expect(label).toBe('Q2, Apr')
+  })
 })
