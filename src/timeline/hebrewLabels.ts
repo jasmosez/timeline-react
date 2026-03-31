@@ -80,6 +80,10 @@ export const getHebrewTickLabel = (
 
   if (activeScaleLevel === 3) {
     if (dayInfo.hebrewDate.day === 1) {
+      if (weekdayName === 'Shabbat') {
+        return `Shabbat 1 ${dayInfo.hebrewDate.monthName}`
+      }
+
       return `1 ${dayInfo.hebrewDate.monthName}`
     }
 

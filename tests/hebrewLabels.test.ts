@@ -61,4 +61,14 @@ describe('hebrew label helpers', () => {
     expect(getHebrewTickLabel(-1, dayInfo, boundaryTimeMs)).toContain('PM')
     expect(getHebrewTickLabel(-1, dayInfo, boundaryTimeMs)).toMatch(/:\d{2}\s(?:AM|PM)$/)
   })
+
+  it('stacks Shabbat rhythm with month-boundary labeling in month view', () => {
+    const dayInfo = getHebrewDayInfo(new Date('2026-04-18T12:00:00-04:00'), TEST_ENVIRONMENT)
+
+    expect(dayInfo.hebrewDate.day).toBe(1)
+    expect(dayInfo.hebrewDate.monthName).toBe('Iyyar')
+    expect(getHebrewTickLabel(3, dayInfo, new Date('2026-04-18T12:00:00-04:00').getTime())).toBe(
+      'Shabbat 1 Iyyar',
+    )
+  })
 })
