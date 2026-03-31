@@ -2,6 +2,7 @@ import { getGregorianStickyContextLabel, GREGORIAN_SCALE_LEVEL_CONFIG } from '..
 
 describe('gregorian scale label helpers', () => {
   it('provides sticky context labels for non-decade scales', () => {
+    expect(getGregorianStickyContextLabel(-1, new Date('2026-03-17T12:34:56-04:00').getTime())).toBe('Tue, Mar 17, 2026')
     expect(getGregorianStickyContextLabel(3, new Date('2026-03-17T12:00:00-04:00').getTime())).toBe('Mar 2026')
     expect(getGregorianStickyContextLabel(3, new Date('2026-04-02T12:00:00-04:00').getTime())).toBe('Apr 2026')
     expect(getGregorianStickyContextLabel(6, new Date('2026-03-17T12:00:00-04:00').getTime())).toBeUndefined()
@@ -16,6 +17,15 @@ describe('gregorian scale label helpers', () => {
     expect(label).toBe('Sun 22')
   })
 
+  it('shows both Sunday and month context when a month boundary lands on Sunday', () => {
+    const label = GREGORIAN_SCALE_LEVEL_CONFIG[3].renderTickLabel(
+      new Date('2027-08-01T00:00:00-04:00').getTime(),
+      false,
+    )
+
+    expect(label).toBe('Sun Aug 1')
+  })
+
   it('keeps week view labels local even at month boundaries', () => {
     const label = GREGORIAN_SCALE_LEVEL_CONFIG[2].renderTickLabel(
       new Date('2026-04-01T00:00:00-04:00').getTime(),
@@ -23,6 +33,24 @@ describe('gregorian scale label helpers', () => {
     )
 
     expect(label).toBe('Wed 1')
+  })
+
+  it('labels every midnight boundary locally in day view', () => {
+    const label = GREGORIAN_SCALE_LEVEL_CONFIG[1].renderTickLabel(
+      new Date('2026-04-01T00:00:00-04:00').getTime(),
+      false,
+    )
+
+    expect(label).toBe('Wed 1, 12 AM')
+  })
+
+  it('labels midnight boundaries explicitly in hour view', () => {
+    const label = GREGORIAN_SCALE_LEVEL_CONFIG[0].renderTickLabel(
+      new Date('2026-04-01T00:00:00-04:00').getTime(),
+      false,
+    )
+
+    expect(label).toBe('Wed 1, 12 AM')
   })
 
   it('steps month-view days by local calendar day across DST fall-back', () => {
@@ -56,5 +84,14 @@ describe('gregorian scale label helpers', () => {
 
     expect(label).toContain('3 AM')
     expect(label).not.toBe('3 AM')
+  })
+
+  it('labels every 10 seconds within minute view', () => {
+    const label = GREGORIAN_SCALE_LEVEL_CONFIG[-1].renderTickLabel(
+      new Date('2026-03-17T12:34:10-04:00').getTime(),
+      false,
+    )
+
+    expect(label).toBe(':10')
   })
 })

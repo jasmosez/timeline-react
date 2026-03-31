@@ -25,6 +25,7 @@ interface TimelineProps {
     visibleDurationMs: number;
     startTickDate: Date;
     activeLayers: TimelineLayer[];
+    isGregorianVisible: boolean;
     onPanTimeDelta: (deltaMs: number) => void;
     onZoomByFactor: (factor: number) => void;
 }
@@ -37,6 +38,7 @@ function Timeline({
   visibleDurationMs,
   startTickDate,
   activeLayers,
+  isGregorianVisible,
   onPanTimeDelta,
   onZoomByFactor,
 }: TimelineProps) {
@@ -96,13 +98,13 @@ function Timeline({
   }, [visibleDurationMs, onPanTimeDelta, onZoomByFactor]);
 
   const visibleTimeRange = getVisibleTimeRange(focusTimeMs, visibleDurationMs)
-  const gregorianStickyContextLabelTop = primaryCalendarSystemId === 'gregorian'
+  const gregorianStickyContextLabelTop = isGregorianVisible
     ? getGregorianStickyContextLabel(
         activeScaleLevel,
         visibleTimeRange.startTimeMs,
       )
     : undefined
-  const gregorianStickyContextLabelBottom = primaryCalendarSystemId === 'gregorian'
+  const gregorianStickyContextLabelBottom = isGregorianVisible
     ? getGregorianStickyContextLabel(
         activeScaleLevel,
         visibleTimeRange.endTimeMs - 1,

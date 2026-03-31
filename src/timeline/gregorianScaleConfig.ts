@@ -116,7 +116,6 @@ const DAY: Intl.DateTimeFormatOptions = { day: 'numeric' }
 const WEEKDAY: Intl.DateTimeFormatOptions = { weekday: 'short' }
 const MONTH: Intl.DateTimeFormatOptions = { month: 'short' }
 const YEAR: Intl.DateTimeFormatOptions = { year: 'numeric' }
-const MONTH_WEEKDAY_DAY = { ...MONTH, ...WEEKDAY, ...DAY }
 
 const isMidnight = (tickDate: Date) => tickDate.getHours() === 0 && tickDate.getMinutes() === 0 && tickDate.getSeconds() === 0
 const isTopOfHour = (tickDate: Date) => tickDate.getMinutes() === 0 && tickDate.getSeconds() === 0
@@ -124,7 +123,7 @@ const is3rdHour = (tickDate: Date) => tickDate.getHours() % 3 === 0
 const is5thMin = (tickDate: Date) => tickDate.getMinutes() % 5 === 0
 const is1stOfMonth = (tickDate: Date) => tickDate.getDate() === 1
 const is1stOfYear = (tickDate: Date) => tickDate.getMonth() === 0 && tickDate.getDate() === 1
-const is15thSec = (tickDate: Date) => tickDate.getSeconds() % 15 === 0
+const is10thSec = (tickDate: Date) => tickDate.getSeconds() % 10 === 0
 const isTopOfMinute = (tickDate: Date) => tickDate.getSeconds() === 0
 const hasTimezoneOffsetChange = (tickDate: Date) =>
   tickDate.getTimezoneOffset() !== new Date(addHours(tickDate, -1)).getTimezoneOffset()
@@ -157,7 +156,7 @@ const renderTickLabelMinute = (tickTime: number, isFirstTick: boolean) => {
   if (isFirstTick) {
     return tickDate.toLocaleTimeString(LOCALE, { ...HOUR, ...MINUTE, ...SECOND })
   }
-  if (is15thSec(tickDate)) {
+  if (is10thSec(tickDate)) {
     return `:${String(tickDate.getSeconds()).padStart(2, '0')}`
   }
 }
@@ -166,7 +165,7 @@ const renderTickLabelHour = (tickTime: number) => {
   const tickDate = new Date(tickTime)
 
   if (isMidnight(tickDate)) {
-    return tickDate.toLocaleDateString(LOCALE, MONTH_WEEKDAY_DAY)
+    return `${tickDate.toLocaleDateString(LOCALE, WEEKDAY)} ${tickDate.toLocaleDateString(LOCALE, DAY)}, ${tickDate.toLocaleTimeString(LOCALE, HOUR)}`
   }
   if (isTopOfHour(tickDate)) {
     return formatHourWithOptionalTimezone(tickDate)
@@ -179,7 +178,7 @@ const renderTickLabelHour = (tickTime: number) => {
 const renderTickLabelDay = (tickTime: number) => {
   const tickDate = new Date(tickTime)
   if (isMidnight(tickDate)) {
-    return tickDate.toLocaleDateString(LOCALE, MONTH_WEEKDAY_DAY)
+    return `${tickDate.toLocaleDateString(LOCALE, WEEKDAY)} ${tickDate.toLocaleDateString(LOCALE, DAY)}, ${tickDate.toLocaleTimeString(LOCALE, HOUR)}`
   }
   if (is3rdHour(tickDate)) {
     return formatHourWithOptionalTimezone(tickDate)
@@ -195,8 +194,17 @@ const renderTickLabelMonth = (tickTime: number, isFirstTick: boolean) => {
   const tickDate = new Date(tickTime)
   const showMonth = isFirstTick || is1stOfMonth(tickDate)
   const showYear = is1stOfYear(tickDate)
+  const isSunday = tickDate.getDay() === 0
 
-  if (tickDate.getDay() === 0 && !showMonth && !showYear) {
+  if (isSunday && showMonth) {
+    return `${tickDate.toLocaleDateString(LOCALE, WEEKDAY)} ${tickDate.toLocaleDateString(LOCALE, {
+      ...DAY,
+      ...MONTH,
+      ...(showYear ? YEAR : {}),
+    })}`
+  }
+
+  if (isSunday && !showYear) {
     return `${tickDate.toLocaleDateString(LOCALE, WEEKDAY)} ${tickDate.toLocaleDateString(LOCALE, DAY)}`
   }
 
@@ -231,7 +239,7 @@ export const getGregorianStickyContextLabel = (scaleLevel: ScaleLevel, timeMs: n
         ...WEEKDAY,
         ...MONTH,
         ...DAY,
-        ...HOUR,
+        ...YEAR,
       })
     case 0:
       return contextDate.toLocaleDateString(LOCALE, {

@@ -297,6 +297,7 @@ function App() {
         visibleDurationMs={viewport.visibleDurationMs}
         startTickDate={startTickDate}
         activeLayers={activeLayers}
+        isGregorianVisible={activeLayerIds.includes('gregorian')}
         onPanTimeDelta={handleWheelPan}
         onZoomByFactor={handleWheelZoom}
       />
