@@ -36,7 +36,7 @@ const formatCivilHour = (date: Date) =>
 export const getHebrewWeekdayName = (dayInfo: HebrewDayInfo) =>
   HEBREW_WEEKDAY_NAMES[dayInfo.hdate.getDay()]
 
-const getHebrewQuarterNumber = (month: number) => {
+export const getHebrewQuarterNumber = (month: number) => {
   if (month >= 7 && month <= 9) {
     return 1
   }
@@ -177,6 +177,10 @@ export const getHebrewContextLabel = (
   }
 
   if (activeScaleLevel === 4 || activeScaleLevel === 5) {
+    if (activeScaleLevel === 4) {
+      return `Q${getHebrewQuarterNumber(dayInfo.hebrewDate.month)}, ${dayInfo.hebrewDate.year}`
+    }
+
     return String(dayInfo.hebrewDate.year)
   }
 

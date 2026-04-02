@@ -80,10 +80,10 @@ const getGregorianTickRankClass = (scaleLevel: ScaleLevel, tickTime: number) => 
       }
       return 'tick-rank-ordinary'
     case 1:
-      if (tickDate.getHours() === 0) {
+      if (tickDate.getHours() === 0 && tickDate.getDay() === 0) {
         return 'tick-rank-primary'
       }
-      if (tickDate.getHours() % 6 === 0) {
+      if (tickDate.getHours() === 0) {
         return 'tick-rank-secondary'
       }
       return 'tick-rank-ordinary'

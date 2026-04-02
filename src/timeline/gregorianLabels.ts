@@ -60,6 +60,7 @@ export const getSundayStartWeekInfo = (date: Date) => {
 }
 
 const formatWeekNumber = (date: Date) => `W${getSundayStartWeekInfo(date).weekNumber}`
+const formatQuarterNumber = (date: Date) => `Q${Math.floor(date.getMonth() / 3) + 1}`
 
 const formatHourWithOptionalTimezone = (tickDate: Date) =>
   tickDate.toLocaleTimeString(
@@ -288,12 +289,17 @@ export const getGregorianContextLabel = (scaleLevel: ScaleLevel, timeMs: number)
         ...YEAR,
       })
     case 2:
+      return `${formatWeekNumber(contextDate)}, ${contextDate.toLocaleDateString(LOCALE, {
+        ...MONTH,
+        ...YEAR,
+      })}`
     case 3:
       return contextDate.toLocaleDateString(LOCALE, {
         ...MONTH,
         ...YEAR,
       })
     case 4:
+      return `${formatQuarterNumber(contextDate)}, ${contextDate.toLocaleDateString(LOCALE, YEAR)}`
     case 5:
       return contextDate.toLocaleDateString(LOCALE, YEAR)
     case 6:

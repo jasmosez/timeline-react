@@ -34,7 +34,7 @@ describe('hebrew label helpers', () => {
   it('uses Hebrew year context at quarter scale', () => {
     expect(
       getHebrewContextLabel(4, new Date('2026-04-01T12:00:00-04:00').getTime(), TEST_ENVIRONMENT),
-    ).toBe('5786')
+    ).toBe('Q3, 5786')
   })
 
   it('omits sticky context at decade scale', () => {
