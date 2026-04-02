@@ -42,7 +42,7 @@ Today, [src/App.tsx](/Users/jms/code/timeline-react/src/App.tsx) owns:
 - `viewport`
 - `birthDate`
 - `activeLayerIds`
-- `primaryCalendarSystemId`
+- `leadingCalendarSystemId`
 - shared timeline environment data passed to layers
 
 The most important current shift is that `focusTimeMs` inside the viewport is
@@ -167,6 +167,15 @@ type Viewport = {
   rangeStrategy: 'centered' | 'currentContainingPeriod'
 }
 ```
+
+In practice, the current scale `6` implementation is now a mixed long-span
+band:
+
+- Gregorian still behaves as a decade view
+- Hebrew behaves as a shmita-cycle view anchored to the current 7-year cycle
+
+The public scale id has not been renamed yet because the rest of the app still
+treats this as the outermost shared band.
 
 This can later expand if needed:
 
@@ -329,8 +338,8 @@ primitives:
 
 - `lane` decides horizontal placement family
   - reference lane
-  - primary structural lane
-  - secondary structural lane
+  - leading structural lane
+  - supporting structural lane
   - personal overlay lane
   - context lane
 - tick `rank` decides local structural hierarchy inside a scale

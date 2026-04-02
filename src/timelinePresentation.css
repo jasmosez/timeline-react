@@ -67,11 +67,11 @@
   transform: translateX(-50%);
 }
 
-.structural-tick-primary {
+.structural-tick-leading {
   transform: translateX(-100%);
 }
 
-.structural-tick-secondary {
+.structural-tick-supporting {
   transform: translateX(0);
 }
 
@@ -95,11 +95,11 @@
   border-color: var(--gregorian-span-border-alt);
 }
 
-.structural-span-primary {
+.structural-span-leading {
   transform: translateX(-100%);
 }
 
-.structural-span-secondary {
+.structural-span-supporting {
   transform: translateX(0);
 }
 
@@ -125,12 +125,12 @@
   backdrop-filter: blur(1px);
 }
 
-.structural-context-label-primary {
+.structural-context-label-leading {
   right: calc(100% - var(--timeline-axis-x) + var(--context-lane-gap));
   text-align: right;
 }
 
-.structural-context-label-secondary {
+.structural-context-label-supporting {
   left: calc(var(--timeline-axis-x) + var(--context-lane-gap));
   text-align: left;
 }
@@ -147,12 +147,12 @@
   bottom: var(--context-top-offset);
 }
 
-.structural-label-primary {
+.structural-label-leading {
   right: calc(100% - var(--timeline-axis-x) + var(--structural-label-column-offset));
   text-align: right;
 }
 
-.structural-label-secondary {
+.structural-label-supporting {
   left: calc(var(--timeline-axis-x) + var(--structural-label-column-offset));
   text-align: left;
 }

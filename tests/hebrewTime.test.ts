@@ -86,16 +86,24 @@ describe('hebrew time adapter', () => {
     expect(decadeEnd).toBeGreaterThan(timestamp.getTime())
   })
 
-  it('starts the hebrew decade on the year ending in zero', () => {
-    const decadeStart = getHebrewContainingPeriodStartTimeMs(
+  it('anchors the hebrew scale-6 period to the current shmita cycle', () => {
+    const cycleStart = getHebrewContainingPeriodStartTimeMs(
+      6,
+      new Date('2026-04-01T12:00:00-04:00'),
+      TEST_ENVIRONMENT,
+    )
+    const cycleEnd = getHebrewContainingPeriodEndTimeMs(
       6,
       new Date('2026-04-01T12:00:00-04:00'),
       TEST_ENVIRONMENT,
     )
 
-    const firstVisibleHebrewYear = new HDate(new Date(decadeStart + 12 * 60 * 60 * 1000))
-    expect(firstVisibleHebrewYear.getFullYear()).toBe(5780)
+    const firstVisibleHebrewYear = new HDate(new Date(cycleStart + 12 * 60 * 60 * 1000))
+    const firstYearAfterCycle = new HDate(new Date(cycleEnd + 12 * 60 * 60 * 1000))
+
+    expect(firstVisibleHebrewYear.getFullYear()).toBe(5783)
     expect(firstVisibleHebrewYear.getMonth()).toBe(7)
     expect(firstVisibleHebrewYear.getDate()).toBe(1)
+    expect(firstYearAfterCycle.getFullYear()).toBe(5790)
   })
 })

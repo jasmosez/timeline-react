@@ -9,7 +9,7 @@ import { PAN_AMOUNT, DEFAULT_BIRTH_DATE } from './config'
 import { birthdayLayer } from './timeline/birthday'
 import { gregorianLayer } from './timeline/gregorian'
 import { hebrewLayer } from './timeline/hebrew'
-import type { PrimaryCalendarSystemId, TimelineEnvironment, TimelineLayerId } from './timeline/layers'
+import type { LeadingCalendarSystemId, TimelineEnvironment, TimelineLayerId } from './timeline/layers'
 import { createInitialViewport, getViewportStartTickDate, type Viewport } from './viewport'
 import { getContainingPeriodFocusTimeMs } from './timeline/periodAnchoring'
 import {
@@ -42,7 +42,7 @@ function App() {
     location: DEFAULT_TIMELINE_LOCATION,
   } as const
   const [activeLayerIds, setActiveLayerIds] = useState<TimelineLayerId[]>(['gregorian'])
-  const [primaryCalendarSystemId, setPrimaryCalendarSystemId] = useState<PrimaryCalendarSystemId>('gregorian')
+  const [leadingCalendarSystemId, setLeadingCalendarSystemId] = useState<LeadingCalendarSystemId>('gregorian')
   const [lockNow, setLockNow] = useState(false)
   const [lockNowAnchorPercent, setLockNowAnchorPercent] = useState<number | null>(null)
   const [viewport, setViewport] = useState<Viewport>(() => createInitialViewport(now, initialEnvironment))
@@ -96,7 +96,7 @@ function App() {
 
     setViewport((prevViewport) => {
       const nextFocusTimeMs = getContainingPeriodFocusTimeMs(
-        primaryCalendarSystemId,
+        leadingCalendarSystemId,
         getNearestScaleLevel(prevViewport.visibleDurationMs),
         now,
         timelineEnvironment,
@@ -112,7 +112,7 @@ function App() {
         rangeStrategy: prevViewport.rangeStrategy,
       }
     })
-  }, [now, primaryCalendarSystemId, viewport.rangeStrategy])
+  }, [now, leadingCalendarSystemId, viewport.rangeStrategy])
 
   useEffect(() => {
     if (!lockNow) {
@@ -137,7 +137,7 @@ function App() {
     if (prevViewport.rangeStrategy === 'currentContainingPeriod') {
       return {
         focusTimeMs: getContainingPeriodFocusTimeMs(
-          primaryCalendarSystemId,
+          leadingCalendarSystemId,
           getNearestScaleLevel(nextVisibleDurationMs),
           now,
           timelineEnvironment,
@@ -189,7 +189,7 @@ function App() {
       if (direction === 'reset') {
         return {
           focusTimeMs: getContainingPeriodFocusTimeMs(
-            primaryCalendarSystemId,
+            leadingCalendarSystemId,
             getNearestScaleLevel(prevViewport.visibleDurationMs),
             now,
             timelineEnvironment,
@@ -225,8 +225,8 @@ function App() {
     })
   }
 
-  const handleSetPrimaryCalendarSystem = (layerId: PrimaryCalendarSystemId) => {
-    setPrimaryCalendarSystemId(layerId)
+  const handleSetLeadingCalendarSystem = (layerId: LeadingCalendarSystemId) => {
+    setLeadingCalendarSystemId(layerId)
     setActiveLayerIds((prevLayerIds) =>
       prevLayerIds.includes(layerId) ? prevLayerIds : [...prevLayerIds, layerId]
     )
@@ -304,15 +304,15 @@ function App() {
         birthDate={birthDate}
         availableLayers={AVAILABLE_TIMELINE_LAYERS}
         activeLayerIds={activeLayerIds}
-        primaryCalendarSystemId={primaryCalendarSystemId}
-        onSetPrimaryCalendarSystem={handleSetPrimaryCalendarSystem}
+        leadingCalendarSystemId={leadingCalendarSystemId}
+        onSetLeadingCalendarSystem={handleSetLeadingCalendarSystem}
         onToggleLayer={handleToggleLayer}
         timezone={timelineEnvironment.timezone}
         locationLabel={locationLabel}
       />
       <Timeline
         environment={timelineEnvironment}
-        primaryCalendarSystemId={primaryCalendarSystemId}
+        leadingCalendarSystemId={leadingCalendarSystemId}
         activeScaleLevel={activeScaleLevel}
         focusTimeMs={viewport.focusTimeMs}
         visibleDurationMs={viewport.visibleDurationMs}

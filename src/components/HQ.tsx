@@ -2,7 +2,7 @@
 import { LOCALE, } from '../config';
 import { FULL_DATE_FORMAT, dayNumber, sundayBasedWeekNumber } from '../utils';
 import { SCALE_LEVEL_CONFIG, scaleLevelMax, scaleLevelMin } from '../timeline/scales';
-import type { PrimaryCalendarSystemId, TimelineLayer, TimelineLayerId } from '../timeline/layers';
+import type { LeadingCalendarSystemId, TimelineLayer, TimelineLayerId } from '../timeline/layers';
 import type { ViewportRangeStrategy } from '../viewport';
 
 
@@ -18,8 +18,8 @@ interface HQProps {
     birthDate: Date;
     availableLayers: TimelineLayer[];
     activeLayerIds: TimelineLayerId[];
-    primaryCalendarSystemId: PrimaryCalendarSystemId;
-    onSetPrimaryCalendarSystem: (layerId: PrimaryCalendarSystemId) => void;
+    leadingCalendarSystemId: LeadingCalendarSystemId;
+    onSetLeadingCalendarSystem: (layerId: LeadingCalendarSystemId) => void;
     onToggleLayer: (layerId: TimelineLayerId) => void;
     timezone: string;
     locationLabel: string;
@@ -27,7 +27,7 @@ interface HQProps {
 
 const isStructuralLayer = (
   layer: TimelineLayer,
-): layer is TimelineLayer & { id: PrimaryCalendarSystemId; role: 'structural' } =>
+): layer is TimelineLayer & { id: LeadingCalendarSystemId; role: 'structural' } =>
   layer.role === 'structural'
 
 export default function HQ({
@@ -42,8 +42,8 @@ export default function HQ({
   birthDate,
   availableLayers,
   activeLayerIds,
-  primaryCalendarSystemId,
-  onSetPrimaryCalendarSystem,
+  leadingCalendarSystemId,
+  onSetLeadingCalendarSystem,
   onToggleLayer,
   timezone,
   locationLabel,
@@ -121,17 +121,17 @@ export default function HQ({
                 ))}
               </div>
 
-              <div style={{fontWeight: 'bold', marginTop: '10px'}}>Primary Structure</div>
+              <div style={{fontWeight: 'bold', marginTop: '10px'}}>Leading Structure</div>
               <div className='hq-layer-list'>
                 {structuralLayers.map((layer) => (
                   <label key={`primary-${layer.id}`} className='hq-layer-option'>
                     <input
                       type='radio'
                       name='primary-structure'
-                      checked={primaryCalendarSystemId === layer.id}
-                      onChange={() => onSetPrimaryCalendarSystem(layer.id)}
-                      aria-label={`Primary structure ${layer.label}`}
-                      data-testid={`primary-structure-${layer.id}`}
+                      checked={leadingCalendarSystemId === layer.id}
+                      onChange={() => onSetLeadingCalendarSystem(layer.id)}
+                      aria-label={`Leading structure ${layer.label}`}
+                      data-testid={`leading-structure-${layer.id}`}
                     />
                     <span>{layer.label}</span>
                   </label>

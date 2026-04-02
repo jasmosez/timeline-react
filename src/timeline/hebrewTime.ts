@@ -165,6 +165,10 @@ export const getHebrewQuarterLabel = (year: number, startMonth: number) => {
   return `${startMonthName}–${endMonthName} ${year}`
 }
 
+export const isHebrewShmitaYear = (year: number) => year % 7 === 0
+
+export const getHebrewShmitaCycleStartYear = (year: number) => year - ((year - 1) % 7)
+
 const getNextHebrewQuarterStartHDate = (startQuarterHDate: HDate) => {
   const month = startQuarterHDate.getMonth()
   const year = startQuarterHDate.getFullYear()
@@ -229,9 +233,9 @@ export const getHebrewContainingPeriodStartTimeMs = (
   }
 
   if (scaleLevel === 6) {
-    const decadeStartYear = Math.floor(dayInfo.hdate.getFullYear() / 10) * 10
-    const decadeStartHDate = new HDate(1, 7, decadeStartYear)
-    return getStartOfHebrewHDate(decadeStartHDate, environment).getTime()
+    const shmitaCycleStartYear = getHebrewShmitaCycleStartYear(dayInfo.hdate.getFullYear())
+    const shmitaCycleStartHDate = new HDate(1, 7, shmitaCycleStartYear)
+    return getStartOfHebrewHDate(shmitaCycleStartHDate, environment).getTime()
   }
 
   return dayInfo.startsAtSunset.getTime()
@@ -295,9 +299,9 @@ export const getHebrewContainingPeriodEndTimeMs = (
   }
 
   if (scaleLevel === 6) {
-    const nextDecadeStartYear = Math.floor(dayInfo.hdate.getFullYear() / 10) * 10 + 10
-    const nextDecadeStartHDate = new HDate(1, 7, nextDecadeStartYear)
-    return getStartOfHebrewHDate(nextDecadeStartHDate, environment).getTime()
+    const nextShmitaCycleStartYear = getHebrewShmitaCycleStartYear(dayInfo.hdate.getFullYear()) + 7
+    const nextShmitaCycleStartHDate = new HDate(1, 7, nextShmitaCycleStartYear)
+    return getStartOfHebrewHDate(nextShmitaCycleStartHDate, environment).getTime()
   }
 
   return dayInfo.endsAtSunset.getTime()

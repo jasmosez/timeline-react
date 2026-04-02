@@ -36,8 +36,6 @@ const formatCivilHour = (date: Date) =>
 export const getHebrewWeekdayName = (dayInfo: HebrewDayInfo) =>
   HEBREW_WEEKDAY_NAMES[dayInfo.hdate.getDay()]
 
-const isShmitaYear = (year: number) => year % 7 === 0
-
 const getHebrewQuarterNumber = (month: number) => {
   if (month >= 7 && month <= 9) {
     return 1
@@ -58,37 +56,48 @@ export const getHebrewTickLabel = (
   activeScaleLevel: number,
   dayInfo: HebrewDayInfo,
   boundaryTimeMs: number,
+  isPrimary = true,
 ) => {
   const weekdayName = getHebrewWeekdayName(dayInfo)
   const boundaryTime = new Date(boundaryTimeMs)
 
   if (activeScaleLevel === -1) {
-    return `${weekdayName} ${dayInfo.hebrewDate.day} ${dayInfo.hebrewDate.monthName}, ${formatCivilTimeWithSeconds(boundaryTime)}`
+    return `${formatCivilTimeWithSeconds(boundaryTime)}, ${weekdayName} ${dayInfo.hebrewDate.day}`
   }
 
   if (activeScaleLevel === 0 || activeScaleLevel === 1) {
-    return `${weekdayName} ${dayInfo.hebrewDate.day} ${dayInfo.hebrewDate.monthName}, ${formatCivilTime(boundaryTime)}`
+    return `${formatCivilTime(boundaryTime)}, ${weekdayName} ${dayInfo.hebrewDate.day}`
   }
 
   if (activeScaleLevel === 2) {
     if (dayInfo.hebrewDate.day === 1) {
-      return `${weekdayName} 1 ${dayInfo.hebrewDate.monthName}`
+      return isPrimary
+        ? `${dayInfo.hebrewDate.monthName}, ${weekdayName} 1`
+        : `1 ${dayInfo.hebrewDate.monthName}, ${weekdayName}`
     }
 
-    return `${weekdayName} ${dayInfo.hebrewDate.day}`
+    return isPrimary
+      ? `${weekdayName} ${dayInfo.hebrewDate.day}`
+      : `${dayInfo.hebrewDate.day}, ${weekdayName}`
   }
 
   if (activeScaleLevel === 3) {
     if (dayInfo.hebrewDate.day === 1) {
       if (weekdayName === 'Shabbat') {
-        return `Shabbat 1 ${dayInfo.hebrewDate.monthName}`
+        return isPrimary
+          ? `${dayInfo.hebrewDate.monthName}, Shabbat 1`
+          : `1 ${dayInfo.hebrewDate.monthName}, Shabbat`
       }
 
-      return `1 ${dayInfo.hebrewDate.monthName}`
+      return isPrimary
+        ? `${dayInfo.hebrewDate.monthName} 1`
+        : `1 ${dayInfo.hebrewDate.monthName}`
     }
 
     if (weekdayName === 'Shabbat') {
-      return `Shabbat ${dayInfo.hebrewDate.day}`
+      return isPrimary
+        ? `Shabbat ${dayInfo.hebrewDate.day}`
+        : `${dayInfo.hebrewDate.day}, Shabbat`
     }
 
     return String(dayInfo.hebrewDate.day)
@@ -100,10 +109,16 @@ export const getHebrewTickLabel = (
       const quarterStartMonths = new Set([7, 10, 1, 4])
 
       if (quarterStartMonths.has(dayInfo.hebrewDate.month)) {
-        return `Q${quarterNumber}, ${dayInfo.hebrewDate.monthName}`
+        return isPrimary
+          ? `Q${quarterNumber}, ${dayInfo.hebrewDate.monthName}`
+          : `${dayInfo.hebrewDate.monthName}, Q${quarterNumber}`
       }
 
       return dayInfo.hebrewDate.monthName
+    }
+
+    if (weekdayName === 'Rishon') {
+      return 'Rishon'
     }
 
     return undefined
@@ -112,7 +127,9 @@ export const getHebrewTickLabel = (
   if (activeScaleLevel === 5) {
     if (dayInfo.hebrewDate.day === 1) {
       if (dayInfo.hebrewDate.month === 7) {
-        return `${dayInfo.hebrewDate.monthName} ${dayInfo.hebrewDate.year}`
+        return isPrimary
+          ? `${dayInfo.hebrewDate.year}, ${dayInfo.hebrewDate.monthName}`
+          : `${dayInfo.hebrewDate.monthName} ${dayInfo.hebrewDate.year}`
       }
 
       return dayInfo.hebrewDate.monthName
@@ -122,9 +139,13 @@ export const getHebrewTickLabel = (
   }
 
   if (activeScaleLevel === 6) {
-    return isShmitaYear(dayInfo.hebrewDate.year)
-      ? `${dayInfo.hebrewDate.year}, Shmita`
-      : String(dayInfo.hebrewDate.year)
+    if (dayInfo.hebrewDate.year % 7 === 0) {
+      return isPrimary
+        ? `Shmita ${dayInfo.hebrewDate.year}`
+        : `${dayInfo.hebrewDate.year}, Shmita`
+    }
+
+    return String(dayInfo.hebrewDate.year)
   }
 
   return dayInfo.hebrewDate.label

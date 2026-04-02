@@ -4,7 +4,7 @@ interface StickyContextPresentationOptions {
   viewportRef: RefObject<HTMLDivElement | null>
   isGregorianVisible: boolean
   isHebrewVisible: boolean
-  primaryCalendarSystemId: 'gregorian' | 'hebrew'
+  leadingCalendarSystemId: 'gregorian' | 'hebrew'
   gregorianTopLabel?: string
   gregorianBottomLabel?: string
   hebrewTopLabel?: string
@@ -15,7 +15,7 @@ export function useStickyContextPresentation({
   viewportRef,
   isGregorianVisible,
   isHebrewVisible,
-  primaryCalendarSystemId,
+  leadingCalendarSystemId,
   gregorianTopLabel,
   gregorianBottomLabel,
   hebrewTopLabel,
@@ -27,14 +27,14 @@ export function useStickyContextPresentation({
     Number(isGregorianVisible) + Number(isHebrewVisible) <= 1
 
   const gregorianContextSideClass =
-    singleStructuralContextVisible || primaryCalendarSystemId === 'gregorian'
-      ? 'structural-context-label-primary'
-      : 'structural-context-label-secondary'
+    singleStructuralContextVisible || leadingCalendarSystemId === 'gregorian'
+      ? 'structural-context-label-leading'
+      : 'structural-context-label-supporting'
 
   const hebrewContextSideClass =
-    singleStructuralContextVisible || primaryCalendarSystemId === 'hebrew'
-      ? 'structural-context-label-primary'
-      : 'structural-context-label-secondary'
+    singleStructuralContextVisible || leadingCalendarSystemId === 'hebrew'
+      ? 'structural-context-label-leading'
+      : 'structural-context-label-supporting'
 
   useLayoutEffect(() => {
     const viewportElement = viewportRef.current
@@ -69,7 +69,7 @@ export function useStickyContextPresentation({
 
     const nextScale = contextElements.reduce((smallestScale, element) => {
       const unscaledWidth = element.getBoundingClientRect().width / currentScale
-      const availableWidth = element.classList.contains('structural-context-label-primary')
+      const availableWidth = element.classList.contains('structural-context-label-leading')
         ? leftAvailableWidth
         : rightAvailableWidth
 
@@ -88,7 +88,7 @@ export function useStickyContextPresentation({
     gregorianBottomLabel,
     hebrewTopLabel,
     hebrewBottomLabel,
-    primaryCalendarSystemId,
+    leadingCalendarSystemId,
     isGregorianVisible,
     isHebrewVisible,
   ])

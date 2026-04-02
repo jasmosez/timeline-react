@@ -1,7 +1,7 @@
 import { SCALE_LEVEL_CONFIG, getVisibleRangeStartTickDate, getVisibleTimeRange, type ScaleLevel } from './scales'
 import { createStructuralSpansForRange, positionTimelinePoint, positionTimelineSpan } from './layout'
-import type { PrimaryCalendarSystemId, TimelineLayer } from './layers'
-import { getGregorianQuarterBoundaryLabel } from './gregorianLabels'
+import type { LeadingCalendarSystemId, TimelineLayer } from './layers'
+import { getGregorianQuarterBoundaryLabel, getGregorianStructuralTickLabel } from './gregorianLabels'
 import type {
   PositionedTimelinePoint,
   PositionedTimelineSpan,
@@ -9,7 +9,7 @@ import type {
 } from './types'
 
 type TickCollectionParams = {
-  primaryCalendarSystemId: PrimaryCalendarSystemId
+  leadingCalendarSystemId: LeadingCalendarSystemId
   activeScaleLevel: ScaleLevel
   focusTimeMs: number
   visibleDurationMs: number
@@ -29,9 +29,9 @@ const getGregorianSpanStripeClass = (scaleLevel: ScaleLevel, startTimeMs: number
       stripeIndex = Math.floor(startTimeMs / (60 * 1000))
       break
     case 1:
-    case 2:
       stripeIndex = Math.floor(startTimeMs / (60 * 60 * 1000))
       break
+    case 2:
     case 3:
       stripeIndex = Math.floor(Date.UTC(
         startDate.getFullYear(),
@@ -40,6 +40,12 @@ const getGregorianSpanStripeClass = (scaleLevel: ScaleLevel, startTimeMs: number
       ) / DAY_IN_MS)
       break
     case 4:
+      stripeIndex = Math.floor(Date.UTC(
+        startDate.getFullYear(),
+        startDate.getMonth(),
+        startDate.getDate(),
+      ) / (7 * DAY_IN_MS))
+      break
     case 5:
       stripeIndex = startDate.getFullYear() * 12 + startDate.getMonth()
       break
@@ -93,7 +99,7 @@ const getGregorianTickRankClass = (scaleLevel: ScaleLevel, tickTime: number) => 
     case 4:
       return 'tick-rank-ordinary'
     case 5:
-      return tickDate.getMonth() % 3 === 0 ? 'tick-rank-primary' : 'tick-rank-ordinary'
+      return tickDate.getMonth() === 0 ? 'tick-rank-primary' : 'tick-rank-ordinary'
     case 6:
       if (tickDate.getFullYear() % 10 === 0) {
         return 'tick-rank-primary'
@@ -128,7 +134,7 @@ const startOfMonth = (date: Date) => {
 
 const addPositionedTicksForScaleLevel = (
   points: Map<number, PositionedTimelinePoint>,
-  primaryCalendarSystemId: PrimaryCalendarSystemId,
+  leadingCalendarSystemId: LeadingCalendarSystemId,
   scaleLevel: ScaleLevel,
   focusTimeMs: number,
   visibleDurationMs: number,
@@ -137,10 +143,19 @@ const addPositionedTicksForScaleLevel = (
   const bufferedRange = getVisibleTimeRange(focusTimeMs, visibleDurationMs)
   const bufferedStartMs = bufferedRange.startTimeMs - visibleDurationMs * 0.5
   const bufferedEndMs = bufferedRange.endTimeMs + visibleDurationMs * 0.5
+  const visibleRangeStartTickDate = getVisibleRangeStartTickDate(scaleLevel, focusTimeMs, visibleDurationMs)
   let tickTime = SCALE_LEVEL_CONFIG[scaleLevel].startTickDateFunc(new Date(bufferedStartMs)).getTime()
 
   while (tickTime <= bufferedEndMs) {
-    const point = createTickPoint(tickTime)
+    const point = {
+      ...createTickPoint(tickTime),
+      label: getGregorianStructuralTickLabel(
+        scaleLevel,
+        tickTime,
+        tickTime === visibleRangeStartTickDate.getTime(),
+        leadingCalendarSystemId === 'gregorian',
+      ),
+    }
 
     points.set(
       tickTime,
@@ -149,17 +164,17 @@ const addPositionedTicksForScaleLevel = (
         scaleLevel,
         focusTimeMs,
         visibleDurationMs,
-        getVisibleRangeStartTickDate(scaleLevel, focusTimeMs, visibleDurationMs),
+        visibleRangeStartTickDate,
         {
           className: [
-            primaryCalendarSystemId === 'gregorian'
-              ? 'structural-tick-primary'
-              : 'structural-tick-secondary',
+            leadingCalendarSystemId === 'gregorian'
+              ? 'structural-tick-leading'
+              : 'structural-tick-supporting',
             getGregorianTickRankClass(scaleLevel, tickTime),
           ].join(' '),
-          labelClassName: primaryCalendarSystemId === 'gregorian'
-            ? 'structural-label-primary'
-            : 'structural-label-secondary',
+          labelClassName: leadingCalendarSystemId === 'gregorian'
+            ? 'structural-label-leading'
+            : 'structural-label-supporting',
         },
       ),
     )
@@ -170,7 +185,7 @@ const addPositionedTicksForScaleLevel = (
 
 const addQuarterBoundaryTicks = (
   points: Map<number, PositionedTimelinePoint>,
-  primaryCalendarSystemId: PrimaryCalendarSystemId,
+  leadingCalendarSystemId: LeadingCalendarSystemId,
   focusTimeMs: number,
   visibleDurationMs: number,
 ) => {
@@ -186,7 +201,7 @@ const addQuarterBoundaryTicks = (
       id: `quarter-boundary-${tickTime}`,
       kind: 'tick',
       timeMs: tickTime,
-      label: getGregorianQuarterBoundaryLabel(tickTime),
+      label: getGregorianQuarterBoundaryLabel(tickTime, leadingCalendarSystemId === 'gregorian'),
     }
 
     points.set(
@@ -199,14 +214,14 @@ const addQuarterBoundaryTicks = (
         getVisibleRangeStartTickDate(4, focusTimeMs, visibleDurationMs),
         {
           className: [
-            primaryCalendarSystemId === 'gregorian'
-              ? 'structural-tick-primary'
-              : 'structural-tick-secondary',
+            leadingCalendarSystemId === 'gregorian'
+              ? 'structural-tick-leading'
+              : 'structural-tick-supporting',
             isQuarterStart ? 'tick-rank-primary' : 'tick-rank-secondary',
           ].join(' '),
-          labelClassName: primaryCalendarSystemId === 'gregorian'
-            ? 'structural-label-primary'
-            : 'structural-label-secondary',
+          labelClassName: leadingCalendarSystemId === 'gregorian'
+            ? 'structural-label-leading'
+            : 'structural-label-supporting',
         },
       ),
     )
@@ -215,8 +230,59 @@ const addQuarterBoundaryTicks = (
   }
 }
 
+const addYearQuarterBoundaryTicks = (
+  points: Map<number, PositionedTimelinePoint>,
+  leadingCalendarSystemId: LeadingCalendarSystemId,
+  focusTimeMs: number,
+  visibleDurationMs: number,
+) => {
+  const bufferedRange = getVisibleTimeRange(focusTimeMs, visibleDurationMs)
+  const bufferedStartMs = bufferedRange.startTimeMs - visibleDurationMs * 0.5
+  const bufferedEndMs = bufferedRange.endTimeMs + visibleDurationMs * 0.5
+  let tickTime = startOfMonth(new Date(bufferedStartMs)).getTime()
+
+  while (tickTime <= bufferedEndMs) {
+    const tickDate = new Date(tickTime)
+    const isQuarterStart = tickDate.getMonth() % 3 === 0
+    const isYearStart = tickDate.getMonth() === 0
+
+    if (isQuarterStart && !isYearStart) {
+      const point: TimelinePoint = {
+        id: `year-quarter-boundary-${tickTime}`,
+        kind: 'tick',
+        timeMs: tickTime,
+        label: '',
+      }
+
+      points.set(
+        tickTime + 1,
+        positionTimelinePoint(
+          point,
+          5,
+          focusTimeMs,
+          visibleDurationMs,
+          getVisibleRangeStartTickDate(5, focusTimeMs, visibleDurationMs),
+          {
+            className: [
+              leadingCalendarSystemId === 'gregorian'
+                ? 'structural-tick-leading'
+                : 'structural-tick-supporting',
+              'tick-rank-secondary',
+            ].join(' '),
+            labelClassName: leadingCalendarSystemId === 'gregorian'
+              ? 'structural-label-leading'
+              : 'structural-label-supporting',
+          },
+        ),
+      )
+    }
+
+    tickTime = addMonths(tickDate, 1)
+  }
+}
+
 export const createGregorianTickPoints = ({
-  primaryCalendarSystemId,
+  leadingCalendarSystemId,
   activeScaleLevel,
   focusTimeMs,
   visibleDurationMs,
@@ -225,21 +291,25 @@ export const createGregorianTickPoints = ({
 
   addPositionedTicksForScaleLevel(
     points,
-    primaryCalendarSystemId,
+    leadingCalendarSystemId,
     activeScaleLevel,
     focusTimeMs,
     visibleDurationMs,
   )
 
   if (activeScaleLevel === 4) {
-    addQuarterBoundaryTicks(points, primaryCalendarSystemId, focusTimeMs, visibleDurationMs)
+    addQuarterBoundaryTicks(points, leadingCalendarSystemId, focusTimeMs, visibleDurationMs)
+  }
+
+  if (activeScaleLevel === 5) {
+    addYearQuarterBoundaryTicks(points, leadingCalendarSystemId, focusTimeMs, visibleDurationMs)
   }
 
   return Array.from(points.values())
 }
 
 export const createGregorianStructuralSpans = (
-  primaryCalendarSystemId: PrimaryCalendarSystemId,
+  leadingCalendarSystemId: LeadingCalendarSystemId,
   activeScaleLevel: ScaleLevel,
   focusTimeMs: number,
   visibleDurationMs: number,
@@ -251,9 +321,9 @@ export const createGregorianStructuralSpans = (
   return createStructuralSpansForRange(activeScaleLevel, bufferedStartMs, bufferedEndMs).map((span) =>
     positionTimelineSpan(span, focusTimeMs, visibleDurationMs, {
       className: [
-        primaryCalendarSystemId === 'gregorian'
-          ? 'structural-span structural-span-primary'
-          : 'structural-span structural-span-secondary',
+        leadingCalendarSystemId === 'gregorian'
+          ? 'structural-span structural-span-leading'
+          : 'structural-span structural-span-supporting',
         getGregorianSpanStripeClass(activeScaleLevel, span.startTimeMs),
       ].join(' '),
     }),
@@ -265,6 +335,6 @@ export const gregorianLayer: TimelineLayer = {
   label: 'Gregorian',
   role: 'structural',
   getPoints: createGregorianTickPoints,
-  getSpans: ({ primaryCalendarSystemId, activeScaleLevel, focusTimeMs, visibleDurationMs }) =>
-    createGregorianStructuralSpans(primaryCalendarSystemId, activeScaleLevel, focusTimeMs, visibleDurationMs),
+  getSpans: ({ leadingCalendarSystemId, activeScaleLevel, focusTimeMs, visibleDurationMs }) =>
+    createGregorianStructuralSpans(leadingCalendarSystemId, activeScaleLevel, focusTimeMs, visibleDurationMs),
 }

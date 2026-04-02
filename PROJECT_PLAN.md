@@ -14,9 +14,10 @@ The product begins with a zoomable vertical timeline spanning:
 - day view with hour-based ticks
 - week view with day-based ticks
 - month view with day-based ticks
-- quarter view with month-based ticks
+- quarter view with week- or month-based internal ticks depending on the active
+  calendar structure
 - year view with month-based ticks
-- decade view with year-based ticks
+- decade / shmita view with year-based ticks
 
 Over time, the app should grow from a timeline viewer into a flexible personal
 time system that supports multiple ways of measuring time, scheduled and lived

@@ -3,7 +3,7 @@ import type { ScaleLevel } from '../timeline/scales';
 import {
   combineLayerPoints,
   combineLayerSpans,
-  type PrimaryCalendarSystemId,
+  type LeadingCalendarSystemId,
   type TimelineEnvironment,
   type TimelineLayer,
 } from '../timeline/layers';
@@ -21,7 +21,7 @@ import { useStickyContextPresentation } from './useStickyContextPresentation';
 
 interface TimelineProps {
     environment: TimelineEnvironment;
-    primaryCalendarSystemId: PrimaryCalendarSystemId;
+    leadingCalendarSystemId: LeadingCalendarSystemId;
     activeScaleLevel: ScaleLevel;
     focusTimeMs: number;
     visibleDurationMs: number;
@@ -35,7 +35,7 @@ interface TimelineProps {
 
 function Timeline({
   environment,
-  primaryCalendarSystemId,
+  leadingCalendarSystemId,
   activeScaleLevel,
   focusTimeMs,
   visibleDurationMs,
@@ -53,7 +53,7 @@ function Timeline({
   useEffect(() => {
     const context = {
       environment,
-      primaryCalendarSystemId,
+      leadingCalendarSystemId,
       activeScaleLevel,
       focusTimeMs,
       visibleDurationMs,
@@ -65,7 +65,7 @@ function Timeline({
   }, [
     activeLayers,
     environment,
-    primaryCalendarSystemId,
+    leadingCalendarSystemId,
     activeScaleLevel,
     focusTimeMs,
     visibleDurationMs,
@@ -146,7 +146,7 @@ function Timeline({
     viewportRef,
     isGregorianVisible,
     isHebrewVisible,
-    primaryCalendarSystemId,
+    leadingCalendarSystemId,
     gregorianTopLabel: gregorianStickyContextLabelTop,
     gregorianBottomLabel: gregorianStickyContextLabelBottom,
     hebrewTopLabel: hebrewStickyContextLabelTop,
@@ -210,7 +210,7 @@ function Timeline({
       <NowTick
         now={environment.now}
         environment={environment}
-        primaryCalendarSystemId={primaryCalendarSystemId}
+        leadingCalendarSystemId={leadingCalendarSystemId}
         scaleLevel={activeScaleLevel}
         focusTimeMs={focusTimeMs}
         visibleDurationMs={visibleDurationMs}

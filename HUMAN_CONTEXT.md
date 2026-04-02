@@ -64,7 +64,7 @@ The viewport is driven by:
 
 The app distinguishes:
 
-- `primaryCalendarSystemId`
+- `leadingCalendarSystemId`
   which calendar governs anchored/current-period semantics
 - visible structural layers
   which structural systems are actually shown
@@ -98,10 +98,10 @@ Named lanes:
 
 - reference lane
   `now`
-- primary structural lane
-  left-side labels for the primary visible structural system
-- secondary structural lane
-  right-side labels for the secondary visible structural system
+- leading structural lane
+  left-side labels for the leading visible structural system
+- supporting structural lane
+  right-side labels for the supporting visible structural system
 - personal overlay lane
   birthday and future personal overlays
 - context lane
@@ -163,8 +163,20 @@ Some important active or near-active topics:
 - label-density suppression near primary boundaries
 - Gregorian visual primacy still being a bit too strong in some views
 - richer Hebrew boundary context at broader scales
-- Gregorian week numbers
+- full tick/label-composition audit across scale, rank, and leading/supporting
+  role
 - later 24-hour mode exploration
+
+## Current Product Truths Worth Remembering
+
+- Gregorian quarter view currently uses weekly internal ticks, plus stronger
+  month and quarter boundaries.
+- Hebrew quarter view currently stays month-based; Hebrew week ticks there are
+  intentionally deferred for a later parsha/toggle decision.
+- Year view now shows unlabeled quarter ticks for both Gregorian and Hebrew.
+- Scale `6` is no longer symmetrical:
+  - Gregorian reads as decade
+  - Hebrew reads as shmita cycle
 
 ## How To Stay On Top Of The Project
 

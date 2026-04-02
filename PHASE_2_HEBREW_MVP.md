@@ -156,8 +156,8 @@ This is the core architectural test.
 
 The first rendering strategy should remain conservative:
 
-- one primary structural layer gets dominant labels
-- a secondary structural layer should still be legible, but spatially distinct
+- one leading structural layer gets dominant labels
+- a supporting structural layer should still be legible, but spatially distinct
 - label collision strategy can remain simple at first
 
 The important thing is proving:
@@ -170,8 +170,8 @@ We do not need perfect multi-structure visual design in the very first slice.
 
 Recommended MVP distinction:
 
-- primary structural labels render on the left side of the timeline
-- secondary structural labels render on the right side of the timeline
+- leading structural labels render on the left side of the timeline
+- supporting structural labels render on the right side of the timeline
 - subtle visual differences such as color or weight may be added later if
   spatial distinction alone is not enough
 
@@ -187,7 +187,7 @@ necessarily the final one.
    but not overwhelming?
 5. Do we need separate UI concepts for:
    - active structural layers
-   - primary structural layer
+   - leading structural layer
    or can one simple MVP control handle both?
 
 ## Recommended First Implementation Order
@@ -203,8 +203,8 @@ necessarily the final one.
 These are the current working decisions for the first implementation:
 
 - When both Gregorian and Hebrew structural layers are active:
-  - primary structural labels render on the left side of the axis
-  - secondary structural labels render on the right side of the axis
+  - leading structural labels render on the left side of the axis
+  - supporting structural labels render on the right side of the axis
 - Hebrew-primary week behavior should be interpreted as a 7-day span ending
   with Shabbat
 - Within a Hebrew day, intraday tick marks should continue to use civil
@@ -286,9 +286,12 @@ Rationale:
 ### Quarter View
 
 - Hebrew-primary quarter should be framed by the current Hebrew quarter
-- internal ticks and spans should still be month-by-month within that quarter
+- internal ticks and spans should currently remain month-by-month within that
+  quarter
 - Hebrew quarter 1 is `Tishrei–Kislev`
 - in leap years, both `Adar I` and `Adar II` belong to quarter 2
+- Hebrew week-level quarter internals are explicitly deferred for now, likely
+  tied to later parsha/toggle work rather than baseline structure
 
 Rationale:
 
@@ -300,21 +303,25 @@ Rationale:
 - Hebrew contributes month boundaries and month labels
 - Hebrew year identity should be visible
 - Hebrew-primary year should be framed by the current Hebrew year
+- year view now also includes unlabeled quarter ticks for both Gregorian and
+  Hebrew
 
 Rationale:
 
 - year view is where Hebrew month/year identity diverges meaningfully from
   Gregorian structure without requiring finer-grained halachic-time choices
 
-### Decade View
+### Decade / Shmita View
 
-- Hebrew contributes year boundaries inside the current Hebrew decade
-- Hebrew-primary decade should be framed by the current 10-year Hebrew interval
+- Hebrew contributes year boundaries inside the current shmita cycle
+- Hebrew-primary scale `6` should be framed by the current 7-year shmita cycle
+- shmita years keep the shmita label, but the emphasized boundary tick is the
+  first year after shmita
 
 Rationale:
 
-- decade view can still usefully express Hebrew year identity without requiring
-  a more exotic long-span interpretation
+- this keeps the outermost band meaningful in Hebrew terms without requiring a
+  fully separate scale system yet
 
 ## Hebrew Label Policy
 
@@ -402,6 +409,7 @@ that is useful:
 - quarter starts:
   richer label
   Example: `Q2, Tevet`
+- Hebrew quarter-week ticks are currently not rendered by default
 
 ### Year
 
@@ -411,16 +419,20 @@ that is useful:
 - month ticks:
   month names
   Example: `Nisan`, `Iyar`
+- quarter-start month boundaries:
+  unlabeled secondary-rank ticks
 - year boundary:
   fuller label when needed
   Example: `Tishrei 5787`
 
-### Decade
+### Decade / Shmita
 
 - no sticky labels
 - year ticks:
-  Hebrew year numbers only
-  Example: `5780`, `5781`
+  Hebrew year numbers, with shmita called out on the shmita year itself
+  Examples: `5786`, `Shmita 5789`
+- primary-rank tick:
+  the first year after shmita
 
 ### Naming Defaults
 
@@ -457,7 +469,9 @@ The first implementation slice has now landed:
 
 - Hebrew date conversion and sunset-aware day identity exist in code
 - Hebrew day/week/month/year structure can render
-- Hebrew quarter and decade structure now render too
+- Hebrew quarter structure now renders
+- Hebrew scale `6` now behaves as a shmita-cycle view rather than a true Hebrew
+  decade
 - Gregorian and Hebrew can both be active at once
 - one primary calendar system now drives anchored reset/current-period
   semantics

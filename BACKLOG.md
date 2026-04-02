@@ -63,6 +63,14 @@ Usage:
   instead of `Shabbat 5`; explore implications by scale and calendar
   Target: Phase 2
 
+- Document the full tick/label composition universe before further label-logic deepening
+  Notes: enumerate by scale and calendar the `primary` / `secondary` /
+  `ordinary` ticks, then document current leading/supporting label behavior for
+  each rank and each combined-rank case (`ordinary+secondary`,
+  `ordinary+primary`, `secondary+primary`, and all three together); use that as
+  the basis for the next label-composition refactor
+  Target: Phase 2
+
 ## Later
 
 - Smooth band-transition treatment for gesture zoom and HQ button zoom
@@ -80,6 +88,12 @@ Usage:
   Notes: likely a separate Hebrew toggle or contextual layer rather than part
   of baseline Hebrew structural labels
   Target: Phase 3
+
+- Add shmita cycle numbering to the first post-shmita Hebrew year label
+  Notes: when Hebrew is leading, use `Cycle 827, 5783` style; when supporting,
+  use `5783, Cycle 827`; derive the cycle number from the shmita year divided by
+  7
+  Target: Phase 2
 
 - Mobile / responsive layout strategy
   Notes: rail collapse, touch interaction, and preserving timeline-first

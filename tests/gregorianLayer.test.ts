@@ -5,7 +5,7 @@ describe('gregorian structural layer', () => {
     const focusTimeMs = new Date('2026-04-20T12:00:00-04:00').getTime()
     const visibleDurationMs = 18 * 7 * 24 * 60 * 60 * 1000
     const points = createGregorianTickPoints({
-      primaryCalendarSystemId: 'gregorian',
+      leadingCalendarSystemId: 'gregorian',
       activeScaleLevel: 4,
       focusTimeMs,
       visibleDurationMs,
@@ -27,5 +27,19 @@ describe('gregorian structural layer', () => {
     )
 
     expect(spans.length).toBeGreaterThan(8)
+  })
+
+  it('adds unlabeled quarter ticks in year view', () => {
+    const focusTimeMs = new Date('2026-04-20T12:00:00-04:00').getTime()
+    const visibleDurationMs = 400 * 24 * 60 * 60 * 1000
+    const points = createGregorianTickPoints({
+      leadingCalendarSystemId: 'gregorian',
+      activeScaleLevel: 5,
+      focusTimeMs,
+      visibleDurationMs,
+    })
+
+    expect(points.some((point) => point.label === '' && point.className?.includes('tick-rank-secondary'))).toBe(true)
+    expect(points.some((point) => point.label === '2026, Jan')).toBe(true)
   })
 })

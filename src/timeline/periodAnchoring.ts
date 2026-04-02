@@ -1,4 +1,4 @@
-import type { PrimaryCalendarSystemId, TimelineEnvironment } from './layers'
+import type { LeadingCalendarSystemId, TimelineEnvironment } from './layers'
 import { SCALE_LEVEL_CONFIG, type ScaleLevel } from './scales'
 import {
   getHebrewContainingPeriodEndTimeMs,
@@ -43,12 +43,12 @@ const getGregorianContainingPeriodEndTimeMs = (scaleLevel: ScaleLevel, startTime
 }
 
 export const getContainingPeriodStartTimeMs = (
-  primaryCalendarSystemId: PrimaryCalendarSystemId,
+  leadingCalendarSystemId: LeadingCalendarSystemId,
   scaleLevel: ScaleLevel,
   referenceTime: Date,
   environment: TimelineEnvironment,
 ) => {
-  if (primaryCalendarSystemId === 'hebrew') {
+  if (leadingCalendarSystemId === 'hebrew') {
     return getHebrewContainingPeriodStartTimeMs(scaleLevel, referenceTime, environment)
   }
 
@@ -56,19 +56,19 @@ export const getContainingPeriodStartTimeMs = (
 }
 
 export const getContainingPeriodFocusTimeMs = (
-  primaryCalendarSystemId: PrimaryCalendarSystemId,
+  leadingCalendarSystemId: LeadingCalendarSystemId,
   scaleLevel: ScaleLevel,
   referenceTime: Date,
   environment: TimelineEnvironment,
 ) => {
   const startTimeMs = getContainingPeriodStartTimeMs(
-    primaryCalendarSystemId,
+    leadingCalendarSystemId,
     scaleLevel,
     referenceTime,
     environment,
   )
 
-  const endTimeMs = primaryCalendarSystemId === 'hebrew'
+  const endTimeMs = leadingCalendarSystemId === 'hebrew'
     ? getHebrewContainingPeriodEndTimeMs(scaleLevel, referenceTime, environment)
     : getGregorianContainingPeriodEndTimeMs(scaleLevel, startTimeMs)
 

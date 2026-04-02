@@ -1,5 +1,9 @@
 import { getGregorianStickyContextLabel, GREGORIAN_SCALE_LEVEL_CONFIG } from '../src/timeline/gregorianScaleConfig'
-import { getSundayStartWeekInfo } from '../src/timeline/gregorianLabels'
+import {
+  getGregorianQuarterBoundaryLabel,
+  getGregorianStructuralTickLabel,
+  getSundayStartWeekInfo,
+} from '../src/timeline/gregorianLabels'
 
 describe('gregorian scale label helpers', () => {
   it('provides sticky context labels for non-decade scales', () => {
@@ -47,6 +51,17 @@ describe('gregorian scale label helpers', () => {
     expect(label).toBe('W14, Sun 29')
   })
 
+  it('reorders week-view sunday labels when gregorian is secondary', () => {
+    const label = getGregorianStructuralTickLabel(
+      2,
+      new Date('2026-03-29T00:00:00-04:00').getTime(),
+      false,
+      false,
+    )
+
+    expect(label).toBe('Sun 29, W14')
+  })
+
   it('labels every midnight boundary locally in day view', () => {
     const label = GREGORIAN_SCALE_LEVEL_CONFIG[1].getTickLabel(
       new Date('2026-04-01T00:00:00-04:00').getTime(),
@@ -56,6 +71,17 @@ describe('gregorian scale label helpers', () => {
     expect(label).toBe('Wed 1, 12 AM')
   })
 
+  it('reorders day boundaries when gregorian is secondary', () => {
+    const label = getGregorianStructuralTickLabel(
+      1,
+      new Date('2026-04-01T00:00:00-04:00').getTime(),
+      false,
+      false,
+    )
+
+    expect(label).toBe('12 AM, 1 Wed')
+  })
+
   it('labels midnight boundaries explicitly in hour view', () => {
     const label = GREGORIAN_SCALE_LEVEL_CONFIG[0].getTickLabel(
       new Date('2026-04-01T00:00:00-04:00').getTime(),
@@ -63,6 +89,24 @@ describe('gregorian scale label helpers', () => {
     )
 
     expect(label).toBe('Wed 1, 12:00 AM')
+  })
+
+  it('reorders hour and minute day boundaries when gregorian is secondary', () => {
+    const hourLabel = getGregorianStructuralTickLabel(
+      0,
+      new Date('2026-04-01T00:00:00-04:00').getTime(),
+      false,
+      false,
+    )
+    const minuteLabel = getGregorianStructuralTickLabel(
+      -1,
+      new Date('2026-04-01T00:00:00-04:00').getTime(),
+      false,
+      false,
+    )
+
+    expect(hourLabel).toBe('12:00 AM, 1 Wed')
+    expect(minuteLabel).toBe('12:00 AM, 1 Wed')
   })
 
   it('steps month-view days by local calendar day across DST fall-back', () => {
@@ -114,6 +158,65 @@ describe('gregorian scale label helpers', () => {
     )
 
     expect(label).toBe('W15')
+  })
+
+  it('reorders month-view sunday labels when gregorian is secondary', () => {
+    const ordinarySunday = getGregorianStructuralTickLabel(
+      3,
+      new Date('2026-03-22T00:00:00-04:00').getTime(),
+      false,
+      false,
+    )
+    const monthBoundarySunday = getGregorianStructuralTickLabel(
+      3,
+      new Date('2027-08-01T00:00:00-04:00').getTime(),
+      false,
+      false,
+    )
+
+    expect(ordinarySunday).toBe('22, W13')
+    expect(monthBoundarySunday).toBe('Aug 1, W31')
+  })
+
+  it('reorders quarter boundaries when gregorian is secondary', () => {
+    const label = getGregorianQuarterBoundaryLabel(
+      new Date('2026-04-01T00:00:00-04:00').getTime(),
+      false,
+    )
+
+    expect(label).toBe('Apr, Q2')
+  })
+
+  it('only includes the year on january labels in year view', () => {
+    const primaryLabel = getGregorianStructuralTickLabel(
+      5,
+      new Date('2026-01-01T00:00:00-05:00').getTime(),
+      false,
+      true,
+    )
+    const secondaryLabel = getGregorianStructuralTickLabel(
+      5,
+      new Date('2026-01-01T00:00:00-05:00').getTime(),
+      false,
+      false,
+    )
+    const primaryAprilLabel = getGregorianStructuralTickLabel(
+      5,
+      new Date('2026-04-01T00:00:00-04:00').getTime(),
+      false,
+      true,
+    )
+    const secondaryAprilLabel = getGregorianStructuralTickLabel(
+      5,
+      new Date('2026-04-01T00:00:00-04:00').getTime(),
+      false,
+      false,
+    )
+
+    expect(primaryLabel).toBe('2026, Jan')
+    expect(secondaryLabel).toBe('Jan 2026')
+    expect(primaryAprilLabel).toBe('Apr')
+    expect(secondaryAprilLabel).toBe('Apr')
   })
 
   it('computes custom sunday-start week numbers by shifting iso week boundaries one day earlier', () => {

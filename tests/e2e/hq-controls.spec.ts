@@ -39,7 +39,7 @@ test.describe('HQ controls', () => {
   test('primary calendar system stays selected even if its structure is hidden', async ({ page }) => {
     await page.goto('/')
 
-    const primaryGregorian = page.getByTestId('primary-structure-gregorian')
+    const primaryGregorian = page.getByTestId('leading-structure-gregorian')
     await expect(primaryGregorian).toBeChecked()
 
     const gregorianLayerToggle = page.getByRole('checkbox', { name: 'Gregorian' })
@@ -55,7 +55,7 @@ test.describe('HQ controls', () => {
     await hebrewLayerToggle.check()
     await expect(hebrewLayerToggle).toBeChecked()
 
-    const primaryHebrew = page.getByTestId('primary-structure-hebrew')
+    const primaryHebrew = page.getByTestId('leading-structure-hebrew')
     await primaryHebrew.check()
     await expect(primaryHebrew).toBeChecked()
   })
@@ -66,7 +66,7 @@ test.describe('HQ controls', () => {
     const hebrewLayerToggle = page.getByRole('checkbox', { name: 'Hebrew' })
     await expect(hebrewLayerToggle).not.toBeChecked()
 
-    const primaryHebrew = page.getByTestId('primary-structure-hebrew')
+    const primaryHebrew = page.getByTestId('leading-structure-hebrew')
     await primaryHebrew.check()
 
     await expect(primaryHebrew).toBeChecked()
@@ -88,7 +88,7 @@ test.describe('HQ controls', () => {
 
     await expect(page.getByTestId('scale-title')).toHaveText('Month View')
     await expect(page.getByTestId('navigation-mode-value')).toHaveText('currentContainingPeriod')
-    await expect(page.getByTestId('start-tick-value')).toHaveText('Sun, Mar 1, 2026, 12:00 AM')
+    await expect(page.getByTestId('start-tick-value')).toHaveText('Tue, Mar 31, 2026, 12:00 AM')
   })
 
   test('HQ button zoom preserves exploratory mode after manual pan', async ({ page }) => {

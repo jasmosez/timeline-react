@@ -1,4 +1,4 @@
-import { getHebrewContextLabel, getHebrewTickLabel } from '../src/timeline/hebrewLabels'
+import { getHebrewContextLabel, getHebrewTickLabel, getHebrewWeekdayName } from '../src/timeline/hebrewLabels'
 import type { TimelineEnvironment } from '../src/timeline/layers'
 import { getHebrewDayInfo } from '../src/timeline/hebrewTime'
 
@@ -43,14 +43,22 @@ describe('hebrew label helpers', () => {
     ).toBeUndefined()
   })
 
-  it('marks shmita years in decade-scale Hebrew tick labels', () => {
+  it('marks shmita years in decade-scale Hebrew tick labels while keeping the next year plain', () => {
     const shmitaYearLabel = getHebrewTickLabel(
       6,
       getHebrewDayInfo(new Date('2021-09-15T12:00:00-04:00'), TEST_ENVIRONMENT),
       new Date('2021-09-15T12:00:00-04:00').getTime(),
+      false,
+    )
+    const nextYearLabel = getHebrewTickLabel(
+      6,
+      getHebrewDayInfo(new Date('2022-09-27T12:00:00-04:00'), TEST_ENVIRONMENT),
+      new Date('2022-09-27T12:00:00-04:00').getTime(),
+      false,
     )
 
     expect(shmitaYearLabel).toBe('5782, Shmita')
+    expect(nextYearLabel).toBe('5783')
   })
 
   it('includes civil sunset time on Hebrew hour and minute boundary labels', () => {
@@ -59,7 +67,9 @@ describe('hebrew label helpers', () => {
 
     expect(getHebrewTickLabel(0, dayInfo, boundaryTimeMs)).toContain('PM')
     expect(getHebrewTickLabel(-1, dayInfo, boundaryTimeMs)).toContain('PM')
-    expect(getHebrewTickLabel(-1, dayInfo, boundaryTimeMs)).toMatch(/:\d{2}\s(?:AM|PM)$/)
+    expect(getHebrewTickLabel(-1, dayInfo, boundaryTimeMs)).toMatch(/^\d{1,2}:\d{2}:\d{2}\s(?:AM|PM),\s/)
+    expect(getHebrewTickLabel(0, dayInfo, boundaryTimeMs)).toMatch(/^\d{1,2}:\d{2}\s(?:AM|PM),\s/)
+    expect(getHebrewTickLabel(1, dayInfo, boundaryTimeMs)).toMatch(/^\d{1,2}:\d{2}\s(?:AM|PM),\sRevi'i 14$/)
   })
 
   it('stacks Shabbat rhythm with month-boundary labeling in month view', () => {
@@ -68,7 +78,33 @@ describe('hebrew label helpers', () => {
     expect(dayInfo.hebrewDate.day).toBe(1)
     expect(dayInfo.hebrewDate.monthName).toBe('Iyyar')
     expect(getHebrewTickLabel(3, dayInfo, new Date('2026-04-18T12:00:00-04:00').getTime())).toBe(
-      'Shabbat 1 Iyyar',
+      'Iyyar, Shabbat 1',
     )
+  })
+
+  it('reorders week and month hebrew labels when hebrew is secondary', () => {
+    const ordinaryWeekdayInfo = getHebrewDayInfo(new Date('2026-04-13T12:00:00-04:00'), TEST_ENVIRONMENT)
+    const monthBoundaryInfo = getHebrewDayInfo(new Date('2026-04-18T12:00:00-04:00'), TEST_ENVIRONMENT)
+
+    expect(getHebrewTickLabel(2, ordinaryWeekdayInfo, ordinaryWeekdayInfo.startsAtSunset.getTime(), false)).toBe(
+      `${ordinaryWeekdayInfo.hebrewDate.day}, ${getHebrewWeekdayName(ordinaryWeekdayInfo)}`,
+    )
+    expect(getHebrewTickLabel(2, monthBoundaryInfo, monthBoundaryInfo.startsAtSunset.getTime(), false)).toBe('1 Iyyar, Shabbat')
+    expect(getHebrewTickLabel(3, ordinaryWeekdayInfo, ordinaryWeekdayInfo.startsAtSunset.getTime(), false)).toBe(
+      String(ordinaryWeekdayInfo.hebrewDate.day),
+    )
+    expect(getHebrewTickLabel(3, monthBoundaryInfo, monthBoundaryInfo.startsAtSunset.getTime(), false)).toBe('1 Iyyar, Shabbat')
+  })
+
+  it('reorders hebrew quarter, year, and decade labels when secondary', () => {
+    const quarterInfo = getHebrewDayInfo(new Date('2026-04-18T12:00:00-04:00'), TEST_ENVIRONMENT)
+    const yearInfo = getHebrewDayInfo(new Date('2025-09-23T12:00:00-04:00'), TEST_ENVIRONMENT)
+    const shmitaInfo = getHebrewDayInfo(new Date('2021-09-15T12:00:00-04:00'), TEST_ENVIRONMENT)
+
+    expect(getHebrewTickLabel(4, quarterInfo, quarterInfo.startsAtSunset.getTime(), false)).toBe('Iyyar')
+    expect(getHebrewTickLabel(5, yearInfo, yearInfo.startsAtSunset.getTime(), true)).toBe('5786, Tishrei')
+    expect(getHebrewTickLabel(5, yearInfo, yearInfo.startsAtSunset.getTime(), false)).toBe('Tishrei 5786')
+    expect(getHebrewTickLabel(6, shmitaInfo, shmitaInfo.startsAtSunset.getTime(), true)).toBe('Shmita 5782')
+    expect(getHebrewTickLabel(6, shmitaInfo, shmitaInfo.startsAtSunset.getTime(), false)).toBe('5782, Shmita')
   })
 })

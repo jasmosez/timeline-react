@@ -16,7 +16,7 @@ export type TimelineEnvironment = {
 
 export type LayerRenderContext = {
   environment: TimelineEnvironment
-  primaryCalendarSystemId: PrimaryCalendarSystemId
+  leadingCalendarSystemId: LeadingCalendarSystemId
   activeScaleLevel: ScaleLevel
   focusTimeMs: number
   visibleDurationMs: number
@@ -33,7 +33,7 @@ export interface TimelineLayer {
 
 export type TimelineLayerId = TimelineLayer['id']
 export type StructuralLayerId = 'gregorian' | 'hebrew'
-export type PrimaryCalendarSystemId = StructuralLayerId
+export type LeadingCalendarSystemId = StructuralLayerId
 
 export const combineLayerPoints = (
   layers: TimelineLayer[],

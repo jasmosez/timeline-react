@@ -1,7 +1,7 @@
 import { LOCALE } from '../config';
 import { FULL_DATE_FORMAT } from '../utils';
 import { formatHebrewPrimaryNowLabel } from '../timeline/hebrewTime';
-import type { PrimaryCalendarSystemId, TimelineEnvironment } from '../timeline/layers';
+import type { LeadingCalendarSystemId, TimelineEnvironment } from '../timeline/layers';
 import { SCALE_LEVEL_CONFIG } from '../timeline/scales';
 import { positionTimelinePoint } from '../timeline/layout';
 import { TickPoint } from './Tick';
@@ -10,7 +10,7 @@ import type { TimelinePoint } from '../timeline/types';
 interface NowTickProps {
     now: Date;
     environment: TimelineEnvironment;
-    primaryCalendarSystemId: PrimaryCalendarSystemId;
+    leadingCalendarSystemId: LeadingCalendarSystemId;
     scaleLevel: keyof typeof SCALE_LEVEL_CONFIG;
     focusTimeMs: number;
     visibleDurationMs: number;
@@ -20,7 +20,7 @@ interface NowTickProps {
 function NowTick({
     now,
     environment,
-    primaryCalendarSystemId,
+    leadingCalendarSystemId,
     scaleLevel,
     focusTimeMs,
     visibleDurationMs,
@@ -30,7 +30,7 @@ function NowTick({
         id: `now-${SCALE_LEVEL_CONFIG[scaleLevel].key}`,
         kind: 'marker',
         timeMs: now.getTime(),
-        label: primaryCalendarSystemId === 'hebrew'
+        label: leadingCalendarSystemId === 'hebrew'
             ? formatHebrewPrimaryNowLabel(now, environment)
             : now.toLocaleString(LOCALE, {...FULL_DATE_FORMAT, second: '2-digit'}),
     };

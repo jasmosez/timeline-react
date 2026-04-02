@@ -174,9 +174,9 @@ The timeline now uses a small set of named horizontal lanes.
 These are presentation concepts, not data-model concepts.
 
 - reference lane: the far-left lane reserved for `now`
-- primary structural lane: the left-side label lane for the primary visible
+- leading structural lane: the left-side label lane for the leading visible
   structural system
-- secondary structural lane: the right-side label lane for the secondary
+- supporting structural lane: the right-side label lane for the supporting
   visible structural system
 - personal overlay lane: the right-side lane used by birthday and future
   personal overlays
@@ -190,8 +190,8 @@ coexist without sharing the same horizontal real estate.
 The current lane system is strong and should continue:
 
 - `now` uses the reference lane
-- primary structural labels use the primary structural lane
-- secondary structural labels use the secondary structural lane
+- leading structural labels use the leading structural lane
+- supporting structural labels use the supporting structural lane
 - birthday and future personal overlays use the personal overlay lane
 
 Sticky context labels are outside these ordinary tick-label lanes and should be
@@ -209,8 +209,8 @@ Recommended geometry:
 
 Current direction is good:
 
-- primary structural spans occupy only one side of the axis
-- secondary structural spans occupy only the other side
+- leading structural spans occupy only one side of the axis
+- supporting structural spans occupy only the other side
 
 Important follow-up tuning areas:
 
@@ -399,10 +399,10 @@ Current one-sided span logic is the right basis.
 
 Recommended starting rules:
 
-- primary structural spans:
+- leading structural spans:
   - occupy only the left side of the axis
   - inner edge flush to the axis
-- secondary structural spans:
+- supporting structural spans:
   - occupy only the right side of the axis
   - inner edge flush to the axis
 - span width should remain narrow enough to feel structural, not block-like
@@ -420,9 +420,9 @@ Current lane logic should be made more deliberate:
 - far-left lane:
   - reserved for `now`
 - near-left lane:
-  - primary structural labels
+  - leading structural labels
 - right lane:
-  - secondary structural labels
+  - supporting structural labels
 - sticky context:
   - separate from tick-label lanes
   - attached to viewport top and bottom rather than to individual ticks
@@ -508,7 +508,8 @@ Recommended ranks:
   - primary: quarter-start month
   - ordinary: other month ticks
 - year:
-  - primary: quarter-start month
+  - primary: year-start month
+  - secondary: unlabeled quarter-start month tick
   - ordinary: other month ticks
 - decade:
   - primary: first year of the decade
@@ -536,14 +537,16 @@ Recommended ranks:
   - ordinary: other days
 - quarter:
   - primary: quarter-start Hebrew month
+  - secondary: other Hebrew month starts
   - ordinary: other month ticks
 - year:
   - primary: Tishrei / start of Hebrew year
+  - secondary: unlabeled Hebrew quarter-start tick
   - ordinary: other month ticks
 - decade:
-  - primary: first year of Hebrew decade
-  - secondary: shmita year
-  - ordinary: other years
+  - primary: first year after shmita (start of the current shmita cycle)
+  - secondary: none
+  - ordinary: other years, including shmita-labeled years
 
 These rankings are intended as a bridge toward later transition-aware
 presentation, not as the final full hierarchy model.

@@ -17,28 +17,28 @@ const TEST_ENVIRONMENT: TimelineEnvironment = {
 describe('hebrew structural layer', () => {
   it('renders civil subdivision points and spans at minute and hour scales', () => {
     const minutePoints = createHebrewStructuralPoints({
-      primaryCalendarSystemId: 'hebrew',
+      leadingCalendarSystemId: 'hebrew',
       activeScaleLevel: -1,
       focusTimeMs: new Date('2026-04-01T12:00:30-04:00').getTime(),
       visibleDurationMs: 61 * 1000,
       environment: TEST_ENVIRONMENT,
     })
     const minuteSpans = createHebrewStructuralSpans({
-      primaryCalendarSystemId: 'hebrew',
+      leadingCalendarSystemId: 'hebrew',
       activeScaleLevel: -1,
       focusTimeMs: new Date('2026-04-01T12:00:30-04:00').getTime(),
       visibleDurationMs: 61 * 1000,
       environment: TEST_ENVIRONMENT,
     })
     const hourPoints = createHebrewStructuralPoints({
-      primaryCalendarSystemId: 'hebrew',
+      leadingCalendarSystemId: 'hebrew',
       activeScaleLevel: 0,
       focusTimeMs: new Date('2026-04-01T12:30:00-04:00').getTime(),
       visibleDurationMs: 61 * 60 * 1000,
       environment: TEST_ENVIRONMENT,
     })
     const hourSpans = createHebrewStructuralSpans({
-      primaryCalendarSystemId: 'hebrew',
+      leadingCalendarSystemId: 'hebrew',
       activeScaleLevel: 0,
       focusTimeMs: new Date('2026-04-01T12:30:00-04:00').getTime(),
       visibleDurationMs: 61 * 60 * 1000,
@@ -51,9 +51,39 @@ describe('hebrew structural layer', () => {
     expect(hourSpans.length).toBeGreaterThan(10)
   })
 
+  it('renders civil subdivision points for hebrew even when hebrew is secondary at minute/hour/day scales', () => {
+    const minutePoints = createHebrewStructuralPoints({
+      leadingCalendarSystemId: 'gregorian',
+      activeScaleLevel: -1,
+      focusTimeMs: new Date('2026-04-01T12:00:30-04:00').getTime(),
+      visibleDurationMs: 61 * 1000,
+      environment: TEST_ENVIRONMENT,
+    })
+    const hourPoints = createHebrewStructuralPoints({
+      leadingCalendarSystemId: 'gregorian',
+      activeScaleLevel: 0,
+      focusTimeMs: new Date('2026-04-01T12:30:00-04:00').getTime(),
+      visibleDurationMs: 61 * 60 * 1000,
+      environment: TEST_ENVIRONMENT,
+    })
+    const dayPoints = createHebrewStructuralPoints({
+      leadingCalendarSystemId: 'gregorian',
+      activeScaleLevel: 1,
+      focusTimeMs: new Date('2026-04-01T12:00:00-04:00').getTime(),
+      visibleDurationMs: 25 * 60 * 60 * 1000,
+      environment: TEST_ENVIRONMENT,
+    })
+
+    expect(minutePoints.some((point) => point.className?.includes('hebrew-subtick'))).toBe(true)
+    expect(hourPoints.some((point) => point.className?.includes('hebrew-subtick'))).toBe(true)
+    expect(dayPoints.some((point) => point.className?.includes('hebrew-subtick'))).toBe(true)
+    expect(minutePoints.some((point) => point.labelClassName?.includes('structural-label-supporting'))).toBe(true)
+    expect(hourPoints.some((point) => point.labelClassName?.includes('structural-label-supporting'))).toBe(true)
+  })
+
   it('creates sunset-based structural points at day scale', () => {
     const points = createHebrewStructuralPoints({
-      primaryCalendarSystemId: 'hebrew',
+      leadingCalendarSystemId: 'hebrew',
       activeScaleLevel: 1,
       focusTimeMs: new Date('2026-04-01T12:00:00-04:00').getTime(),
       visibleDurationMs: 25 * 60 * 60 * 1000,
@@ -61,12 +91,12 @@ describe('hebrew structural layer', () => {
     })
 
     expect(points.length).toBeGreaterThan(0)
-    expect(points.some((point) => point.labelClassName?.includes('structural-label-primary'))).toBe(true)
+    expect(points.some((point) => point.labelClassName?.includes('structural-label-leading'))).toBe(true)
     expect(points.some((point) => point.className?.includes('hebrew-subtick'))).toBe(true)
     expect(points.some((point) => (point.label ?? '').includes('PM'))).toBe(true)
 
     const spans = createHebrewStructuralSpans({
-      primaryCalendarSystemId: 'hebrew',
+      leadingCalendarSystemId: 'hebrew',
       activeScaleLevel: 1,
       focusTimeMs: new Date('2026-04-01T12:00:00-04:00').getTime(),
       visibleDurationMs: 25 * 60 * 60 * 1000,
@@ -80,7 +110,7 @@ describe('hebrew structural layer', () => {
 
   it('uses the same civil-hour span subdivision when hebrew is secondary at day scale', () => {
     const spans = createHebrewStructuralSpans({
-      primaryCalendarSystemId: 'gregorian',
+      leadingCalendarSystemId: 'gregorian',
       activeScaleLevel: 1,
       focusTimeMs: new Date('2026-04-01T12:00:00-04:00').getTime(),
       visibleDurationMs: 25 * 60 * 60 * 1000,
@@ -93,7 +123,7 @@ describe('hebrew structural layer', () => {
 
   it('uses Hebrew weekday labels at week scale', () => {
     const points = createHebrewStructuralPoints({
-      primaryCalendarSystemId: 'hebrew',
+      leadingCalendarSystemId: 'hebrew',
       activeScaleLevel: 2,
       focusTimeMs: new Date('2026-04-01T12:00:00-04:00').getTime(),
       visibleDurationMs: 8 * 24 * 60 * 60 * 1000,
@@ -105,7 +135,7 @@ describe('hebrew structural layer', () => {
 
   it('marks shabbat within month view labels', () => {
     const points = createHebrewStructuralPoints({
-      primaryCalendarSystemId: 'hebrew',
+      leadingCalendarSystemId: 'hebrew',
       activeScaleLevel: 3,
       focusTimeMs: new Date('2026-04-04T12:00:00-04:00').getTime(),
       visibleDurationMs: 32 * 24 * 60 * 60 * 1000,
@@ -117,7 +147,7 @@ describe('hebrew structural layer', () => {
 
   it('limits year-scale hebrew points to month boundaries', () => {
     const points = createHebrewStructuralPoints({
-      primaryCalendarSystemId: 'hebrew',
+      leadingCalendarSystemId: 'hebrew',
       activeScaleLevel: 5,
       focusTimeMs: new Date('2026-04-01T12:00:00-04:00').getTime(),
       visibleDurationMs: 366 * 24 * 60 * 60 * 1000,
@@ -128,9 +158,9 @@ describe('hebrew structural layer', () => {
     expect(points.every((point) => point.label === '' || /[A-Za-z]/.test(point.label ?? ''))).toBe(true)
   })
 
-  it('renders quarter-scale hebrew quarter boundaries and decade-scale hebrew year boundaries', () => {
+  it('renders quarter-scale hebrew month and quarter boundaries and shmita-scale hebrew year boundaries', () => {
     const quarterPoints = createHebrewStructuralPoints({
-      primaryCalendarSystemId: 'hebrew',
+      leadingCalendarSystemId: 'hebrew',
       activeScaleLevel: 4,
       focusTimeMs: new Date('2026-04-01T12:00:00-04:00').getTime(),
       visibleDurationMs: 120 * 24 * 60 * 60 * 1000,
@@ -143,9 +173,10 @@ describe('hebrew structural layer', () => {
     expect(quarterPoints.some((point) => point.label.includes('Iyyar'))).toBe(true)
     expect(quarterPoints.some((point) => point.label.includes('Sivan'))).toBe(true)
     expect(quarterPoints.some((point) => point.label.includes('Q'))).toBe(true)
+    expect(quarterPoints.some((point) => point.label === 'Rishon')).toBe(false)
 
     const decadePoints = createHebrewStructuralPoints({
-      primaryCalendarSystemId: 'hebrew',
+      leadingCalendarSystemId: 'hebrew',
       activeScaleLevel: 6,
       focusTimeMs: new Date('2026-04-01T12:00:00-04:00').getTime(),
       visibleDurationMs: 4015 * 24 * 60 * 60 * 1000,
@@ -153,6 +184,20 @@ describe('hebrew structural layer', () => {
     })
 
     expect(decadePoints.length).toBeGreaterThan(0)
-    expect(decadePoints.every((point) => /^\d{4}(, Shmita)?$/.test(point.label ?? ''))).toBe(true)
+    expect(decadePoints.some((point) => point.label === 'Shmita 5782')).toBe(true)
+    expect(decadePoints.some((point) => point.label === '5786')).toBe(true)
+    expect(decadePoints.some((point) => point.label === '5783' && point.className?.includes('tick-rank-primary'))).toBe(true)
+  })
+
+  it('adds unlabeled hebrew quarter ticks in year view', () => {
+    const points = createHebrewStructuralPoints({
+      leadingCalendarSystemId: 'hebrew',
+      activeScaleLevel: 5,
+      focusTimeMs: new Date('2026-04-01T12:00:00-04:00').getTime(),
+      visibleDurationMs: 366 * 24 * 60 * 60 * 1000,
+      environment: TEST_ENVIRONMENT,
+    })
+
+    expect(points.some((point) => point.label === '' && point.className?.includes('tick-rank-secondary'))).toBe(true)
   })
 })
