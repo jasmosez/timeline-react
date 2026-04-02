@@ -35,6 +35,54 @@ describe('gregorian scale label helpers', () => {
     expect(label).toBe('W31, Aug 1')
   })
 
+  it('keeps january month-view year boundaries local while still noting quarter starts', () => {
+    const leadingLabel = GREGORIAN_SCALE_LEVEL_CONFIG[3].getTickLabel(
+      new Date('2027-01-01T00:00:00-05:00').getTime(),
+      false,
+    )
+    const supportingLabel = getGregorianStructuralTickLabel(
+      3,
+      new Date('2027-01-01T00:00:00-05:00').getTime(),
+      false,
+      false,
+    )
+
+    expect(leadingLabel).toBe('Q1, Jan 1')
+    expect(supportingLabel).toBe('1 Jan, Q1')
+  })
+
+  it('adds quarter context to month-view quarter boundaries', () => {
+    const leadingLabel = GREGORIAN_SCALE_LEVEL_CONFIG[3].getTickLabel(
+      new Date('2026-04-01T00:00:00-04:00').getTime(),
+      false,
+    )
+    const supportingLabel = getGregorianStructuralTickLabel(
+      3,
+      new Date('2026-04-01T00:00:00-04:00').getTime(),
+      false,
+      false,
+    )
+
+    expect(leadingLabel).toBe('Q2, Apr 1')
+    expect(supportingLabel).toBe('1 Apr, Q2')
+  })
+
+  it('keeps quarter outermost when month and week begin on the same month-view tick', () => {
+    const leadingLabel = GREGORIAN_SCALE_LEVEL_CONFIG[3].getTickLabel(
+      new Date('2028-10-01T00:00:00-04:00').getTime(),
+      false,
+    )
+    const supportingLabel = getGregorianStructuralTickLabel(
+      3,
+      new Date('2028-10-01T00:00:00-04:00').getTime(),
+      false,
+      false,
+    )
+
+    expect(leadingLabel).toBe('Q4, W40, Oct 1')
+    expect(supportingLabel).toBe('Oct 1, W40, Q4')
+  })
+
   it('does not add month context just because a day is the first visible tick in month view', () => {
     const label = GREGORIAN_SCALE_LEVEL_CONFIG[3].getTickLabel(
       new Date('2026-03-17T00:00:00-04:00').getTime(),

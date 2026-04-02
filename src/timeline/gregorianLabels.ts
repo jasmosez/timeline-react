@@ -136,26 +136,27 @@ export const getGregorianWeekTickLabel = (tickTime: number) => {
 export const getGregorianMonthTickLabel = (tickTime: number, _isFirstTick: boolean) => {
   const tickDate = new Date(tickTime)
   const showMonth = is1stOfMonth(tickDate)
-  const showYear = is1stOfYear(tickDate)
   const isSunday = tickDate.getDay() === 0
+  const quarterLabel = isStartOfQuarter(tickDate) ? formatQuarterNumber(tickDate) : undefined
 
   if (isSunday && showMonth) {
-    return `${formatWeekNumber(tickDate)}, ${tickDate.toLocaleDateString(LOCALE, {
+    const label = `${formatWeekNumber(tickDate)}, ${tickDate.toLocaleDateString(LOCALE, {
       ...DAY,
       ...MONTH,
-      ...(showYear ? YEAR : {}),
     })}`
+    return quarterLabel ? `${quarterLabel}, ${label}` : label
   }
 
-  if (isSunday && !showYear) {
+  if (isSunday) {
     return `${formatWeekNumber(tickDate)}, ${tickDate.toLocaleDateString(LOCALE, DAY)}`
   }
 
-  return tickDate.toLocaleDateString(LOCALE, {
+  const label = tickDate.toLocaleDateString(LOCALE, {
     ...DAY,
     ...(showMonth ? MONTH : {}),
-    ...(showYear ? YEAR : {}),
   })
+
+  return quarterLabel && showMonth ? `${quarterLabel}, ${label}` : label
 }
 
 export const getGregorianQuarterWeekTickLabel = (tickTime: number) => {
@@ -242,19 +243,24 @@ export const getGregorianStructuralTickLabel = (
 
   if (scaleLevel === 3) {
     const showMonth = isFirstTick || is1stOfMonth(tickDate)
-    const showYear = is1stOfYear(tickDate)
     const isSunday = tickDate.getDay() === 0
+    const quarterLabel = isStartOfQuarter(tickDate) ? formatQuarterNumber(tickDate) : undefined
 
     if (!isPrimary && isSunday && showMonth) {
-      return `${tickDate.toLocaleDateString(LOCALE, {
+      const label = `${tickDate.toLocaleDateString(LOCALE, {
         ...DAY,
         ...MONTH,
-        ...(showYear ? YEAR : {}),
       })}, ${formatWeekNumber(tickDate)}`
+      return quarterLabel ? `${label}, ${quarterLabel}` : label
     }
 
-    if (!isPrimary && isSunday && !showYear) {
+    if (!isPrimary && isSunday) {
       return `${tickDate.toLocaleDateString(LOCALE, DAY)}, ${formatWeekNumber(tickDate)}`
+    }
+
+    if (!isPrimary && showMonth) {
+      const label = `${tickDate.toLocaleDateString(LOCALE, DAY)} ${tickDate.toLocaleDateString(LOCALE, MONTH)}`
+      return quarterLabel ? `${label}, ${quarterLabel}` : label
     }
 
     return getGregorianMonthTickLabel(tickTime, isFirstTick)
