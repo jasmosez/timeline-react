@@ -92,6 +92,17 @@ describe('gregorian scale label helpers', () => {
     expect(label).toBe('17')
   })
 
+  it('does not add month context just because a day is the first visible supporting tick in month view', () => {
+    const label = getGregorianStructuralTickLabel(
+      3,
+      new Date('2026-03-17T00:00:00-04:00').getTime(),
+      true,
+      false,
+    )
+
+    expect(label).toBe('17')
+  })
+
   it('keeps week view labels local even at month boundaries', () => {
     const label = GREGORIAN_SCALE_LEVEL_CONFIG[2].getTickLabel(
       new Date('2026-04-01T00:00:00-04:00').getTime(),
@@ -237,6 +248,15 @@ describe('gregorian scale label helpers', () => {
     )
 
     expect(label).toBe(':05')
+  })
+
+  it('does not give first-visible minute ticks extra precision anymore', () => {
+    const label = GREGORIAN_SCALE_LEVEL_CONFIG[-1].getTickLabel(
+      new Date('2026-03-17T12:34:03-04:00').getTime(),
+      true,
+    )
+
+    expect(label).toBeUndefined()
   })
 
   it('shows week numbers on quarter internal ticks', () => {

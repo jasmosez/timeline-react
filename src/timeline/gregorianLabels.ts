@@ -1,7 +1,6 @@
 import { LOCALE } from '../config'
 import type { ScaleLevel } from './scales'
 
-const SECOND: Intl.DateTimeFormatOptions = { second: '2-digit' }
 const MINUTE: Intl.DateTimeFormatOptions = { minute: '2-digit' }
 const HOUR: Intl.DateTimeFormatOptions = { hour: 'numeric', hour12: true }
 const HOUR_MINUTE: Intl.DateTimeFormatOptions = { hour: 'numeric', minute: '2-digit', hour12: true }
@@ -78,7 +77,7 @@ const formatHourMinuteWithOptionalTimezone = (tickDate: Date) =>
       : HOUR_MINUTE,
   )
 
-export const getGregorianMinuteTickLabel = (tickTime: number, isFirstTick: boolean) => {
+export const getGregorianMinuteTickLabel = (tickTime: number, _isFirstTick: boolean) => {
   const tickDate = new Date(tickTime)
 
   if (isMidnight(tickDate)) {
@@ -89,9 +88,6 @@ export const getGregorianMinuteTickLabel = (tickTime: number, isFirstTick: boole
   }
   if (isTopOfMinute(tickDate)) {
     return tickDate.toLocaleTimeString(LOCALE, { ...HOUR, ...MINUTE })
-  }
-  if (isFirstTick) {
-    return tickDate.toLocaleTimeString(LOCALE, { ...HOUR, ...MINUTE, ...SECOND })
   }
   if (is5thSec(tickDate)) {
     return `:${String(tickDate.getSeconds()).padStart(2, '0')}`
@@ -242,7 +238,7 @@ export const getGregorianStructuralTickLabel = (
   }
 
   if (scaleLevel === 3) {
-    const showMonth = isFirstTick || is1stOfMonth(tickDate)
+    const showMonth = is1stOfMonth(tickDate)
     const isSunday = tickDate.getDay() === 0
     const quarterLabel = isStartOfQuarter(tickDate) ? formatQuarterNumber(tickDate) : undefined
 
