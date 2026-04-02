@@ -1300,6 +1300,330 @@ For each pass, ask:
 - what feels like useful contrast across calendars?
 - what feels like noise?
 
+## Normalization Pass
+
+This section is the first rigorous normalization pass across Gregorian and
+Hebrew together.
+
+Goal:
+
+- identify where the two systems should align
+- identify where they should intentionally differ
+- identify what remains blocked on unresolved Hebrew intraday design
+
+The point is not to force the two calendars into false sameness.
+The point is to make their differences legible, principled, and low-friction.
+
+## Cross-Calendar Normalization Principles
+
+### 1. Shared Structural Vocabulary
+
+Across both calendars, we want a shared vocabulary of:
+
+- ordinary
+- secondary
+- primary
+- super-primary
+
+This does not require the same exact boundary types at every scale.
+It does require that the role of each rank feel understandable and stable.
+
+### 2. Shared Inner-Slot Discipline
+
+When both calendars are visible, the innermost slot should be as compatible as
+possible across them.
+
+That means:
+
+- if Gregorian uses day-near-axis at a scale, Hebrew should ideally also use
+  day-near-axis unless there is a strong reason not to
+- if Gregorian uses month-near-axis, Hebrew should ideally also keep month
+  nearest the axis
+
+This is the strongest coexistence principle we currently have.
+
+### 3. Sticky Context Should Carry Super-Primary Context By Default
+
+The default rule should be:
+
+- larger-orientation context belongs in sticky labels first
+- in-tick super-primary text should only survive where it materially improves
+  readability
+
+This should reduce noise and keep local labels more comparable across
+calendars.
+
+### 4. Label Cadence Should Usually Be Shared By Scale Family
+
+When possible, the two calendars should have compatible label cadence at the
+same scale, even if their actual label content differs.
+
+Example:
+
+- if Gregorian hour view labels ordinary ticks every 5 minutes, Hebrew hour view
+  should not suddenly become much denser unless the semantic gain is very high
+
+This is a perceptual rhythm principle, not a hard law.
+
+### 5. Intentional Asymmetry Is Allowed
+
+Differences are good when they express a real calendrical difference:
+
+- Gregorian week numbers vs Hebrew month/day identity
+- Gregorian quarter week internals vs Hebrew quarter month internals
+- Hebrew sunset boundaries vs Gregorian midnight boundaries
+- Hebrew shmita-cycle semantics at scale 6
+
+Differences are bad when they only create slot jitter or reading friction
+without carrying meaningful signal.
+
+## Scale-By-Scale Normalized Target
+
+### Minute
+
+Gregorian target:
+
+- ordinary = second
+- secondary = minute
+- primary = hour
+- super-primary = day boundary
+
+Hebrew target for now:
+
+- provisional placeholder regime
+- sunset remains the meaningful Hebrew boundary
+- ordinary/secondary/primary should not be over-normalized until intraday Hebrew
+  time is redesigned
+
+Coexistence target:
+
+- keep both systems relatively calm and clock-readable for now
+- do not aggressively optimize Hebrew minute composition around placeholder
+  assumptions
+
+Recommendation:
+
+- defer deeper normalization here until the Hebrew intraday/zmanim slice
+
+### Hour
+
+Gregorian target:
+
+- ordinary = minute
+- secondary = hour
+- primary = day
+- super-primary = week boundary if later surfaced
+
+Hebrew target for now:
+
+- same provisional caveat as minute
+- sunset boundary remains the important Hebrew event
+
+Coexistence target:
+
+- preserve a shared clock-readable feel for now
+- avoid over-investing in final composition before Hebrew intraday semantics are
+  real
+
+Recommendation:
+
+- defer deeper normalization here until the Hebrew intraday/zmanim slice
+
+### Day
+
+Gregorian target:
+
+- ordinary = hour
+- secondary = day
+- primary = week
+- super-primary = larger month/year carry should default to sticky context
+
+Current best label target:
+
+- ordinary labels: 3-hour cadence
+- secondary leading: `Wed 1, 12 AM`
+- secondary supporting: `12 AM, 1 Wed`
+- primary leading: `W14, Sun 29, 12 AM`
+- primary supporting: `12 AM, 29 Sun, W14`
+
+Hebrew target for now:
+
+- primary = sunset boundary
+- ordinary = civil-hour placeholder subdivision
+- secondary not yet normalized
+
+Coexistence target:
+
+- allow Gregorian and Hebrew to disagree meaningfully about which boundary
+  matters most
+- keep the innermost label element locally identifying and stable
+- avoid injecting extra month/year context into day ticks unless sticky context
+  is insufficient
+
+Recommendation:
+
+- Gregorian day is now close to target
+- Hebrew day remains blocked on intraday design
+
+### Week
+
+Gregorian target:
+
+- ordinary = day
+- secondary = week
+- primary = month
+
+Hebrew target:
+
+- ordinary = Hebrew day
+- secondary = Hebrew week boundary after `Shabbat`
+- primary = Hebrew month boundary
+
+Coexistence target:
+
+- both calendars should keep day identity nearest the axis
+- cycle/context information should move outward:
+  - Gregorian: week number
+  - Hebrew: weekday / month context as needed
+
+Assessment:
+
+- this is currently one of the best coexistence scales in the app
+
+Open question:
+
+- whether Gregorian primary month-boundary text should remain mostly sticky-only
+  here
+
+### Month
+
+Gregorian target:
+
+- ordinary = day
+- secondary = week / Sunday
+- primary = month boundary
+- super-primary = year stays mostly sticky
+
+Hebrew target:
+
+- ordinary = Hebrew day
+- secondary = Hebrew weekly rhythm/boundary
+- primary = Hebrew month boundary
+
+Coexistence target:
+
+- both calendars should keep day identity nearest the axis
+- outward slots can then carry:
+  - Gregorian week number / month
+  - Hebrew weekday rhythm / month
+
+Assessment:
+
+- this is the most important coexistence scale after week
+- it is also the most conceptually unresolved Hebrew scale above intraday bands
+
+Open questions:
+
+- should `Shabbat` remain a tick-label cue, become a span cue, or both?
+- how should geometric weekly emphasis and `Shabbat` text be unified?
+
+### Quarter
+
+Gregorian target:
+
+- ordinary = week
+- secondary = month
+- primary = quarter
+
+Hebrew target:
+
+- secondary = month
+- primary = quarter
+- no ordinary weekly internals by default for now
+
+Coexistence target:
+
+- accept intentional asymmetry here:
+  Gregorian quarter is week-forward, Hebrew quarter is month-forward
+- keep both systems internally coherent rather than forcing false parallelism
+
+Assessment:
+
+- this is a justified asymmetry for now
+- if Hebrew week identity becomes normalized later, quarter may need revisiting
+
+### Year
+
+Gregorian target:
+
+- ordinary = month
+- secondary = unlabeled quarter
+- primary = year start
+
+Hebrew target:
+
+- ordinary = month
+- secondary = unlabeled quarter
+- primary = year start
+
+Coexistence target:
+
+- this should be one of the most symmetric scales
+- both calendars should keep month nearest the axis
+- year context should stay outward or in sticky context
+
+Assessment:
+
+- year view is already close to an elegant normalized target
+
+### Scale 6: Decade / Shmita
+
+Gregorian target:
+
+- ordinary = year
+- secondary = midpoint year
+- primary = decade start
+
+Hebrew target:
+
+- ordinary = year
+- primary = first post-shmita year
+- shmita year textually marked
+- no attempt to mimic Gregorian decade semantics
+
+Coexistence target:
+
+- allow strong asymmetry here because the calendars are making genuinely
+  different long-span claims
+- keep labels relatively text-light so the asymmetry remains legible rather than
+  noisy
+
+Assessment:
+
+- this is a meaningful asymmetry, not necessarily a problem
+- future shmita cycle numbering will make Hebrew richer here without requiring
+  more Gregorian complexity
+
+## Recommended Implementation Priority After This Pass
+
+1. Gregorian/Hebrew label-composition cleanup at week/month scales
+   Reason:
+   these are the strongest coexistence scales and the biggest near-axis
+   scanability wins
+
+2. Hebrew month-view normalization
+   Reason:
+   this is the biggest unresolved non-intraday composition problem
+
+3. Super-primary text review pass
+   Reason:
+   apply the sticky-context rule systematically, case by case
+
+4. Hebrew intraday / zmanim design
+   Reason:
+   minute/hour/day Hebrew cannot be fully normalized until their semantics are
+   honest
+
 ## Gregorian: Target Direction
 
 ### Minute

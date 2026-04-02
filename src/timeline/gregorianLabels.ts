@@ -133,9 +133,9 @@ export const getGregorianWeekTickLabel = (tickTime: number) => {
   return `${tickDate.toLocaleDateString(LOCALE, WEEKDAY)} ${tickDate.toLocaleDateString(LOCALE, DAY)}`
 }
 
-export const getGregorianMonthTickLabel = (tickTime: number, isFirstTick: boolean) => {
+export const getGregorianMonthTickLabel = (tickTime: number, _isFirstTick: boolean) => {
   const tickDate = new Date(tickTime)
-  const showMonth = isFirstTick || is1stOfMonth(tickDate)
+  const showMonth = is1stOfMonth(tickDate)
   const showYear = is1stOfYear(tickDate)
   const isSunday = tickDate.getDay() === 0
 
@@ -219,7 +219,11 @@ export const getGregorianStructuralTickLabel = (
 
   if (scaleLevel === 2) {
     if (!isPrimary && tickDate.getDay() === 0) {
-      return `${tickDate.toLocaleDateString(LOCALE, WEEKDAY)} ${tickDate.toLocaleDateString(LOCALE, DAY)}, ${formatWeekNumber(tickDate)}`
+      return `${tickDate.toLocaleDateString(LOCALE, DAY)} ${tickDate.toLocaleDateString(LOCALE, WEEKDAY)}, ${formatWeekNumber(tickDate)}`
+    }
+
+    if (!isPrimary) {
+      return `${tickDate.toLocaleDateString(LOCALE, DAY)} ${tickDate.toLocaleDateString(LOCALE, WEEKDAY)}`
     }
 
     return getGregorianWeekTickLabel(tickTime)
@@ -266,9 +270,9 @@ export const getGregorianStructuralTickLabel = (
   return undefined
 }
 
-export const getGregorianYearTickLabel = (tickTime: number, isFirstTick: boolean) => {
+export const getGregorianYearTickLabel = (tickTime: number, _isFirstTick: boolean) => {
   const tickDate = new Date(tickTime)
-  return tickDate.toLocaleDateString(LOCALE, isFirstTick || is1stOfYear(tickDate) ? { ...MONTH, ...YEAR } : MONTH)
+  return tickDate.toLocaleDateString(LOCALE, is1stOfYear(tickDate) ? { ...MONTH, ...YEAR } : MONTH)
 }
 
 export const getGregorianDecadeTickLabel = (tickTime: number) => {

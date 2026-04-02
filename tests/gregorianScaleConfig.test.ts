@@ -35,6 +35,15 @@ describe('gregorian scale label helpers', () => {
     expect(label).toBe('W31, Aug 1')
   })
 
+  it('does not add month context just because a day is the first visible tick in month view', () => {
+    const label = GREGORIAN_SCALE_LEVEL_CONFIG[3].getTickLabel(
+      new Date('2026-03-17T00:00:00-04:00').getTime(),
+      true,
+    )
+
+    expect(label).toBe('17')
+  })
+
   it('keeps week view labels local even at month boundaries', () => {
     const label = GREGORIAN_SCALE_LEVEL_CONFIG[2].getTickLabel(
       new Date('2026-04-01T00:00:00-04:00').getTime(),
@@ -61,7 +70,18 @@ describe('gregorian scale label helpers', () => {
       false,
     )
 
-    expect(label).toBe('Sun 29, W14')
+    expect(label).toBe('29 Sun, W14')
+  })
+
+  it('puts day before weekday for ordinary gregorian supporting week labels', () => {
+    const label = getGregorianStructuralTickLabel(
+      2,
+      new Date('2026-04-01T00:00:00-04:00').getTime(),
+      false,
+      false,
+    )
+
+    expect(label).toBe('1 Wed')
   })
 
   it('labels every midnight boundary locally in day view', () => {
