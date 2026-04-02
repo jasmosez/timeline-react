@@ -150,7 +150,30 @@ In plainer terms:
 
 This is not a pure symmetry rule. It is a spatial-reading rule.
 
-### 5. Label Composition Parts
+### 5. Transition-Friendly Label Simplification
+
+When moving between adjacent scale bands, labels should ideally simplify or
+enrich by adding or removing elements at the outer edge of the composition
+rather than by replacing the whole label with a different pattern.
+
+Example:
+
+- Gregorian day boundary in day view:
+  `Tue 3, 12 AM`
+- in week view:
+  `Tue 3`
+- in month view:
+  `3`
+
+This is a strong transition pattern because:
+
+- the local identity remains stable
+- zooming changes how much context the label carries, not what kind of thing the
+  label seems to be
+- it sets the system up well for future continuous or semi-continuous zoom
+  transitions
+
+### 6. Label Composition Parts
 
 The current code does not yet model explicit label parts, but the design logic
 is clearly circling around them.
@@ -223,7 +246,7 @@ The design problem is not just “what data exists.” It is:
 - and how the same element set should be ordered differently in leading and
   supporting roles
 
-### 6. Near-Axis Priority and Column Stability
+### 7. Near-Axis Priority and Column Stability
 
 The most important symmetry rule is not that labels on both sides should be
 perfect mirrors. It is that the innermost element should be stable and
@@ -259,7 +282,7 @@ This is especially important when deciding:
 - when to add or omit a larger contextual element
 - when sticky context makes additional in-label context unnecessary
 
-### 7. Cross-Calendar Coexistence Is Its Own Design Problem
+### 8. Cross-Calendar Coexistence Is Its Own Design Problem
 
 It is not enough for Gregorian labels and Hebrew labels to each make sense in
 isolation.
@@ -289,7 +312,7 @@ This is especially important because some of the strongest friction in the app
 has not come from a single awkward label, but from the way two labels read
 together when both layers are present.
 
-### 8. Super-Primary Text Should Usually Collapse Into Sticky Context
+### 9. Super-Primary Text Should Usually Collapse Into Sticky Context
 
 Current design decision:
 
@@ -308,7 +331,7 @@ The goal is:
   axis
 - let sticky context carry the larger-period orientation work whenever possible
 
-### 9. Sticky Context Is Part of the System
+### 10. Sticky Context Is Part of the System
 
 Sticky context labels are not merely interface chrome. They are part of the
 information-allocation strategy.
@@ -323,7 +346,7 @@ Questions they directly influence:
 - when a super-primary label can stay compact because sticky context is doing
   enough work already
 
-### 10. Label Cadence vs Label Suppression
+### 11. Label Cadence vs Label Suppression
 
 These are closely related, but not identical.
 
@@ -341,7 +364,7 @@ Examples:
 For design purposes, they belong in the same family and should be audited
 together.
 
-### 11. Spans Want the Same Architecture
+### 12. Spans Want the Same Architecture
 
 The same structure likely applies to spans:
 

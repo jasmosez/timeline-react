@@ -227,6 +227,20 @@ describe('gregorian scale label helpers', () => {
     expect(label).toBe('Apr, Q2')
   })
 
+  it('combines month and week number when a week and month begin on the same quarter tick', () => {
+    const leadingLabel = getGregorianQuarterBoundaryLabel(
+      new Date('2026-02-01T00:00:00-05:00').getTime(),
+      true,
+    )
+    const supportingLabel = getGregorianQuarterBoundaryLabel(
+      new Date('2026-02-01T00:00:00-05:00').getTime(),
+      false,
+    )
+
+    expect(leadingLabel).toBe('Feb, W6')
+    expect(supportingLabel).toBe('W6, Feb')
+  })
+
   it('only includes the year on january labels in year view', () => {
     const primaryLabel = getGregorianStructuralTickLabel(
       5,

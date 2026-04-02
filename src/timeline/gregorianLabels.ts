@@ -164,14 +164,25 @@ export const getGregorianQuarterWeekTickLabel = (tickTime: number) => {
 
 export const getGregorianQuarterBoundaryLabel = (tickTime: number, isPrimary = true) => {
   const tickDate = new Date(tickTime)
+  const monthLabel = tickDate.toLocaleDateString(LOCALE, MONTH)
+  const weekLabel = tickDate.getDay() === 0 ? formatWeekNumber(tickDate) : undefined
 
   if (isStartOfQuarter(tickDate)) {
     const quarterLabel = `Q${Math.floor(tickDate.getMonth() / 3) + 1}`
-    const monthLabel = tickDate.toLocaleDateString(LOCALE, MONTH)
+    if (weekLabel) {
+      return isPrimary
+        ? `${quarterLabel}, ${monthLabel}, ${weekLabel}`
+        : `${weekLabel}, ${monthLabel}, ${quarterLabel}`
+    }
+
     return isPrimary ? `${quarterLabel}, ${monthLabel}` : `${monthLabel}, ${quarterLabel}`
   }
 
-  return tickDate.toLocaleDateString(LOCALE, MONTH)
+  if (weekLabel) {
+    return isPrimary ? `${monthLabel}, ${weekLabel}` : `${weekLabel}, ${monthLabel}`
+  }
+
+  return monthLabel
 }
 
 export const getGregorianStructuralTickLabel = (
