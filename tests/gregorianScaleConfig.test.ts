@@ -84,6 +84,24 @@ describe('gregorian scale label helpers', () => {
     expect(label).toBe('12 AM, 1 Wed')
   })
 
+  it('uses week-boundary composition for sunday midnight labels in day view', () => {
+    const leadingLabel = getGregorianStructuralTickLabel(
+      1,
+      new Date('2026-03-29T00:00:00-04:00').getTime(),
+      false,
+      true,
+    )
+    const supportingLabel = getGregorianStructuralTickLabel(
+      1,
+      new Date('2026-03-29T00:00:00-04:00').getTime(),
+      false,
+      false,
+    )
+
+    expect(leadingLabel).toBe('W14, Sun 29, 12 AM')
+    expect(supportingLabel).toBe('12 AM, 29 Sun, W14')
+  })
+
   it('labels midnight boundaries explicitly in hour view', () => {
     const label = GREGORIAN_SCALE_LEVEL_CONFIG[0].getTickLabel(
       new Date('2026-04-01T00:00:00-04:00').getTime(),

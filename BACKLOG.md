@@ -95,6 +95,12 @@ Usage:
   7
   Target: Phase 2
 
+- Give `Shabbat` spans a distinct visual treatment within the Hebrew palette
+  Notes: likely most useful in Hebrew week/month views; should feel related to
+  the Hebrew layer without overpowering it; probably best explored alongside
+  broader span architecture rather than as a one-off tweak
+  Target: Phase 2
+
 - Mobile / responsive layout strategy
   Notes: rail collapse, touch interaction, and preserving timeline-first
   composition on small screens

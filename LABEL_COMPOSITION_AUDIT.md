@@ -17,6 +17,7 @@ includes:
 - suppression rules
 - optional span lanes
 - higher-order transition cues
+- cross-calendar coexistence
 
 ## Scope
 
@@ -27,6 +28,9 @@ In scope:
 - ordinary / secondary / primary tick rank
 - higher-order transitional meaning
 - sticky context labels as part of information allocation
+- coexistence between:
+  - Gregorian leading + Hebrew supporting
+  - Hebrew leading + Gregorian supporting
 
 Out of scope for this pass:
 
@@ -255,7 +259,56 @@ This is especially important when deciding:
 - when to add or omit a larger contextual element
 - when sticky context makes additional in-label context unnecessary
 
-### 7. Sticky Context Is Part of the System
+### 7. Cross-Calendar Coexistence Is Its Own Design Problem
+
+It is not enough for Gregorian labels and Hebrew labels to each make sense in
+isolation.
+
+When both calendars are visible, the pair must also read coherently as a
+system.
+
+This introduces additional design questions:
+
+- are the innermost slots harmonized enough to scan comfortably?
+- do the two labels expose comparable kinds of information near the axis?
+- where do differences carry meaningful signal?
+- where do differences just create noise or friction?
+- when one calendar leads and the other supports, does the contrast clarify the
+  view or destabilize it?
+
+So the label-composition problem has at least three axes:
+
+- scale
+- role (`leading` vs `supporting`)
+- coexistence mode
+  - single-calendar
+  - Gregorian leading / Hebrew supporting
+  - Hebrew leading / Gregorian supporting
+
+This is especially important because some of the strongest friction in the app
+has not come from a single awkward label, but from the way two labels read
+together when both layers are present.
+
+### 8. Super-Primary Text Should Usually Collapse Into Sticky Context
+
+Current design decision:
+
+- sticky context labels are the default home for super-primary information
+
+That means:
+
+- if a super-primary boundary is still carrying explicit in-tick text, that
+  should usually be treated as suspicious
+- before removing that text, we should explicitly review the case rather than
+  deleting it automatically
+
+The goal is:
+
+- keep the local tick label focused on what is nearest and most useful at the
+  axis
+- let sticky context carry the larger-period orientation work whenever possible
+
+### 9. Sticky Context Is Part of the System
 
 Sticky context labels are not merely interface chrome. They are part of the
 information-allocation strategy.
@@ -270,7 +323,7 @@ Questions they directly influence:
 - when a super-primary label can stay compact because sticky context is doing
   enough work already
 
-### 8. Label Cadence vs Label Suppression
+### 10. Label Cadence vs Label Suppression
 
 These are closely related, but not identical.
 
@@ -288,7 +341,7 @@ Examples:
 For design purposes, they belong in the same family and should be audited
 together.
 
-### 9. Spans Want the Same Architecture
+### 11. Spans Want the Same Architecture
 
 The same structure likely applies to spans:
 
@@ -313,6 +366,7 @@ For each scale, the current-state shape is:
 - label cadence
 - label composition
 - sticky context
+- coexistence notes
 - mismatch notes
 
 ## Gregorian: Current State
@@ -357,6 +411,15 @@ Label composition:
 Sticky context:
 
 - current sticky context carries weekday, date, and current minute
+
+Coexistence notes:
+
+- Gregorian minute labels currently expose civil clock structure clearly
+- Hebrew minute labels also expose civil clock structure for now, which reduces
+  immediate cross-calendar friction but only because Hebrew intraday remains a
+  placeholder regime
+- the innermost slot is not yet intentionally harmonized across both calendars;
+  it only happens to be relatively calm because both are clock-forward
 
 Combined-rank behavior:
 
@@ -413,6 +476,13 @@ Sticky context:
 
 - current sticky context carries weekday, date, and current hour
 
+Coexistence notes:
+
+- Gregorian and Hebrew hour labels are both currently clock-forward, which helps
+  scanability
+- this coexistence may change substantially once Hebrew intraday becomes more
+  truthful
+
 Combined-rank behavior:
 
 - repeated hours or DST-shift hours can gain timezone clarification
@@ -456,6 +526,14 @@ Sticky context:
 
 - current sticky context carries weekday, month, day, year
 
+Coexistence notes:
+
+- Gregorian day labels currently emphasize civil day boundaries
+- Hebrew day labels emphasize sunset boundaries
+- this scale already demonstrates one of the fundamental coexistence tensions:
+  the two systems are not disagreeing about text style, but about what the key
+  boundary actually is
+
 Combined-rank behavior:
 
 - day boundary currently works as both current-band identity and stronger
@@ -469,6 +547,16 @@ Mismatch notes:
   conceptually it may want to be
   label cadence or visual emphasis rather than true rank
 - this is also a scale where the inner-slot rule is not yet clearly normalized
+
+Target-direction note:
+
+- if Gregorian day view adopts week-boundary primary labels, the current best
+  symmetry is:
+  - leading: `W14, Sun 29, 12 AM`
+  - supporting: `12 AM, 29 Sun, W14`
+- this is a useful example of full multi-element symmetry:
+  time remains innermost on the supporting side, then day, then weekday, then
+  week number outward
 
 ### Week
 
@@ -503,6 +591,14 @@ Label composition:
 Sticky context:
 
 - current sticky context carries month/year context
+
+Coexistence notes:
+
+- week view is one of the clearest cross-calendar coexistence scales
+- Gregorian inner-slot emphasis is weekday/day, with week number outward
+- Hebrew supporting labels now also preserve day-near-axis more consistently
+- this scale still needs careful review around month-boundary cases when both
+  calendars are visible
 
 Combined-rank behavior:
 
@@ -546,6 +642,14 @@ Label composition:
 Sticky context:
 
 - current sticky context carries month/year
+
+Coexistence notes:
+
+- month view is a strong coexistence scale because both systems can keep day
+  identity near the axis while differing in outer context
+- Hebrew `Shabbat` rhythm and Gregorian week-number rhythm do not yet feel fully
+  normalized against one another
+- this is one of the scales where cross-calendar slot stability matters most
 
 Combined-rank behavior:
 
@@ -595,6 +699,15 @@ Sticky context:
 
 - current sticky context carries the year
 
+Coexistence notes:
+
+- Gregorian quarter currently foregrounds week identity
+- Hebrew quarter currently foregrounds month identity
+- this is an intentional asymmetry for now, but it creates one of the clearest
+  cross-calendar differences in local slot semantics
+- Hebrew quarter likely wants revisiting later, possibly through optional week /
+  parsha logic
+
 Combined-rank behavior:
 
 - week/month/quarter information currently coexists, but collision handling is
@@ -639,6 +752,14 @@ Sticky context:
 
 - current sticky context carries year context
 
+Coexistence notes:
+
+- year view currently coexists fairly well because both calendars keep month
+  identity near the axis and move broader year context outward or into sticky
+  context
+- the unlabeled quarter ticks help preserve shared structural rhythm without
+  adding more textual divergence
+
 Combined-rank behavior:
 
 - quarter structure is intentionally partly non-textual at this scale
@@ -678,6 +799,16 @@ Label composition:
 Sticky context:
 
 - no sticky context
+
+Coexistence notes:
+
+- scale 6 currently diverges strongly across calendars:
+  - Gregorian reads as decade
+  - Hebrew reads as shmita cycle
+- this is meaningful, but it is also one of the strongest cross-calendar
+  asymmetries in the app
+- it likely wants continued scrutiny so that the difference feels informative
+  rather than arbitrary
 
 Combined-rank behavior:
 
@@ -719,6 +850,13 @@ Label composition:
 Sticky context:
 
 - current sticky context carries weekday, date, and minute
+
+Coexistence notes:
+
+- Hebrew minute labels currently coexist relatively peacefully with Gregorian
+  only because both are still civil-time-forward
+- once Hebrew intraday semantics change, this scale will need a full coexistence
+  rethink
 
 Combined-rank behavior:
 
@@ -763,6 +901,10 @@ Sticky context:
 
 - current sticky context carries weekday, date, and hour
 
+Coexistence notes:
+
+- same coexistence caveat as minute view
+
 Element notes:
 
 - current labels again use clock + weekday + day as the provisional element set
@@ -799,6 +941,12 @@ Label composition:
 Sticky context:
 
 - current sticky context carries weekday, date, year
+
+Coexistence notes:
+
+- Gregorian and Hebrew day views are already productively different here, but
+  the next challenge will be deciding how much the two systems should align in
+  slot structure once Hebrew intraday becomes non-placeholder
 
 Combined-rank behavior:
 
@@ -843,6 +991,13 @@ Label composition:
 Sticky context:
 
 - current sticky context carries Hebrew month/year
+
+Coexistence notes:
+
+- week view is a strong candidate for cross-calendar slot alignment:
+  both systems can plausibly keep day identity nearest the axis
+- this is likely where the leading/supporting symmetry project has already paid
+  off the most
 
 Combined-rank behavior:
 
@@ -893,6 +1048,13 @@ Sticky context:
 
 - current sticky context carries Hebrew month/year
 
+Coexistence notes:
+
+- Hebrew month view currently creates friction partly because weekly geometry
+  and `Shabbat` label rhythm are not yet unified
+- this friction becomes more noticeable when Gregorian month labels are nearby
+  and slot expectations become easier to compare
+
 Mismatch notes:
 
 - this scale mixes geometric weekly emphasis and label-side `Shabbat` rhythm in
@@ -935,6 +1097,12 @@ Label composition:
 Sticky context:
 
 - current sticky context carries Hebrew year
+
+Coexistence notes:
+
+- Hebrew quarter stays intentionally lighter than Gregorian quarter right now
+- that reduces clutter, but also makes the two quarter systems feel less
+  structurally parallel
 
 Combined-rank behavior:
 
@@ -980,6 +1148,11 @@ Sticky context:
 
 - current sticky context carries Hebrew year
 
+Coexistence notes:
+
+- Hebrew and Gregorian year views currently coexist well because both keep month
+  as the main textual local identifier
+
 ### Scale 6: Decade / Shmita
 
 Ordinary tick:
@@ -1017,6 +1190,13 @@ Label composition:
 Sticky context:
 
 - no sticky context
+
+Coexistence notes:
+
+- Hebrew scale-6 labels are now conceptually rich in a way Gregorian decade
+  labels are not
+- this is meaningful, but it also means the two sides are no longer trying to
+  solve the same perceptual problem
 
 Combined-rank behavior:
 
@@ -1100,6 +1280,25 @@ And do so with explicit awareness of:
 - which elements may move outward
 - which elements should be sticky-context-only at a given scale
 - which combined-rank cases genuinely need unioned element sets
+- which cross-calendar differences are meaningful signal vs unnecessary noise
+
+## Suggested Review Method For The Next Pass
+
+When using this audit to guide design changes, review each scale in four passes:
+
+1. single-calendar Gregorian
+2. single-calendar Hebrew
+3. Gregorian leading + Hebrew supporting
+4. Hebrew leading + Gregorian supporting
+
+For each pass, ask:
+
+- what is the innermost slot?
+- is that slot stable enough to scan vertically?
+- what element is doing the real local-identification work?
+- what information is being carried by sticky context instead?
+- what feels like useful contrast across calendars?
+- what feels like noise?
 
 ## Gregorian: Target Direction
 

@@ -199,6 +199,17 @@ export const getGregorianStructuralTickLabel = (
   }
 
   if (scaleLevel === 1) {
+    if (tickDate.getHours() === 0 && tickDate.getDay() === 0) {
+      const timeLabel = tickDate.toLocaleTimeString(LOCALE, HOUR)
+      const dayLabel = tickDate.toLocaleDateString(LOCALE, DAY)
+      const weekdayLabel = tickDate.toLocaleDateString(LOCALE, WEEKDAY)
+      const weekLabel = formatWeekNumber(tickDate)
+
+      return isPrimary
+        ? `${weekLabel}, ${weekdayLabel} ${dayLabel}, ${timeLabel}`
+        : `${timeLabel}, ${dayLabel} ${weekdayLabel}, ${weekLabel}`
+    }
+
     if (!isPrimary && isMidnight(tickDate)) {
       return `${tickDate.toLocaleTimeString(LOCALE, HOUR)}, ${tickDate.toLocaleDateString(LOCALE, DAY)} ${tickDate.toLocaleDateString(LOCALE, WEEKDAY)}`
     }
