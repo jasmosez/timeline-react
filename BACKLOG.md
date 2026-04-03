@@ -71,6 +71,14 @@ Usage:
   the basis for the next label-composition refactor
   Target: Phase 2
 
+- Continue the label-composition normalization pass after the Hebrew intraday slice
+  Notes: use the audit to review all Gregorian/Hebrew scales together for
+  leading/supporting symmetry, cross-calendar coexistence, sticky-context
+  allocation, and cleanup of remaining higher-order label carry; treat Hebrew
+  day-and-below / zmanim design as the next prerequisite before finishing the
+  broader normalization pass
+  Target: Phase 2
+
 ## Later
 
 - Smooth band-transition treatment for gesture zoom and HQ button zoom

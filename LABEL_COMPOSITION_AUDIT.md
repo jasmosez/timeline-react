@@ -1896,9 +1896,12 @@ Desired composition:
 
 ## Recommended Next Design Move
 
-Before further label-code deepening, the next step should be:
+Before resuming deeper cross-scale label normalization, the next step should be:
 
-1. use this document to normalize the theory
-2. identify the clearest mismatch to fix first, probably day view
-3. define explicit label parts and composition recipes
-4. only then refactor formatter code toward that model
+1. shift into Hebrew day view and below
+2. clarify the intraday Hebrew horizon, likely including zmanim /
+   proportional-hour design direction
+3. then return to this document for the broader Gregorian/Hebrew normalization
+   pass
+4. only after that refactor formatter code toward a fuller explicit
+   composition-part model

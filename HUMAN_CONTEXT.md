@@ -163,8 +163,9 @@ Some important active or near-active topics:
 - label-density suppression near primary boundaries
 - Gregorian visual primacy still being a bit too strong in some views
 - richer Hebrew boundary context at broader scales
-- full tick/label-composition audit across scale, rank, and leading/supporting
-  role
+- Hebrew day view and below, including the path toward zmanim / richer intraday
+  Hebrew structure
+- broader label-composition normalization after the Hebrew intraday slice
 - later 24-hour mode exploration
 
 ## Current Product Truths Worth Remembering
@@ -177,6 +178,9 @@ Some important active or near-active topics:
 - Scale `6` is no longer symmetrical:
   - Gregorian reads as decade
   - Hebrew reads as shmita cycle
+- [LABEL_COMPOSITION_AUDIT.md](/Users/jms/code/timeline-react/LABEL_COMPOSITION_AUDIT.md)
+  is now the main design map for future label normalization, but that work is
+  intentionally paused until after the next Hebrew intraday slice.
 
 ## How To Stay On Top Of The Project
 

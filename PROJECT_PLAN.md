@@ -318,6 +318,16 @@ Current progress:
   separation
 - Gregorian label policy is being separated from generic scale-band mechanics,
   which should make Hebrew labeling cleaner to implement next
+- a broad label-composition audit now exists and is guiding future normalization
+  work across Gregorian and Hebrew
+- the next active Phase 2 implementation focus is Hebrew day view and below,
+  including the path toward honest intraday Hebrew time
+
+Near-term sequencing:
+
+- next: Hebrew day view and below
+- after that: return to the broader label-composition normalization pass with
+  the Hebrew intraday horizon clarified
 
 Phase 2 notes:
 
