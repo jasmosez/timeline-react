@@ -1,8 +1,8 @@
 import type { LeadingCalendarSystemId, TimelineLayer } from './layers'
-import { createStructuralSpansForRange, positionTimelinePoint, positionTimelineSpan } from './layout'
-import { getVisibleRangeStartTickDate, getVisibleTimeRange, SCALE_LEVEL_CONFIG, type ScaleLevel } from './scales'
+import { positionTimelinePoint, positionTimelineSpan } from './layout'
+import { getVisibleRangeStartTickDate, getVisibleTimeRange, type ScaleLevel } from './scales'
 import type { PositionedTimelinePoint, PositionedTimelineSpan, TimelinePoint, TimelineSpan } from './types'
-import { getHebrewDayInfo, isHebrewQuarterStartMonth } from './hebrewTime'
+import { getHebrewDayInfo, getHebrewDaylightCivilDate, getZmanimForCivilDate, isHebrewQuarterStartMonth } from './hebrewTime'
 import { getHebrewTickLabel } from './hebrewLabels'
 
 type HebrewLayerParams = {
@@ -36,6 +36,10 @@ const shouldEmitHebrewBoundary = (
     return dayInfo.hebrewDate.day === 1 && dayInfo.hebrewDate.month === 7
   }
 
+  if (activeScaleLevel === -1 || activeScaleLevel === 0 || activeScaleLevel === 1) {
+    return false
+  }
+
   return true
 }
 
@@ -44,22 +48,24 @@ type HebrewBoundary = {
   label: string
 }
 
+type HebrewIntradayPoint = {
+  id: string
+  timeMs: number
+  label: string
+  rankClass: 'tick-rank-ordinary' | 'tick-rank-secondary' | 'tick-rank-primary'
+}
+
+type HebrewIntradaySpan = {
+  span: TimelineSpan
+  stripeClass: 'structural-span-stripe-a' | 'structural-span-stripe-b'
+}
+
 const getHebrewSpanStripeClass = (
   activeScaleLevel: ScaleLevel,
   startTimeMs: number,
   environment: HebrewLayerParams['environment'],
 ) => {
   const startDate = new Date(startTimeMs)
-
-  if (activeScaleLevel === -1) {
-    const stripeIndex = Math.floor(startTimeMs / 1000)
-    return stripeIndex % 2 === 0 ? 'structural-span-stripe-a' : 'structural-span-stripe-b'
-  }
-
-  if (activeScaleLevel === 0) {
-    const stripeIndex = Math.floor(startTimeMs / (60 * 1000))
-    return stripeIndex % 2 === 0 ? 'structural-span-stripe-a' : 'structural-span-stripe-b'
-  }
 
   if (activeScaleLevel === 1) {
     const stripeIndex = startDate.getHours()
@@ -85,6 +91,148 @@ const getHebrewSpanStripeClass = (
   return dayInfo.hebrewDate.year % 2 === 0 ? 'structural-span-stripe-a' : 'structural-span-stripe-b'
 }
 
+const getDayViewIntradayPoints = (
+  focusTimeMs: number,
+  visibleDurationMs: number,
+  environment: HebrewLayerParams['environment'],
+) => {
+  const { startTimeMs, endTimeMs } = getVisibleTimeRange(focusTimeMs, visibleDurationMs)
+  const bufferedStart = startTimeMs - visibleDurationMs * 0.5
+  const bufferedEnd = endTimeMs + visibleDurationMs * 0.5
+  const points = new Map<number, HebrewIntradayPoint>()
+
+  let civilDate = getCivilDateAtNoonUtc(new Date(bufferedStart))
+  civilDate.setUTCDate(civilDate.getUTCDate() - 1)
+
+  while (civilDate.getTime() <= bufferedEnd + 24 * 60 * 60 * 1000) {
+    const dayInfo = getHebrewDayInfo(new Date(civilDate), environment)
+    const daylightCivilDate = getHebrewDaylightCivilDate(dayInfo, environment)
+    const zmanim = getZmanimForCivilDate(daylightCivilDate, environment)
+    const sunrise = zmanim.sunrise()
+    const sunset = zmanim.sunset()
+    const daylightMs = sunset.getTime() - sunrise.getTime()
+
+    if (daylightMs > 0) {
+      const proportionalHourMs = daylightMs / 12
+
+      for (let hourIndex = 1; hourIndex < 12; hourIndex++) {
+        const timeMs = sunrise.getTime() + proportionalHourMs * hourIndex
+        if (timeMs < bufferedStart || timeMs > bufferedEnd || points.has(timeMs)) {
+          continue
+        }
+
+        points.set(timeMs, {
+          id: `hebrew-proportional-hour-${timeMs}`,
+          timeMs,
+          label: String(hourIndex),
+          rankClass: 'tick-rank-ordinary',
+        })
+      }
+    }
+
+    const secondaryMoments = [
+      { id: 'netz', label: 'Netz', time: zmanim.sunrise() },
+      { id: 'shma', label: 'Shma', time: zmanim.sofZmanShma() },
+      { id: 'tfilla', label: 'Tfila', time: zmanim.sofZmanTfilla() },
+      { id: 'chatzot', label: 'Chatzot', time: zmanim.chatzot() },
+      { id: 'mincha-gedola', label: 'Mincha G.', time: zmanim.minchaGedola() },
+      { id: 'mincha-ketana', label: 'Mincha K.', time: zmanim.minchaKetana() },
+      { id: 'plag', label: 'Plag', time: zmanim.plagHaMincha() },
+      { id: 'shkiah', label: 'Shkiah', time: zmanim.sunset() },
+      { id: 'tzeit', label: 'Tzeit', time: zmanim.tzeit() },
+    ]
+
+    secondaryMoments.forEach(({ id, label, time }) => {
+      const timeMs = time.getTime()
+      if (timeMs < bufferedStart || timeMs > bufferedEnd || points.has(timeMs)) {
+        return
+      }
+
+      points.set(timeMs, {
+        id: `hebrew-zman-${id}-${timeMs}`,
+        timeMs,
+        label,
+        rankClass: 'tick-rank-secondary',
+      })
+    })
+
+    if (dayInfo.hdate.getDay() === 6) {
+      const shabbatEnd = zmanim.tzeit()
+      const timeMs = shabbatEnd.getTime()
+
+      if (timeMs >= bufferedStart && timeMs <= bufferedEnd) {
+        points.set(timeMs, {
+          id: `hebrew-shabbat-ends-${timeMs}`,
+          timeMs,
+          label: 'Shabbat Ends',
+          rankClass: 'tick-rank-primary',
+        })
+      }
+    }
+
+    civilDate.setUTCDate(civilDate.getUTCDate() + 1)
+  }
+
+  return [...points.values()].sort((a, b) => a.timeMs - b.timeMs)
+}
+
+const getDayViewIntradaySpans = (
+  focusTimeMs: number,
+  visibleDurationMs: number,
+  environment: HebrewLayerParams['environment'],
+) => {
+  const { startTimeMs, endTimeMs } = getVisibleTimeRange(focusTimeMs, visibleDurationMs)
+  const bufferedStart = startTimeMs - visibleDurationMs * 0.5
+  const bufferedEnd = endTimeMs + visibleDurationMs * 0.5
+  const spans: HebrewIntradaySpan[] = []
+
+  let civilDate = getCivilDateAtNoonUtc(new Date(bufferedStart))
+  civilDate.setUTCDate(civilDate.getUTCDate() - 1)
+
+  while (civilDate.getTime() <= bufferedEnd + 24 * 60 * 60 * 1000) {
+    const dayInfo = getHebrewDayInfo(new Date(civilDate), environment)
+    const daylightCivilDate = getHebrewDaylightCivilDate(dayInfo, environment)
+    const zmanim = getZmanimForCivilDate(daylightCivilDate, environment)
+    const sunrise = zmanim.sunrise()
+    const sunset = zmanim.sunset()
+    const daylightMs = sunset.getTime() - sunrise.getTime()
+
+    if (daylightMs > 0) {
+      const proportionalHourMs = daylightMs / 12
+      const boundaries = [sunrise.getTime()]
+
+      for (let hourIndex = 1; hourIndex < 12; hourIndex++) {
+        boundaries.push(sunrise.getTime() + proportionalHourMs * hourIndex)
+      }
+
+      boundaries.push(sunset.getTime())
+
+      for (let segmentIndex = 0; segmentIndex < boundaries.length - 1; segmentIndex++) {
+        const startBoundary = boundaries[segmentIndex]
+        const endBoundary = boundaries[segmentIndex + 1]
+
+        if (endBoundary <= bufferedStart || startBoundary >= bufferedEnd) {
+          continue
+        }
+
+        spans.push({
+          span: {
+            id: `hebrew-proportional-span-${startBoundary}`,
+            kind: 'structural-period',
+            startTimeMs: startBoundary,
+            endTimeMs: endBoundary,
+          },
+          stripeClass: segmentIndex % 2 === 0 ? 'structural-span-stripe-a' : 'structural-span-stripe-b',
+        })
+      }
+    }
+
+    civilDate.setUTCDate(civilDate.getUTCDate() + 1)
+  }
+
+  return spans
+}
+
 const HEBREW_LEAP_POSITIONS = [3, 6, 8, 11, 14, 17, 19]
 
 const getLeapYearsBeforeHebrewYear = (year: number) => {
@@ -103,8 +251,9 @@ const getHebrewTickRankClass = (
   switch (activeScaleLevel) {
     case -1:
     case 0:
-    case 1:
       return 'tick-rank-primary'
+    case 1:
+      return 'tick-rank-secondary'
     case 2:
     case 3:
       if (dayInfo.hebrewDate.day === 1) {
@@ -235,11 +384,10 @@ export const createHebrewStructuralPoints = ({
   visibleDurationMs,
   environment,
 }: HebrewLayerParams): PositionedTimelinePoint[] => {
-  const { startTimeMs, endTimeMs } = getVisibleTimeRange(focusTimeMs, visibleDurationMs)
-  const bufferedStart = startTimeMs - visibleDurationMs * 0.5
-  const bufferedEnd = endTimeMs + visibleDurationMs * 0.5
   const points: PositionedTimelinePoint[] = []
-  const boundaries = collectHebrewBoundaries(activeScaleLevel, focusTimeMs, visibleDurationMs, environment)
+  const boundaries = activeScaleLevel === -1 || activeScaleLevel === 0 || activeScaleLevel === 1
+    ? []
+    : collectHebrewBoundaries(activeScaleLevel, focusTimeMs, visibleDurationMs, environment)
 
   boundaries.forEach(({ timeMs, label }) => {
     const dayInfo = getHebrewDayInfo(new Date(timeMs), environment)
@@ -278,50 +426,35 @@ export const createHebrewStructuralPoints = ({
     )
   })
 
-  if (activeScaleLevel === -1 || activeScaleLevel === 0 || activeScaleLevel === 1) {
-    const { calculateTickTimeFunc } = SCALE_LEVEL_CONFIG[activeScaleLevel]
-    const visibleRangeStartTickDate = getVisibleRangeStartTickDate(activeScaleLevel, focusTimeMs, visibleDurationMs)
-    let tickTime = visibleRangeStartTickDate.getTime()
-
-    while (tickTime <= bufferedEnd) {
-      if (tickTime >= bufferedStart) {
-        const civilSubdivisionLabel = activeScaleLevel === 1
-          ? (
-              new Date(tickTime).getMinutes() === 0
-                ? new Date(tickTime).toLocaleTimeString('en-US', { hour: 'numeric', hour12: true })
-                : ''
-            )
-          : SCALE_LEVEL_CONFIG[activeScaleLevel].getTickLabel(
-              tickTime,
-              tickTime === visibleRangeStartTickDate.getTime(),
-            ) ?? ''
-
-        points.push(
-          positionTimelinePoint(
-            {
-              id: `hebrew-civil-${tickTime}`,
-              kind: 'tick',
-              timeMs: tickTime,
-              label: civilSubdivisionLabel,
-            },
-            activeScaleLevel,
-            focusTimeMs,
-            visibleDurationMs,
-            new Date(tickTime),
-            {
-              className: leadingCalendarSystemId === 'hebrew'
-                ? 'hebrew-subtick structural-tick-leading'
-                : 'hebrew-subtick structural-tick-supporting',
-              labelClassName: leadingCalendarSystemId === 'hebrew'
-                ? 'hebrew-label structural-label-leading'
-                : 'hebrew-label structural-label-supporting',
-            },
-          ),
-        )
-      }
-
-      tickTime = calculateTickTimeFunc(new Date(tickTime), 1)
-    }
+  if (activeScaleLevel === 1) {
+    getDayViewIntradayPoints(focusTimeMs, visibleDurationMs, environment).forEach((point) => {
+      points.push(
+        positionTimelinePoint(
+          {
+            id: point.id,
+            kind: 'tick',
+            timeMs: point.timeMs,
+            label: point.label,
+          },
+          activeScaleLevel,
+          focusTimeMs,
+          visibleDurationMs,
+          new Date(point.timeMs),
+          {
+            className: [
+              leadingCalendarSystemId === 'hebrew'
+                ? 'structural-tick-leading'
+                : 'structural-tick-supporting',
+              'hebrew-tick',
+              point.rankClass,
+            ].join(' '),
+            labelClassName: leadingCalendarSystemId === 'hebrew'
+              ? 'hebrew-label structural-label-leading'
+              : 'hebrew-label structural-label-supporting',
+          },
+        ),
+      )
+    })
   }
 
   if (activeScaleLevel === 5) {
@@ -348,21 +481,18 @@ export const createHebrewStructuralSpans = ({
     return []
   }
 
-  if (activeScaleLevel === -1 || activeScaleLevel === 0 || activeScaleLevel === 1) {
-    const { startTimeMs, endTimeMs } = getVisibleTimeRange(focusTimeMs, visibleDurationMs)
-    const bufferedStart = startTimeMs - visibleDurationMs * 0.5
-    const bufferedEnd = endTimeMs + visibleDurationMs * 0.5
+  if (activeScaleLevel === -1 || activeScaleLevel === 0) {
+    return []
+  }
 
-    return createStructuralSpansForRange(activeScaleLevel, bufferedStart, bufferedEnd).map((span) =>
-      positionTimelineSpan({
-        ...span,
-        id: `hebrew-${span.id}`,
-      }, focusTimeMs, visibleDurationMs, {
+  if (activeScaleLevel === 1) {
+    return getDayViewIntradaySpans(focusTimeMs, visibleDurationMs, environment).map(({ span, stripeClass }) =>
+      positionTimelineSpan(span, focusTimeMs, visibleDurationMs, {
         className: [
           leadingCalendarSystemId === 'hebrew'
             ? 'hebrew-structural-span structural-span structural-span-leading'
             : 'hebrew-structural-span structural-span structural-span-supporting',
-          getHebrewSpanStripeClass(activeScaleLevel, span.startTimeMs, environment),
+          stripeClass,
         ].join(' '),
       }),
     )

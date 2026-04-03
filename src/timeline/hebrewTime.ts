@@ -64,9 +64,11 @@ export const createHebcalLocation = (environment: TimelineEnvironment) =>
     'US',
   )
 
+export const getZmanimForCivilDate = (civilDate: Date, environment: TimelineEnvironment) =>
+  new Zmanim(createHebcalLocation(environment), civilDate, false)
+
 export const getSunsetForCivilDate = (civilDate: Date, environment: TimelineEnvironment) => {
-  const location = createHebcalLocation(environment)
-  return new Zmanim(location, civilDate, false).sunset()
+  return getZmanimForCivilDate(civilDate, environment).sunset()
 }
 
 export const getStartOfHebrewHDate = (hdate: HDate, environment: TimelineEnvironment) => {
@@ -112,6 +114,11 @@ export const getHebrewDayInfo = (timestamp: Date, environment: TimelineEnvironme
     endsAtSunset: currentDaySunset,
   }
 }
+
+export const getHebrewDaylightCivilDate = (
+  dayInfo: HebrewDayInfo,
+  environment: TimelineEnvironment,
+) => getCivilDateInTimezone(dayInfo.endsAtSunset, environment.timezone)
 
 export const formatHebrewPrimaryNowLabel = (
   timestamp: Date,

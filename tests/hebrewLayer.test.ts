@@ -15,7 +15,7 @@ const TEST_ENVIRONMENT: TimelineEnvironment = {
 }
 
 describe('hebrew structural layer', () => {
-  it('renders civil subdivision points and spans at minute and hour scales', () => {
+  it('does not render placeholder intraday structure at minute and hour scales', () => {
     const minutePoints = createHebrewStructuralPoints({
       leadingCalendarSystemId: 'hebrew',
       activeScaleLevel: -1,
@@ -45,13 +45,13 @@ describe('hebrew structural layer', () => {
       environment: TEST_ENVIRONMENT,
     })
 
-    expect(minutePoints.some((point) => point.className?.includes('hebrew-subtick'))).toBe(true)
-    expect(minuteSpans.length).toBeGreaterThan(10)
-    expect(hourPoints.some((point) => point.className?.includes('hebrew-subtick'))).toBe(true)
-    expect(hourSpans.length).toBeGreaterThan(10)
+    expect(minutePoints).toHaveLength(0)
+    expect(minuteSpans).toHaveLength(0)
+    expect(hourPoints).toHaveLength(0)
+    expect(hourSpans).toHaveLength(0)
   })
 
-  it('renders civil subdivision points for hebrew even when hebrew is secondary at minute/hour/day scales', () => {
+  it('does not render placeholder intraday structure for hebrew when secondary at minute/hour scales', () => {
     const minutePoints = createHebrewStructuralPoints({
       leadingCalendarSystemId: 'gregorian',
       activeScaleLevel: -1,
@@ -66,22 +66,12 @@ describe('hebrew structural layer', () => {
       visibleDurationMs: 61 * 60 * 1000,
       environment: TEST_ENVIRONMENT,
     })
-    const dayPoints = createHebrewStructuralPoints({
-      leadingCalendarSystemId: 'gregorian',
-      activeScaleLevel: 1,
-      focusTimeMs: new Date('2026-04-01T12:00:00-04:00').getTime(),
-      visibleDurationMs: 25 * 60 * 60 * 1000,
-      environment: TEST_ENVIRONMENT,
-    })
 
-    expect(minutePoints.some((point) => point.className?.includes('hebrew-subtick'))).toBe(true)
-    expect(hourPoints.some((point) => point.className?.includes('hebrew-subtick'))).toBe(true)
-    expect(dayPoints.some((point) => point.className?.includes('hebrew-subtick'))).toBe(true)
-    expect(minutePoints.some((point) => point.labelClassName?.includes('structural-label-supporting'))).toBe(true)
-    expect(hourPoints.some((point) => point.labelClassName?.includes('structural-label-supporting'))).toBe(true)
+    expect(minutePoints).toHaveLength(0)
+    expect(hourPoints).toHaveLength(0)
   })
 
-  it('creates sunset-based structural points at day scale', () => {
+  it('creates zmanim and proportional-hour structural points at day scale', () => {
     const points = createHebrewStructuralPoints({
       leadingCalendarSystemId: 'hebrew',
       activeScaleLevel: 1,
@@ -92,8 +82,12 @@ describe('hebrew structural layer', () => {
 
     expect(points.length).toBeGreaterThan(0)
     expect(points.some((point) => point.labelClassName?.includes('structural-label-leading'))).toBe(true)
-    expect(points.some((point) => point.className?.includes('hebrew-subtick'))).toBe(true)
-    expect(points.some((point) => (point.label ?? '').includes('PM'))).toBe(true)
+    expect(points.some((point) => point.className?.includes('tick-rank-ordinary'))).toBe(true)
+    expect(points.some((point) => point.className?.includes('tick-rank-secondary'))).toBe(true)
+    expect(points.some((point) => point.label === 'Netz')).toBe(true)
+    expect(points.some((point) => point.label === 'Chatzot')).toBe(true)
+    expect(points.some((point) => point.label === '1')).toBe(true)
+    expect(points.some((point) => (point.label ?? '').includes('PM'))).toBe(false)
 
     const spans = createHebrewStructuralSpans({
       leadingCalendarSystemId: 'hebrew',
@@ -104,11 +98,11 @@ describe('hebrew structural layer', () => {
     })
 
     expect(spans.length).toBeGreaterThan(0)
-    expect(spans.length).toBeGreaterThan(20)
+    expect(spans.length).toBeGreaterThanOrEqual(10)
     expect(spans.every((span) => span.id.startsWith('hebrew-'))).toBe(true)
   })
 
-  it('uses the same civil-hour span subdivision when hebrew is secondary at day scale', () => {
+  it('uses proportional daylight spans when hebrew is secondary at day scale', () => {
     const spans = createHebrewStructuralSpans({
       leadingCalendarSystemId: 'gregorian',
       activeScaleLevel: 1,
@@ -118,7 +112,19 @@ describe('hebrew structural layer', () => {
     })
 
     expect(spans.length).toBeGreaterThan(0)
-    expect(spans.length).toBeGreaterThan(20)
+    expect(spans.length).toBeGreaterThanOrEqual(10)
+  })
+
+  it('marks the end of shabbat as a primary day-view tick', () => {
+    const points = createHebrewStructuralPoints({
+      leadingCalendarSystemId: 'hebrew',
+      activeScaleLevel: 1,
+      focusTimeMs: new Date('2026-04-04T12:00:00-04:00').getTime(),
+      visibleDurationMs: 25 * 60 * 60 * 1000,
+      environment: TEST_ENVIRONMENT,
+    })
+
+    expect(points.some((point) => point.label === 'Shabbat Ends' && point.className?.includes('tick-rank-primary'))).toBe(true)
   })
 
   it('uses Hebrew weekday labels at week scale', () => {
