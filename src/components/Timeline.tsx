@@ -39,7 +39,7 @@ type PromotedSpanLabel = {
   className: string
 }
 
-const getPromotedSpanLabels = (
+export const getPromotedSpanLabels = (
   spans: PositionedTimelineSpan[],
   visibleTimeRange: ReturnType<typeof getVisibleTimeRange>,
 ) => {

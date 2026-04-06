@@ -37,6 +37,24 @@ describe('hebrew label helpers', () => {
     ).toBe('Q3, 5786')
   })
 
+  it('updates sticky context cleanly across Hebrew month and quarter boundaries', () => {
+    expect(
+      getHebrewContextLabel(3, new Date('2026-04-18T12:00:00-04:00').getTime(), TEST_ENVIRONMENT),
+    ).toBe('Iyyar 5786')
+    expect(
+      getHebrewContextLabel(3, new Date('2026-03-18T12:00:00-04:00').getTime(), TEST_ENVIRONMENT),
+    ).toBe('Adar 5786')
+    expect(
+      getHebrewContextLabel(3, new Date('2026-03-19T12:00:00-04:00').getTime(), TEST_ENVIRONMENT),
+    ).toBe('Nisan 5786')
+    expect(
+      getHebrewContextLabel(4, new Date('2026-03-18T12:00:00-04:00').getTime(), TEST_ENVIRONMENT),
+    ).toBe('Q2, 5786')
+    expect(
+      getHebrewContextLabel(4, new Date('2026-03-19T12:00:00-04:00').getTime(), TEST_ENVIRONMENT),
+    ).toBe('Q3, 5786')
+  })
+
   it('omits sticky context at decade scale', () => {
     expect(
       getHebrewContextLabel(6, new Date('2026-04-01T12:00:00-04:00').getTime(), TEST_ENVIRONMENT),

@@ -17,6 +17,13 @@ describe('gregorian scale label helpers', () => {
     expect(getGregorianStickyContextLabel(6, new Date('2026-03-17T12:00:00-04:00').getTime())).toBeUndefined()
   })
 
+  it('updates sticky context cleanly across week and quarter boundaries', () => {
+    expect(getGregorianStickyContextLabel(2, new Date('2026-03-28T12:00:00-04:00').getTime())).toBe('W13, Mar 2026')
+    expect(getGregorianStickyContextLabel(2, new Date('2026-03-29T12:00:00-04:00').getTime())).toBe('W14, Mar 2026')
+    expect(getGregorianStickyContextLabel(4, new Date('2026-03-31T12:00:00-04:00').getTime())).toBe('Q1, 2026')
+    expect(getGregorianStickyContextLabel(4, new Date('2026-04-01T12:00:00-04:00').getTime())).toBe('Q2, 2026')
+  })
+
   it('shows Sundays explicitly in month view labels', () => {
     const label = GREGORIAN_SCALE_LEVEL_CONFIG[3].getTickLabel(
       new Date('2026-03-22T00:00:00-04:00').getTime(),
