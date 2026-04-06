@@ -218,6 +218,33 @@ Important follow-up tuning areas:
 - span thickness
 - span opacity
 - distance from the axis
+- when a structural span should gain a viewport-promoted label
+
+## Promoted Span Labels
+
+Span labels are becoming a real feature category.
+The first MVP should remain narrow and future-oriented.
+
+Working rule:
+
+- if a structural span fully covers the viewport so that both bounding ticks are
+  offscreen, the span may gain a sticky top label on its side of the timeline
+
+For this MVP:
+
+- do not assume all structural spans need intrinsic labels
+- if a structural span has no explicit label, its promoted label may borrow the
+  top/start bounding tick label
+- this is a viewport-context behavior, not a claim that ordinary structural
+  spans are normally labeled
+
+This should generalize later to:
+
+- Hebrew intraday spans
+- structural quarter/week/month spans
+- user-authored spans
+- event spans
+- note ranges
 
 ### Tick Rank
 

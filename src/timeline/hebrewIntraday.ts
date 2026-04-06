@@ -38,6 +38,10 @@ const getBufferedVisibleRange = (focusTimeMs: number, visibleDurationMs: number)
   }
 }
 
+type HebrewIntradayCollectionOptions = {
+  clipPointsToBufferedRange: boolean
+}
+
 const getDaylightBoundaries = (sunrise: Date, sunset: Date) => {
   const daylightMs = sunset.getTime() - sunrise.getTime()
   if (daylightMs <= 0) {
@@ -69,6 +73,18 @@ export const getHebrewIntradayDayPoints = (
   focusTimeMs: number,
   visibleDurationMs: number,
   environment: TimelineEnvironment,
+) => collectHebrewIntradayPoints(
+  focusTimeMs,
+  visibleDurationMs,
+  environment,
+  { clipPointsToBufferedRange: true },
+)
+
+const collectHebrewIntradayPoints = (
+  focusTimeMs: number,
+  visibleDurationMs: number,
+  environment: TimelineEnvironment,
+  { clipPointsToBufferedRange }: HebrewIntradayCollectionOptions,
 ) => {
   const { bufferedStart, bufferedEnd } = getBufferedVisibleRange(focusTimeMs, visibleDurationMs)
   const points = new Map<number, HebrewIntradayPointData>()
@@ -85,7 +101,7 @@ export const getHebrewIntradayDayPoints = (
 
     for (let hourIndex = 1; hourIndex < boundaries.length - 1; hourIndex++) {
       const timeMs = boundaries[hourIndex]
-      if (timeMs < bufferedStart || timeMs > bufferedEnd || points.has(timeMs)) {
+      if ((clipPointsToBufferedRange && (timeMs < bufferedStart || timeMs > bufferedEnd)) || points.has(timeMs)) {
         continue
       }
 
@@ -116,7 +132,7 @@ export const getHebrewIntradayDayPoints = (
 
     namedMoments.forEach(({ id, label, time, rankClass }, namedMomentIndex) => {
       const timeMs = time.getTime()
-      if (timeMs < bufferedStart || timeMs > bufferedEnd) {
+      if (clipPointsToBufferedRange && (timeMs < bufferedStart || timeMs > bufferedEnd)) {
         return
       }
 
@@ -134,7 +150,7 @@ export const getHebrewIntradayDayPoints = (
       const shabbatEnd = zmanim.tzeit()
       const timeMs = shabbatEnd.getTime()
 
-      if (timeMs >= bufferedStart && timeMs <= bufferedEnd) {
+      if (!clipPointsToBufferedRange || (timeMs >= bufferedStart && timeMs <= bufferedEnd)) {
         points.set(timeMs, {
           id: `hebrew-shabbat-ends-${timeMs}`,
           timeMs,
@@ -157,7 +173,12 @@ export const getDayViewIntradaySpans = (
   visibleDurationMs: number,
   environment: TimelineEnvironment,
 ) => {
-  const namedPoints = getHebrewIntradayDayPoints(focusTimeMs, visibleDurationMs, environment)
+  const namedPoints = collectHebrewIntradayPoints(
+    focusTimeMs,
+    visibleDurationMs,
+    environment,
+    { clipPointsToBufferedRange: false },
+  )
     .filter(isNamedHebrewIntradayPoint)
   const spans: HebrewIntradaySpanData[] = []
 

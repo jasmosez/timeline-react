@@ -270,7 +270,7 @@ export const createHebrewStructuralPoints = ({
     )
   })
 
-  if (activeScaleLevel === 1) {
+  if (activeScaleLevel === -1 || activeScaleLevel === 0 || activeScaleLevel === 1) {
     getHebrewIntradayDayPoints(focusTimeMs, visibleDurationMs, environment)
       .filter(isNamedHebrewIntradayPoint)
       .forEach((point) => {
@@ -327,11 +327,7 @@ export const createHebrewStructuralSpans = ({
     return []
   }
 
-  if (activeScaleLevel === -1 || activeScaleLevel === 0) {
-    return []
-  }
-
-  if (activeScaleLevel === 1) {
+  if (activeScaleLevel === -1 || activeScaleLevel === 0 || activeScaleLevel === 1) {
     return getDayViewIntradaySpans(focusTimeMs, visibleDurationMs, environment).map(({ span, stripeClass }) =>
       positionTimelineSpan(span, focusTimeMs, visibleDurationMs, {
         className: [

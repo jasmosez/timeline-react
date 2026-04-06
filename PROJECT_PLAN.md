@@ -325,6 +325,13 @@ Current progress:
 - Hebrew day view now distinguishes:
   - the main Hebrew layer for named intraday markers
   - a dedicated proportional-hours marker layer for unlabeled sha'ot zmaniyot
+- a new span-labeling MVP is emerging:
+  - viewport-covering structural spans may gain sticky top labels
+  - structural spans may borrow their top bounding tick label when no explicit
+    span label exists
+- Hebrew minute/hour/day now share one first-pass intraday interpretation:
+  - named Hebrew intraday markers remain visible
+  - structural spans can remain visible without further subdivision yet
 
 Near-term sequencing:
 
@@ -342,6 +349,8 @@ Phase 2 notes:
   broader scales such as week view
 - Hebrew day-view labels will likely need density-aware suppression near
   high-attention areas such as the current moment
+- structural spans now need their own labeling grammar as zoom increases and
+  bounding ticks can leave the viewport
 - Gregorian labeling should also evolve into a more sustainable dynamic-label
   system rather than relying on ad hoc special cases
 - Gregorian week numbers should be introduced as an additional contextual data

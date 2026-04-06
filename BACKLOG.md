@@ -39,6 +39,11 @@ Usage:
   so the first pass stays legible
   Target: Phase 2
 
+- Build out the broader promoted span-label system after the structural-span MVP
+  Notes: define partial-clipping rules, precedence, suppression, stacking across
+  layers, truncation, and interaction with sticky structural context labels
+  Target: Phase 2
+
 - Scale-aware label suppression near primary boundary labels
   Notes: suppress secondary labels within one default increment of a primary
   label, for example 1 hour in day view or 1 minute in hour view
@@ -84,6 +89,13 @@ Usage:
   allocation, and cleanup of remaining higher-order label carry; treat Hebrew
   day-and-below / zmanim design as the next prerequisite before finishing the
   broader normalization pass
+  Target: Phase 2
+
+- Audit and roadmap the test suite more explicitly
+  Notes: review current unit and e2e coverage, identify blind spots in
+  interaction, layer rendering, span labeling, and future intraday work, and
+  decide what regression protection should be added during the remainder of
+  Phase 2
   Target: Phase 2
 
 - Plan a post-Phase-2 architectural cleanup / refactor pass

@@ -156,6 +156,12 @@ These are useful short reminders:
 - Hebrew day view currently splits intraday meaning across:
   - named moments on the Hebrew layer
   - unlabeled proportional-hour markers on their own layer
+- Hebrew minute/hour/day currently share the same first-pass named intraday
+  markers and structural spans, without further subdivision inside hour/minute
+- structural span labeling is now an active design seam:
+  - first MVP is promoted sticky labels for viewport-covering structural spans
+  - those may borrow the top bounding tick label when no explicit span label
+    exists
 - Primary calendar semantics and visible structural layers are not the same.
 - Sticky context labels are viewport chrome, not ordinary timeline labels.
 - One-sided ticks significantly improved readability.

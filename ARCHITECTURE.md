@@ -544,6 +544,16 @@ In the current codebase, this role is mostly expressed through:
 - `TimelinePoint` with `kind: 'tick'`
 - `TimelineSpan` with `kind: 'structural-period'`
 
+Structural spans do not necessarily need intrinsic labels.
+In many scales, their meaning is already recoverable from their bounding ticks.
+But once both bounding ticks move offscreen, that assumption can fail. The
+emerging MVP rule is:
+
+- viewport-covering structural spans may gain a promoted sticky label
+- that promoted label still belongs to the span as viewport context
+- if no intrinsic span label exists, it may borrow the top/start bounding tick
+  label rather than forcing every structural span to define its own label
+
 ### Marker-Style Layers
 
 These annotate the timeline with notable instants or windows without defining
@@ -602,6 +612,17 @@ It introduces real segmentation complexity:
 
 The layer model is intended to absorb this complexity without forcing the core
 viewport or renderer to understand Hebrew calendar rules directly.
+
+The first intraday span-labeling grammar is also emerging here:
+
+- Hebrew hour/minute/day may show long structural spans without visible
+  bounding ticks
+- this motivates a general promoted-span-label feature, not a Hebrew-only hack
+- the MVP should stay narrow:
+  - only viewport-covering structural spans are eligible
+  - placement should be sticky to the top on the owning side
+  - content may derive from the start/top bounding tick when the span itself
+    has no explicit label
 
 ## Special Considerations for Astrology
 

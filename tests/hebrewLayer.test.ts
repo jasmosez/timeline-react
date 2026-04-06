@@ -19,60 +19,99 @@ const TEST_ENVIRONMENT: TimelineEnvironment = {
 }
 
 describe('hebrew structural layer', () => {
-  it('does not render placeholder intraday structure at minute and hour scales', () => {
+  it('renders current intraday markers and spans at minute and hour scales without extra subdivision', () => {
+    const intradayPoints = getHebrewIntradayDayPoints(
+      new Date('2026-04-01T12:00:00-04:00').getTime(),
+      25 * 60 * 60 * 1000,
+      TEST_ENVIRONMENT,
+    )
+    const netzTimeMs = intradayPoints.find((point) => (point.label ?? '').startsWith('Netz,'))?.timeMs
+    const chatzotTimeMs = intradayPoints.find((point) => (point.label ?? '').startsWith('Chatzot,'))?.timeMs
+
+    expect(netzTimeMs).toBeDefined()
+    expect(chatzotTimeMs).toBeDefined()
+
     const minutePoints = createHebrewStructuralPoints({
       leadingCalendarSystemId: 'hebrew',
       activeScaleLevel: -1,
-      focusTimeMs: new Date('2026-04-01T12:00:30-04:00').getTime(),
+      focusTimeMs: netzTimeMs!,
       visibleDurationMs: 61 * 1000,
       environment: TEST_ENVIRONMENT,
     })
     const minuteSpans = createHebrewStructuralSpans({
       leadingCalendarSystemId: 'hebrew',
       activeScaleLevel: -1,
-      focusTimeMs: new Date('2026-04-01T12:00:30-04:00').getTime(),
+      focusTimeMs: netzTimeMs!,
       visibleDurationMs: 61 * 1000,
       environment: TEST_ENVIRONMENT,
     })
     const hourPoints = createHebrewStructuralPoints({
       leadingCalendarSystemId: 'hebrew',
       activeScaleLevel: 0,
-      focusTimeMs: new Date('2026-04-01T12:30:00-04:00').getTime(),
+      focusTimeMs: chatzotTimeMs!,
       visibleDurationMs: 61 * 60 * 1000,
       environment: TEST_ENVIRONMENT,
     })
     const hourSpans = createHebrewStructuralSpans({
       leadingCalendarSystemId: 'hebrew',
       activeScaleLevel: 0,
-      focusTimeMs: new Date('2026-04-01T12:30:00-04:00').getTime(),
+      focusTimeMs: chatzotTimeMs!,
       visibleDurationMs: 61 * 60 * 1000,
       environment: TEST_ENVIRONMENT,
     })
 
-    expect(minutePoints).toHaveLength(0)
-    expect(minuteSpans).toHaveLength(0)
-    expect(hourPoints).toHaveLength(0)
-    expect(hourSpans).toHaveLength(0)
+    expect(minutePoints.some((point) => (point.label ?? '').startsWith('Netz,'))).toBe(true)
+    expect(minuteSpans.length).toBeGreaterThan(0)
+    expect(hourPoints.some((point) => (point.label ?? '').includes(','))).toBe(true)
+    expect(hourPoints.length).toBeGreaterThan(0)
+    expect(hourSpans.length).toBeGreaterThan(0)
   })
 
-  it('does not render placeholder intraday structure for hebrew when secondary at minute/hour scales', () => {
+  it('renders the same intraday markers and spans when hebrew is supporting at minute/hour scales', () => {
+    const intradayPoints = getHebrewIntradayDayPoints(
+      new Date('2026-04-01T12:00:00-04:00').getTime(),
+      25 * 60 * 60 * 1000,
+      TEST_ENVIRONMENT,
+    )
+    const netzTimeMs = intradayPoints.find((point) => (point.label ?? '').startsWith('Netz,'))?.timeMs
+    const chatzotTimeMs = intradayPoints.find((point) => (point.label ?? '').startsWith('Chatzot,'))?.timeMs
+
+    expect(netzTimeMs).toBeDefined()
+    expect(chatzotTimeMs).toBeDefined()
+
     const minutePoints = createHebrewStructuralPoints({
       leadingCalendarSystemId: 'gregorian',
       activeScaleLevel: -1,
-      focusTimeMs: new Date('2026-04-01T12:00:30-04:00').getTime(),
+      focusTimeMs: netzTimeMs!,
+      visibleDurationMs: 61 * 1000,
+      environment: TEST_ENVIRONMENT,
+    })
+    const minuteSpans = createHebrewStructuralSpans({
+      leadingCalendarSystemId: 'gregorian',
+      activeScaleLevel: -1,
+      focusTimeMs: netzTimeMs!,
       visibleDurationMs: 61 * 1000,
       environment: TEST_ENVIRONMENT,
     })
     const hourPoints = createHebrewStructuralPoints({
       leadingCalendarSystemId: 'gregorian',
       activeScaleLevel: 0,
-      focusTimeMs: new Date('2026-04-01T12:30:00-04:00').getTime(),
+      focusTimeMs: chatzotTimeMs!,
+      visibleDurationMs: 61 * 60 * 1000,
+      environment: TEST_ENVIRONMENT,
+    })
+    const hourSpans = createHebrewStructuralSpans({
+      leadingCalendarSystemId: 'gregorian',
+      activeScaleLevel: 0,
+      focusTimeMs: chatzotTimeMs!,
       visibleDurationMs: 61 * 60 * 1000,
       environment: TEST_ENVIRONMENT,
     })
 
-    expect(minutePoints).toHaveLength(0)
-    expect(hourPoints).toHaveLength(0)
+    expect(minutePoints.some((point) => point.labelClassName?.includes('structural-label-supporting'))).toBe(true)
+    expect(minuteSpans.every((span) => span.className?.includes('structural-span-supporting'))).toBe(true)
+    expect(hourPoints.some((point) => (point.label ?? '').includes(','))).toBe(true)
+    expect(hourSpans.length).toBeGreaterThan(0)
   })
 
   it('creates named intraday structural points at day scale without proportional-hour markers', () => {
