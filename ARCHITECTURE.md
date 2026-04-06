@@ -148,6 +148,9 @@ Key issues:
   persistent `now` label, but responsive/mobile adaptations are still ahead
 - Hebrew rendering is now real enough that structural span/tick styling and
   label sophistication are becoming the next pressure points
+- positioned structural spans now carry explicit presentation metadata such as
+  side and label theme, which reduces the need to infer span behavior from CSS
+  class names during rendering
 
 ## Recommended Direction
 

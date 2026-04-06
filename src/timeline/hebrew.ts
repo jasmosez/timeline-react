@@ -345,6 +345,8 @@ export const createHebrewStructuralSpans = ({
             : 'hebrew-structural-span structural-span structural-span-supporting',
           stripeClass,
         ].join(' '),
+        side: leadingCalendarSystemId === 'hebrew' ? 'leading' : 'supporting',
+        labelTheme: 'hebrew',
       }),
     )
   }
@@ -377,6 +379,8 @@ export const createHebrewStructuralSpans = ({
           : 'hebrew-structural-span structural-span structural-span-supporting',
         getHebrewSpanStripeClass(activeScaleLevel, span.startTimeMs, environment),
       ].join(' '),
+      side: leadingCalendarSystemId === 'hebrew' ? 'leading' : 'supporting',
+      labelTheme: 'hebrew',
     }),
   )
 }

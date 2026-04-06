@@ -326,6 +326,8 @@ export const createGregorianStructuralSpans = (
           : 'structural-span structural-span-supporting',
         getGregorianSpanStripeClass(activeScaleLevel, span.startTimeMs),
       ].join(' '),
+      side: leadingCalendarSystemId === 'gregorian' ? 'leading' : 'supporting',
+      labelTheme: 'default',
     }),
   )
 }

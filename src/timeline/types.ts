@@ -22,9 +22,14 @@ export interface TimelineSpan {
   priority?: number
 }
 
+export type PositionedSpanSide = 'leading' | 'supporting'
+export type PositionedSpanLabelTheme = 'default' | 'hebrew'
+
 export interface PositionedTimelineSpan extends TimelineSpan {
   top: string
   height: string
   opacity?: number
   className?: string
+  side?: PositionedSpanSide
+  labelTheme?: PositionedSpanLabelTheme
 }

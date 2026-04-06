@@ -54,25 +54,19 @@ export const getPromotedSpanLabels = (
       return
     }
 
-    const side = span.className?.includes('structural-span-leading')
-      ? 'leading'
-      : span.className?.includes('structural-span-supporting')
-        ? 'supporting'
-        : undefined
-
-    if (!side || labelsBySide.has(side) || !span.label) {
+    if (!span.side || labelsBySide.has(span.side) || !span.label) {
       return
     }
 
-    labelsBySide.set(side, {
+    labelsBySide.set(span.side, {
       id: `promoted-span-label-${span.id}`,
       label: `... ${span.label}`,
       className: [
         'timeline',
         'tick-label',
         'promoted-span-label',
-        side === 'leading' ? 'structural-label-leading' : 'structural-label-supporting',
-        span.className?.includes('hebrew-structural-span') ? 'hebrew-label' : '',
+        span.side === 'leading' ? 'structural-label-leading' : 'structural-label-supporting',
+        span.labelTheme === 'hebrew' ? 'hebrew-label' : '',
       ].join(' ').trim(),
     })
   })

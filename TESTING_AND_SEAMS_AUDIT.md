@@ -89,7 +89,7 @@ tests.
 This is readable once you know the mapping, but it is carrying cognitive cost.
 This is a real post-Phase-2 refactor target, not a local cleanup.
 
-#### 2. Span metadata remains thin
+#### 2. Span metadata is improving, but still limited
 
 `TimelineSpan` is still lightweight:
 
@@ -107,8 +107,9 @@ starting to want richer semantics, such as:
 - side/lane intent
 - intrinsic label vs promoted/borrowed label
 
-This does not require immediate refactoring, but it is the next likely pressure
-point if span behavior gets richer.
+The positioned span model now does carry explicit side/theme metadata, which
+was a good seam cleanup for promoted span labels. But richer intrinsic span
+semantics are still the next likely pressure point if span behavior expands.
 
 #### 3. `NowTick` is still outside the layer system
 

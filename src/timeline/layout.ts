@@ -15,6 +15,8 @@ type PointPresentation = {
 type SpanPresentation = {
   opacity?: number
   className?: string
+  side?: PositionedTimelineSpan['side']
+  labelTheme?: PositionedTimelineSpan['labelTheme']
 }
 
 export const positionTimelinePoint = (
@@ -48,6 +50,8 @@ export const positionTimelineSpan = (
     height: `calc(${Math.max(endTop - startTop, 0)}% - 2px)`,
     opacity: presentation.opacity,
     className: presentation.className,
+    side: presentation.side,
+    labelTheme: presentation.labelTheme,
   }
 }
 

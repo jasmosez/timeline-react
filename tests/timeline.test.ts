@@ -18,6 +18,8 @@ describe('timeline promoted span labels', () => {
         top: '0%',
         height: '100%',
         className: 'timeline structural-span structural-span-leading hebrew-structural-span',
+        side: 'leading',
+        labelTheme: 'hebrew',
       },
       {
         id: 'supporting-span',
@@ -28,6 +30,8 @@ describe('timeline promoted span labels', () => {
         top: '0%',
         height: '100%',
         className: 'timeline structural-span structural-span-supporting',
+        side: 'supporting',
+        labelTheme: 'default',
       },
       {
         id: 'extra-leading-span',
@@ -38,6 +42,8 @@ describe('timeline promoted span labels', () => {
         top: '0%',
         height: '100%',
         className: 'timeline structural-span structural-span-leading',
+        side: 'leading',
+        labelTheme: 'default',
       },
     ]
 
@@ -66,6 +72,7 @@ describe('timeline promoted span labels', () => {
         top: '0%',
         height: '100%',
         className: 'timeline structural-span structural-span-leading',
+        side: 'leading',
       },
       {
         id: 'unlabeled-full-span',
@@ -75,6 +82,7 @@ describe('timeline promoted span labels', () => {
         top: '0%',
         height: '100%',
         className: 'timeline structural-span structural-span-leading',
+        side: 'leading',
       },
       {
         id: 'event-full-span',
@@ -85,6 +93,7 @@ describe('timeline promoted span labels', () => {
         top: '0%',
         height: '100%',
         className: 'timeline structural-span structural-span-supporting',
+        side: 'supporting',
       },
     ]
 
