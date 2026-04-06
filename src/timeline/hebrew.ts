@@ -4,7 +4,7 @@ import { getVisibleRangeStartTickDate, getVisibleTimeRange, type ScaleLevel } fr
 import type { PositionedTimelinePoint, PositionedTimelineSpan, TimelinePoint, TimelineSpan } from './types'
 import { getCivilDateAtNoonUtc, getHebrewDayInfo, isHebrewQuarterStartMonth } from './hebrewTime'
 import { getHebrewTickLabel } from './hebrewLabels'
-import { getHebrewIntradayDayPoints } from './hebrewIntraday'
+import { getDayViewIntradaySpans, getHebrewIntradayDayPoints } from './hebrewIntraday'
 
 type HebrewLayerParams = {
   leadingCalendarSystemId: LeadingCalendarSystemId
@@ -332,9 +332,16 @@ export const createHebrewStructuralSpans = ({
   }
 
   if (activeScaleLevel === 1) {
-    // Hebrew day-view spans are intentionally paused while we decide whether
-    // intraday meaning should live on spans, ticks, or a hybrid of both.
-    return []
+    return getDayViewIntradaySpans(focusTimeMs, visibleDurationMs, environment).map(({ span, stripeClass }) =>
+      positionTimelineSpan(span, focusTimeMs, visibleDurationMs, {
+        className: [
+          leadingCalendarSystemId === 'hebrew'
+            ? 'hebrew-structural-span structural-span structural-span-leading'
+            : 'hebrew-structural-span structural-span structural-span-supporting',
+          stripeClass,
+        ].join(' '),
+      }),
+    )
   }
 
   const boundaries = collectHebrewBoundaries(activeScaleLevel, focusTimeMs, visibleDurationMs, environment)

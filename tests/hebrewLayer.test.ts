@@ -106,10 +106,14 @@ describe('hebrew structural layer', () => {
       environment: TEST_ENVIRONMENT,
     })
 
-    expect(spans).toHaveLength(0)
+    expect(spans.length).toBeGreaterThan(0)
+    expect(spans.every((span) => span.className?.includes('hebrew-structural-span'))).toBe(true)
+    expect(spans.some((span) => span.className?.includes('structural-span-stripe-a'))).toBe(true)
+    expect(spans.some((span) => span.className?.includes('structural-span-stripe-b'))).toBe(true)
+    expect(spans.some((span) => (span.label ?? '').startsWith('Chatzot Night,'))).toBe(true)
   })
 
-  it('currently has no hebrew day spans while the intraday span design is paused', () => {
+  it('renders hebrew day spans when the layer is supporting too', () => {
     const spans = createHebrewStructuralSpans({
       leadingCalendarSystemId: 'gregorian',
       activeScaleLevel: 1,
@@ -118,7 +122,8 @@ describe('hebrew structural layer', () => {
       environment: TEST_ENVIRONMENT,
     })
 
-    expect(spans).toHaveLength(0)
+    expect(spans.length).toBeGreaterThan(0)
+    expect(spans.every((span) => span.className?.includes('structural-span-supporting'))).toBe(true)
   })
 
   it('marks the end of shabbat as a primary day-view tick', () => {

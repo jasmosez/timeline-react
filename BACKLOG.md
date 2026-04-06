@@ -32,6 +32,13 @@ Usage:
   Notes: especially near `now` or other high-attention regions
   Target: Phase 2
 
+- Explore richer Hebrew day-view halachic window spans
+  Notes: beyond simple alternating proportional-hour striping, consider spans
+  for windows such as latest `Shma`, mincha-permitted time, or other named
+  halachic intervals; keep this separate from the baseline intraday span model
+  so the first pass stays legible
+  Target: Phase 2
+
 - Scale-aware label suppression near primary boundary labels
   Notes: suppress secondary labels within one default increment of a primary
   label, for example 1 hour in day view or 1 minute in hour view

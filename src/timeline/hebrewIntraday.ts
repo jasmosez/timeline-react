@@ -143,38 +143,28 @@ export const getDayViewIntradaySpans = (
   visibleDurationMs: number,
   environment: TimelineEnvironment,
 ) => {
-  const { bufferedStart, bufferedEnd } = getBufferedVisibleRange(focusTimeMs, visibleDurationMs)
+  const namedPoints = getHebrewIntradayDayPoints(focusTimeMs, visibleDurationMs, environment)
+    .filter(isNamedHebrewIntradayPoint)
   const spans: HebrewIntradaySpanData[] = []
 
-  let civilDate = getCivilDateAtNoonUtc(new Date(bufferedStart))
-  civilDate.setUTCDate(civilDate.getUTCDate() - 1)
+  for (let segmentIndex = 0; segmentIndex < namedPoints.length - 1; segmentIndex++) {
+    const startPoint = namedPoints[segmentIndex]
+    const endPoint = namedPoints[segmentIndex + 1]
 
-  while (civilDate.getTime() <= bufferedEnd + 24 * 60 * 60 * 1000) {
-    const dayInfo = getHebrewDayInfo(new Date(civilDate), environment)
-    const daylightCivilDate = getHebrewDaylightCivilDate(dayInfo, environment)
-    const zmanim = getZmanimForCivilDate(daylightCivilDate, environment)
-    const boundaries = getDaylightBoundaries(zmanim.sunrise(), zmanim.sunset())
-
-    for (let segmentIndex = 0; segmentIndex < boundaries.length - 1; segmentIndex++) {
-      const startBoundary = boundaries[segmentIndex]
-      const endBoundary = boundaries[segmentIndex + 1]
-
-      if (endBoundary <= bufferedStart || startBoundary >= bufferedEnd) {
-        continue
-      }
-
-      spans.push({
-        span: {
-          id: `hebrew-proportional-span-${startBoundary}`,
-          kind: 'structural-period',
-          startTimeMs: startBoundary,
-          endTimeMs: endBoundary,
-        },
-        stripeClass: segmentIndex % 2 === 0 ? 'structural-span-stripe-a' : 'structural-span-stripe-b',
-      })
+    if (endPoint.timeMs <= startPoint.timeMs) {
+      continue
     }
 
-    civilDate.setUTCDate(civilDate.getUTCDate() + 1)
+    spans.push({
+      span: {
+        id: `hebrew-intraday-span-${startPoint.timeMs}`,
+        kind: 'structural-period',
+        startTimeMs: startPoint.timeMs,
+        endTimeMs: endPoint.timeMs,
+        label: startPoint.label,
+      },
+      stripeClass: segmentIndex % 2 === 0 ? 'structural-span-stripe-a' : 'structural-span-stripe-b',
+    })
   }
 
   return spans
