@@ -2,8 +2,9 @@ import {
   createHebrewStructuralPoints,
   createHebrewStructuralSpans,
 } from '../src/timeline/hebrew'
-import { getHebrewIntradayDayPoints } from '../src/timeline/hebrewIntraday'
+import { getDayViewIntradaySpans, getHebrewIntradayDayPoints } from '../src/timeline/hebrewIntraday'
 import type { TimelineEnvironment } from '../src/timeline/layers'
+import { proportionalHoursLayer } from '../src/timeline/proportionalHours'
 import { getHebrewDayInfo, getHebrewWeekdayName } from '../src/timeline/hebrewTime'
 
 const TEST_ENVIRONMENT: TimelineEnvironment = {
@@ -226,6 +227,70 @@ describe('hebrew structural layer', () => {
 
     expect(points.some((point) => point.kind === 'proportional-hour-marker' && point.rankClass === 'tick-rank-ordinary' && point.label === '')).toBe(true)
     expect(points.some((point) => point.kind === 'named-intraday-marker' && (point.label ?? '').startsWith('Netz,'))).toBe(true)
+  })
+
+  it('renders proportional-hour markers only on the dedicated day-scale layer', () => {
+    const dayPoints = proportionalHoursLayer.getPoints({
+      leadingCalendarSystemId: 'hebrew',
+      activeScaleLevel: 1,
+      focusTimeMs: new Date('2026-04-01T12:00:00-04:00').getTime(),
+      visibleDurationMs: 25 * 60 * 60 * 1000,
+      environment: TEST_ENVIRONMENT,
+    })
+    const hourPoints = proportionalHoursLayer.getPoints({
+      leadingCalendarSystemId: 'hebrew',
+      activeScaleLevel: 0,
+      focusTimeMs: new Date('2026-04-01T12:00:00-04:00').getTime(),
+      visibleDurationMs: 61 * 60 * 1000,
+      environment: TEST_ENVIRONMENT,
+    })
+
+    expect(dayPoints.length).toBeGreaterThan(0)
+    expect(dayPoints.every((point) => point.kind === 'marker')).toBe(true)
+    expect(dayPoints.every((point) => point.label === '')).toBe(true)
+    expect(dayPoints.every((point) => point.className?.includes('proportional-hours-marker'))).toBe(true)
+    expect(dayPoints.every((point) => point.labelClassName?.includes('proportional-hours-marker-label'))).toBe(true)
+    expect(proportionalHoursLayer.getSpans()).toEqual([])
+    expect(hourPoints).toEqual([])
+  })
+
+  it('keeps intraday spans available when the viewport is fully inside a named interval', () => {
+    const focusTimeMs = new Date('2026-04-01T12:30:00-04:00').getTime()
+    const visibleDurationMs = 61 * 1000
+    const spans = getDayViewIntradaySpans(
+      focusTimeMs,
+      visibleDurationMs,
+      TEST_ENVIRONMENT,
+    )
+    const visibleRange = {
+      startTimeMs: focusTimeMs - visibleDurationMs / 2,
+      endTimeMs: focusTimeMs + visibleDurationMs / 2,
+    }
+
+    expect(spans.length).toBeGreaterThan(0)
+    const coveringSpan = spans.find(({ span }) =>
+      span.startTimeMs < visibleRange.startTimeMs
+      && span.endTimeMs > visibleRange.endTimeMs,
+    )
+
+    expect(coveringSpan).toBeDefined()
+    expect(coveringSpan?.span.label).toBeTruthy()
+
+    const positionedSpans = createHebrewStructuralSpans({
+      leadingCalendarSystemId: 'hebrew',
+      activeScaleLevel: 0,
+      focusTimeMs,
+      visibleDurationMs,
+      environment: TEST_ENVIRONMENT,
+    })
+
+    expect(
+      positionedSpans.some((span) =>
+        span.startTimeMs < visibleRange.startTimeMs
+        && span.endTimeMs > visibleRange.endTimeMs
+        && span.label === coveringSpan?.span.label,
+      ),
+    ).toBe(true)
   })
 
   it('uses Hebrew weekday labels at week scale', () => {

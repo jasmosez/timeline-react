@@ -169,3 +169,70 @@ If we want a cleanup/quality-oriented next slice, the best options are:
 2. Do the fuller testing roadmap pass
 3. Lightly tighten span semantics if promoted labels expand further
 4. Leave the big scale-band naming cleanup for the post-Phase-2 refactor
+
+## Testing Roadmap
+
+This is the recommended next-wave testing plan for the rest of Phase 2.
+
+### 1. Immediate Unit-Test Priorities
+
+These are the highest-value unit additions because they protect recently added
+behavior with real branching logic:
+
+- promoted structural span labels
+  Status: now covered
+- sticky-context label changes at important structural boundaries
+  Status: now covered for key Gregorian and Hebrew transitions
+- proportional-hours layer as its own first-class marker layer
+- Hebrew intraday label/rank behavior beyond the current happy-path cases
+- span-construction edge cases when viewport clipping changes which boundaries
+  are visible
+
+### 2. Immediate E2E Priorities
+
+The browser suite should stay selective.
+The next best candidates are:
+
+- promoted span labels appearing/disappearing when a structural span fully
+  covers the viewport
+- sticky-context updates under zoom and pan near week/month/quarter transitions
+- coexistence sanity checks for dual-structure Gregorian/Hebrew views
+- proportional-hours layer visibility/toggling behavior if it becomes a more
+  user-facing layer
+
+### 3. Manual / Visual Review Checklist
+
+Some risks are better handled by lightweight visual review than by brittle
+automation:
+
+- dense-label readability at minute/hour/day scales
+- promoted-span-label feel and spacing relative to sticky context labels
+- Gregorian/Hebrew visual weight balance
+- multi-layer lane crowding and collision behavior
+- Hebrew day-view intraday legibility around `now`
+
+This checklist now lives in:
+
+- [MANUAL_VISUAL_CHECKLIST.md](/Users/jms/code/timeline-react/MANUAL_VISUAL_CHECKLIST.md)
+
+### 4. Suggested Execution Order
+
+If we continue the quality track before another major feature slice, the
+recommended order is:
+
+1. Finish targeted unit coverage for proportional-hours and intraday span
+   construction
+2. Add one or two focused browser tests for promoted span labels and sticky
+   context under motion
+3. Write a short manual regression checklist for visual review before larger
+   presentation changes
+
+### 5. What Can Wait
+
+These are real gaps, but they do not need to be solved before the next product
+slice:
+
+- broad visual snapshot infrastructure
+- a large browser suite for every layer combination
+- post-Phase-2 scale-band naming refactor coverage
+- deeper annotation/event-span test matrices before those features exist

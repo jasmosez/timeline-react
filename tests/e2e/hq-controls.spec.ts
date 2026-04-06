@@ -218,6 +218,53 @@ test.describe('HQ controls', () => {
     expect(afterRelative).toBeGreaterThan(beforeRelative)
   })
 
+  test('promoted hebrew span labels appear in minute view and disappear again in day view', async ({ page }) => {
+    await page.goto('/')
+
+    const hebrewLayerToggle = page.getByRole('checkbox', { name: 'Hebrew' })
+    await hebrewLayerToggle.check()
+    await expect(hebrewLayerToggle).toBeChecked()
+
+    await page.getByLabel('Zoom in').click()
+    await expect(page.getByTestId('scale-title')).toHaveText('Day View')
+    await expect(page.locator('.promoted-span-label.hebrew-label')).toHaveCount(0)
+
+    await page.getByLabel('Zoom in').click()
+    await expect(page.getByTestId('scale-title')).toHaveText('Hour View')
+
+    await page.getByLabel('Zoom in').click()
+    await expect(page.getByTestId('scale-title')).toHaveText('Minute View')
+    await expect(page.locator('.promoted-span-label.hebrew-label')).toContainText('...')
+    await expect(page.locator('.promoted-span-label.hebrew-label')).toHaveCount(1)
+
+    await page.getByLabel('Zoom out').click()
+    await expect(page.getByTestId('scale-title')).toHaveText('Hour View')
+    await page.getByLabel('Zoom out').click()
+    await expect(page.getByTestId('scale-title')).toHaveText('Day View')
+    await expect(page.locator('.promoted-span-label.hebrew-label')).toHaveCount(0)
+  })
+
+  test('gregorian sticky context updates after gesture pan crosses into the next week', async ({ page }) => {
+    await page.goto('/')
+
+    const topContext = page.locator('.gregorian-context-label-top')
+    await expect(topContext).toHaveText('W14, Apr 2026')
+
+    await page.locator('.timeline-root').evaluate((element) => {
+      const rect = element.getBoundingClientRect()
+      element.dispatchEvent(
+        new WheelEvent('wheel', {
+          deltaY: rect.height,
+          bubbles: true,
+          cancelable: true,
+        }),
+      )
+    })
+
+    await expect(page.getByTestId('navigation-mode-value')).toHaveText('centered')
+    await expect(topContext).toHaveText('W16, Apr 2026')
+  })
+
   test('reset returns exploratory navigation to anchored current-period mode', async ({ page }) => {
     await page.goto('/')
 

@@ -105,6 +105,13 @@ Usage:
   Phase 2
   Target: Phase 2
 
+- Execute the next wave of Phase 2 testing work
+  Notes: finish targeted unit coverage for proportional-hours and intraday span
+  construction, add focused e2e coverage for promoted span labels and sticky
+  context under motion, and establish a short manual visual-regression
+  checklist for dense-label and multi-layer coexistence review
+  Target: Phase 2
+
 - Plan a post-Phase-2 architectural cleanup / refactor pass
   Notes: review whether files still separate concerns cleanly, remove bridge
   logic that was useful during Phase 2 but no longer reflects the product

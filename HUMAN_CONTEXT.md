@@ -172,13 +172,17 @@ These are useful short reminders:
 
 Some important active or near-active topics:
 
-- pointer/cursor-based gestural zoom
 - label-density suppression near primary boundaries
 - Gregorian visual primacy still being a bit too strong in some views
 - richer Hebrew boundary context at broader scales
-- Hebrew day view and below, including the path toward zmanim / richer intraday
-  Hebrew structure
+- Hebrew day view and below, including how much further intraday behavior
+  should evolve beyond the current MVP
 - broader label-composition normalization after the Hebrew intraday slice
+- the new Phase 2 testing roadmap:
+  - targeted unit coverage for proportional-hours and intraday span behavior
+  - focused browser coverage for promoted span labels and sticky context under
+    motion
+  - a short manual visual-regression checklist
 - later 24-hour mode exploration
 - a post-Phase-2 cleanup/refactor pass to tighten code seams after the product
   model stabilizes
@@ -196,6 +200,9 @@ Some important active or near-active topics:
 - [LABEL_COMPOSITION_AUDIT.md](/Users/jms/code/timeline-react/LABEL_COMPOSITION_AUDIT.md)
   is now the main design map for future label normalization, but that work is
   intentionally paused until after the next Hebrew intraday slice.
+- [MANUAL_VISUAL_CHECKLIST.md](/Users/jms/code/timeline-react/MANUAL_VISUAL_CHECKLIST.md)
+  is the lightweight visual-regression checklist to use before or after
+  meaningful presentation changes.
 
 ## How To Stay On Top Of The Project
 

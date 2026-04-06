@@ -335,9 +335,9 @@ Current progress:
 
 Near-term sequencing:
 
-- next: Hebrew day view and below
-- after that: return to the broader label-composition normalization pass with
-  the Hebrew intraday horizon clarified
+- next: execute the Phase 2 testing roadmap
+- after that: choose between the broader label-composition normalization pass
+  and the next major product slice from a clearer confidence baseline
 
 Phase 2 notes:
 
@@ -359,6 +359,12 @@ Phase 2 notes:
   based zooming during Phase 2 so direct manipulation feels more map-like
 - optional 24-hour display mode is worth exploring later as a deliberate
   whole-app time-format choice, not an ad hoc label fix
+- targeted regression protection is now its own active Phase 2 lane:
+  - recent additions like promoted span labels and Hebrew intraday behavior
+    need focused unit/e2e coverage
+  - broad visual-regression infrastructure is not yet the goal
+  - a short manual visual checklist is likely the right complement to the
+    current automated suite
 
 Post-Phase-2 cleanup note:
 
