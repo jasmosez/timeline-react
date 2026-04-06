@@ -390,6 +390,45 @@ Success looks like:
 - the timeline can represent both schedule and reflection
 - users can attach meaning to time buckets directly in the interface
 
+### Mobile Accessibility / Responsiveness Phase
+
+Goal: make the current timeline usable and legible on phones and other small
+touch devices before broader sharing.
+
+Motivation:
+
+- the app still carries default Vite global styling that introduces unintended
+  dark-mode behavior
+- the HQ rail currently assumes desktop width and consumes too much of the
+  mobile viewport
+- the timeline layout assumes a fixed desktop left gutter
+- touch gestures do not yet provide intentional timeline pan/zoom behavior,
+  so mobile pinch currently zooms the browser window instead of the timeline
+
+Initial milestones:
+
+- replace remaining Vite boilerplate global theming with app-owned defaults
+- define a mobile HQ pattern:
+  - collapsible sheet, drawer, or compact top bar
+- define a mobile timeline layout:
+  - smaller gutters
+  - narrower label lanes
+  - calmer context placement
+- add touch-first timeline interaction behavior:
+  - single-finger pan
+  - two-finger pinch zoom mapped to viewport duration
+  - prevent accidental page zoom when interacting with the timeline surface
+- identify minimum tap targets and readability thresholds for small screens
+
+Success looks like:
+
+- the app is intentionally light-themed unless a deliberate theme system is
+  introduced
+- controls do not dominate the mobile viewport
+- the timeline remains the primary surface on small screens
+- touch interaction feels native to the timeline rather than delegated to the
+  browser window
+
 ### Phase 4: Add External Time Sources
 
 Goal: enrich the timeline with imported and synchronized data.
