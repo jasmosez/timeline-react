@@ -296,6 +296,61 @@ This means:
 - future 7-year or shmita-style cycles can be introduced as layer-defined
   structures first, and only later become dedicated scale presets if useful
 
+### Eventual Scale-Band Naming Cleanup
+
+The codebase still uses numeric `ScaleLevel` values heavily:
+
+- `-1` minute
+- `0` hour
+- `1` day
+- `2` week
+- `3` month
+- `4` quarter
+- `5` year
+- `6` outermost long-span band
+
+This is widespread, not local to one file. It currently appears in:
+
+- scale definitions and helpers
+- Gregorian structure/label logic
+- Hebrew structure/label logic
+- period anchoring
+- tests
+
+That numeric scheme was a reasonable prototype seam, but it is now becoming a
+readability and maintenance cost.
+
+The eventual refactor should move toward:
+
+```ts
+type ScaleBandId =
+  | 'minute'
+  | 'hour'
+  | 'day'
+  | 'week'
+  | 'month'
+  | 'quarter'
+  | 'year'
+  | 'outer'
+```
+
+or similar explicit names.
+
+Important nuance:
+
+- the current outermost band is not truly symmetrical anymore
+  - Gregorian reads as decade
+  - Hebrew reads as shmita cycle
+
+So the next naming pass should avoid pretending that scale `6` is always
+literally a decade. A neutral name such as `outer`, `longSpan`, or
+`yearCluster` may be better at the band level, with each layer deciding its
+structural interpretation.
+
+This should be treated as a cross-cutting post-Phase-2 refactor, not a local
+cleanup, because it will touch architecture, labels, anchoring, tests, and
+possibly public vocabulary in the docs.
+
 ## 3. Standardize Render Primitives
 
 The timeline should render a small set of canonical item types rather than
