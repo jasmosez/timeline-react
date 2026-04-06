@@ -27,6 +27,8 @@ const HEBREW_WEEKDAY_NAMES = [
   'Shabbat',
 ]
 
+export const getHebrewWeekdayName = (dayOfWeek: number) => HEBREW_WEEKDAY_NAMES[dayOfWeek]
+
 const CIVIL_DATE_FORMATTERS = new Map<string, Intl.DateTimeFormat>()
 
 const getCivilDateFormatter = (timezone: string) => {
@@ -128,7 +130,7 @@ export const formatHebrewPrimaryNowLabel = (
   environment: TimelineEnvironment,
 ) => {
   const dayInfo = getHebrewDayInfo(timestamp, environment)
-  const weekdayName = HEBREW_WEEKDAY_NAMES[dayInfo.hdate.getDay()]
+  const weekdayName = getHebrewWeekdayName(dayInfo.hdate.getDay())
   const civilTime = timestamp.toLocaleTimeString('en-US', {
     hour: 'numeric',
     minute: '2-digit',

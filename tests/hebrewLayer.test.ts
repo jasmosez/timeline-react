@@ -4,6 +4,7 @@ import {
 } from '../src/timeline/hebrew'
 import { getHebrewIntradayDayPoints } from '../src/timeline/hebrewIntraday'
 import type { TimelineEnvironment } from '../src/timeline/layers'
+import { getHebrewDayInfo, getHebrewWeekdayName } from '../src/timeline/hebrewTime'
 
 const TEST_ENVIRONMENT: TimelineEnvironment = {
   now: new Date('2026-04-01T12:00:00-04:00'),
@@ -112,6 +113,29 @@ describe('hebrew structural layer', () => {
     expect(minuteSpans.every((span) => span.className?.includes('structural-span-supporting'))).toBe(true)
     expect(hourPoints.some((point) => (point.label ?? '').includes(','))).toBe(true)
     expect(hourSpans.length).toBeGreaterThan(0)
+
+    const sourcePoints = getHebrewIntradayDayPoints(
+      new Date('2026-04-01T12:00:00-04:00').getTime(),
+      25 * 60 * 60 * 1000,
+      TEST_ENVIRONMENT,
+    )
+    const shkiahSource = sourcePoints.find((point) => point.source === 'shkiah')
+    expect(shkiahSource).toBeDefined()
+    const shkiahDayInfo = getHebrewDayInfo(new Date(shkiahSource!.timeMs), TEST_ENVIRONMENT)
+    const shkiahWeekday = getHebrewWeekdayName(shkiahDayInfo.hdate.getDay())
+    const shkiahTime = shkiahSource!.label.split(', ').slice(1).join(', ')
+    const supportingDayPoints = createHebrewStructuralPoints({
+      leadingCalendarSystemId: 'gregorian',
+      activeScaleLevel: 1,
+      focusTimeMs: new Date('2026-04-01T12:00:00-04:00').getTime(),
+      visibleDurationMs: 25 * 60 * 60 * 1000,
+      environment: TEST_ENVIRONMENT,
+    })
+    expect(
+      supportingDayPoints.some((point) =>
+        point.label === `Shkiah, ${shkiahTime} - ${shkiahDayInfo.hebrewDate.day}, ${shkiahWeekday}`,
+      ),
+    ).toBe(true)
   })
 
   it('creates named intraday structural points at day scale without proportional-hour markers', () => {
@@ -133,7 +157,23 @@ describe('hebrew structural layer', () => {
     expect(points.some((point) => (point.label ?? '').startsWith('Mincha G.,'))).toBe(true)
     expect(points.some((point) => (point.label ?? '').startsWith('Mincha K.,'))).toBe(true)
     expect(points.some((point) => (point.label ?? '').startsWith('Plag,'))).toBe(true)
-    expect(points.some((point) => (point.label ?? '').startsWith('Tzeit 8.5°,' ) && point.className?.includes('tick-rank-secondary'))).toBe(true)
+    const sourcePoints = getHebrewIntradayDayPoints(
+      new Date('2026-04-01T12:00:00-04:00').getTime(),
+      25 * 60 * 60 * 1000,
+      TEST_ENVIRONMENT,
+    )
+    const shkiahSource = sourcePoints.find((point) => point.source === 'shkiah')
+    expect(shkiahSource).toBeDefined()
+    const shkiahDayInfo = getHebrewDayInfo(new Date(shkiahSource!.timeMs), TEST_ENVIRONMENT)
+    const shkiahWeekday = getHebrewWeekdayName(shkiahDayInfo.hdate.getDay())
+    const shkiahTime = shkiahSource!.label.split(', ').slice(1).join(', ')
+    expect(
+      points.some((point) =>
+        point.label === `${shkiahWeekday} ${shkiahDayInfo.hebrewDate.day} - Shkiah, ${shkiahTime}`
+        && point.className?.includes('tick-rank-secondary'),
+      ),
+    ).toBe(true)
+    expect(points.some((point) => (point.label ?? '').startsWith('Tzeit 8.5°,' ) && point.className?.includes('tick-rank-ordinary'))).toBe(true)
     expect(points.some((point) => point.label === '')).toBe(false)
     expect(points.some((point) => (point.label ?? '').includes('PM'))).toBe(true)
 

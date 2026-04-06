@@ -4,7 +4,12 @@ import { getVisibleRangeStartTickDate, getVisibleTimeRange, type ScaleLevel } fr
 import type { PositionedTimelinePoint, PositionedTimelineSpan, TimelinePoint, TimelineSpan } from './types'
 import { getCivilDateAtNoonUtc, getHebrewDayInfo, isHebrewQuarterStartMonth } from './hebrewTime'
 import { getHebrewTickLabel } from './hebrewLabels'
-import { getDayViewIntradaySpans, getHebrewIntradayDayPoints, isNamedHebrewIntradayPoint } from './hebrewIntraday'
+import {
+  formatHebrewIntradayPointLabel,
+  getDayViewIntradaySpans,
+  getHebrewIntradayDayPoints,
+  isNamedHebrewIntradayPoint,
+} from './hebrewIntraday'
 
 type HebrewLayerParams = {
   leadingCalendarSystemId: LeadingCalendarSystemId
@@ -280,7 +285,11 @@ export const createHebrewStructuralPoints = ({
             id: point.id,
             kind: 'tick',
             timeMs: point.timeMs,
-            label: point.label,
+            label: formatHebrewIntradayPointLabel(
+              point,
+              leadingCalendarSystemId === 'hebrew',
+              environment,
+            ),
           },
           activeScaleLevel,
           focusTimeMs,
