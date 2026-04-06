@@ -28,6 +28,13 @@ Usage:
   Notes: likely optional or context-sensitive rather than always-on by default
   Target: Phase 2
 
+- Revisit Hebrew Shabbat/week boundary semantics at broader scales
+  Notes: if Hebrew week identity or week ticks become richer in month/quarter
+  views, decide whether Shabbat should be treated as the longer culminating
+  interval and Rishon as the shorter boundary marker, and how that should affect
+  tick rank, intermediary labels, and transitions between adjacent scale bands
+  Target: Phase 2
+
 - Density-aware suppression for Hebrew day-view boundary labels
   Notes: especially near `now` or other high-attention regions
   Target: Phase 2
