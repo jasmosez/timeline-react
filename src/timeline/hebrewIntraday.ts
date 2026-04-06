@@ -14,6 +14,7 @@ export type HebrewIntradayPointData = {
   label: string
   rankClass: HebrewIntradayPointRankClass
   kind: 'proportional-hour-marker' | 'named-intraday-marker'
+  stripeIndex: number
 }
 
 type HebrewIntradaySpanData = {
@@ -54,6 +55,10 @@ const getDaylightBoundaries = (sunrise: Date, sunset: Date) => {
   return boundaries
 }
 
+const DAY_MS = 24 * 60 * 60 * 1000
+
+const getAbsoluteDayIndex = (civilDate: Date) => Math.floor(civilDate.getTime() / DAY_MS)
+
 export const isNamedHebrewIntradayPoint = (point: HebrewIntradayPointData) =>
   point.kind === 'named-intraday-marker'
 
@@ -72,6 +77,7 @@ export const getHebrewIntradayDayPoints = (
   civilDate.setUTCDate(civilDate.getUTCDate() - 1)
 
   while (civilDate.getTime() <= bufferedEnd + 24 * 60 * 60 * 1000) {
+    const absoluteDayIndex = getAbsoluteDayIndex(civilDate)
     const dayInfo = getHebrewDayInfo(new Date(civilDate), environment)
     const daylightCivilDate = getHebrewDaylightCivilDate(dayInfo, environment)
     const zmanim = getZmanimForCivilDate(daylightCivilDate, environment)
@@ -89,6 +95,7 @@ export const getHebrewIntradayDayPoints = (
         label: '',
         rankClass: 'tick-rank-ordinary',
         kind: 'proportional-hour-marker',
+        stripeIndex: absoluteDayIndex * 100 + hourIndex,
       })
     }
 
@@ -107,7 +114,7 @@ export const getHebrewIntradayDayPoints = (
       { id: 'tzeit', label: 'Tzeit 8.5°', time: zmanim.tzeit(), rankClass: 'tick-rank-secondary' as const },
     ]
 
-    namedMoments.forEach(({ id, label, time, rankClass }) => {
+    namedMoments.forEach(({ id, label, time, rankClass }, namedMomentIndex) => {
       const timeMs = time.getTime()
       if (timeMs < bufferedStart || timeMs > bufferedEnd) {
         return
@@ -119,6 +126,7 @@ export const getHebrewIntradayDayPoints = (
         label: `${label}, ${formatCivilTime(time)}`,
         rankClass: rankClass ?? 'tick-rank-ordinary',
         kind: 'named-intraday-marker',
+        stripeIndex: absoluteDayIndex * 100 + namedMomentIndex,
       })
     })
 
@@ -133,6 +141,7 @@ export const getHebrewIntradayDayPoints = (
           label: `Shabbat Ends / Tzeit 8.5°, ${formatCivilTime(shabbatEnd)}`,
           rankClass: 'tick-rank-primary',
           kind: 'named-intraday-marker',
+          stripeIndex: absoluteDayIndex * 100 + (namedMoments.length - 1),
         })
       }
     }
@@ -168,7 +177,7 @@ export const getDayViewIntradaySpans = (
         endTimeMs: endPoint.timeMs,
         label: startPoint.label,
       },
-      stripeClass: segmentIndex % 2 === 0 ? 'structural-span-stripe-a' : 'structural-span-stripe-b',
+      stripeClass: startPoint.stripeIndex % 2 === 0 ? 'structural-span-stripe-a' : 'structural-span-stripe-b',
     })
   }
 
