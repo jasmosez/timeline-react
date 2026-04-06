@@ -418,6 +418,8 @@ the Hebrew family may eventually include separate render layers or sublayers for
 - Hebrew holidays
 - zmanim points
 - zmanim windows
+- dedicated intraday helper modules when day-scale semantics become richer than
+  the main structural calendar module should carry comfortably
 
 The UI may present these as one grouped section while the underlying rendering
 model keeps them separable.

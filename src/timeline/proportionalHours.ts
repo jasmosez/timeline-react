@@ -1,6 +1,6 @@
 import type { TimelineLayer } from './layers'
 import { positionTimelinePoint } from './layout'
-import { getHebrewProportionalHourDayPoints } from './hebrew'
+import { getHebrewIntradayDayPoints, isProportionalHourMarkerPoint } from './hebrewIntraday'
 
 export const proportionalHoursLayer: TimelineLayer = {
   id: 'proportional-hours',
@@ -16,8 +16,8 @@ export const proportionalHoursLayer: TimelineLayer = {
       return []
     }
 
-    return getHebrewProportionalHourDayPoints(focusTimeMs, visibleDurationMs, environment)
-      .filter((point) => point.rankClass === 'tick-rank-ordinary' && point.label === '')
+    return getHebrewIntradayDayPoints(focusTimeMs, visibleDurationMs, environment)
+      .filter(isProportionalHourMarkerPoint)
       .map((point) =>
         positionTimelinePoint(
           {

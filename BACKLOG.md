@@ -79,6 +79,13 @@ Usage:
   broader normalization pass
   Target: Phase 2
 
+- Plan a post-Phase-2 architectural cleanup / refactor pass
+  Notes: review whether files still separate concerns cleanly, remove bridge
+  logic that was useful during Phase 2 but no longer reflects the product
+  model, tighten naming, and realign modules with the final structural,
+  intraday, presentation, and label-composition seams
+  Target: Phase 3
+
 ## Later
 
 - Smooth band-transition treatment for gesture zoom and HQ button zoom

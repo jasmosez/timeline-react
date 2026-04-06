@@ -1,8 +1,8 @@
 import {
-  getHebrewProportionalHourDayPoints,
   createHebrewStructuralPoints,
   createHebrewStructuralSpans,
 } from '../src/timeline/hebrew'
+import { getHebrewIntradayDayPoints } from '../src/timeline/hebrewIntraday'
 import type { TimelineEnvironment } from '../src/timeline/layers'
 
 const TEST_ENVIRONMENT: TimelineEnvironment = {
@@ -134,7 +134,7 @@ describe('hebrew structural layer', () => {
   })
 
   it('exposes proportional-hour markers separately for a dedicated layer', () => {
-    const points = getHebrewProportionalHourDayPoints(
+    const points = getHebrewIntradayDayPoints(
       new Date('2026-04-01T12:00:00-04:00').getTime(),
       25 * 60 * 60 * 1000,
       TEST_ENVIRONMENT,

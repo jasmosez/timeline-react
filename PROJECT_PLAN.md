@@ -322,6 +322,9 @@ Current progress:
   work across Gregorian and Hebrew
 - the next active Phase 2 implementation focus is Hebrew day view and below,
   including the path toward honest intraday Hebrew time
+- Hebrew day view now distinguishes:
+  - the main Hebrew layer for named intraday markers
+  - a dedicated proportional-hours marker layer for unlabeled sha'ot zmaniyot
 
 Near-term sequencing:
 
@@ -347,6 +350,13 @@ Phase 2 notes:
   based zooming during Phase 2 so direct manipulation feels more map-like
 - optional 24-hour display mode is worth exploring later as a deliberate
   whole-app time-format choice, not an ad hoc label fix
+
+Post-Phase-2 cleanup note:
+
+- plan a broader architectural refactor after Phase 2 stabilizes
+- use it to tighten module boundaries, remove bridge logic that accumulated
+  during Phase 2, and realign code structure more closely with the final
+  product model
 
 ### Phase 3: Add Notes and Planning Primitives
 

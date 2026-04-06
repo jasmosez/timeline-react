@@ -130,9 +130,13 @@ Useful “where things live” summary:
 - [src/timeline/gregorian.ts](/Users/jms/code/timeline-react/src/timeline/gregorian.ts)
   Gregorian structure generation
 - [src/timeline/hebrew.ts](/Users/jms/code/timeline-react/src/timeline/hebrew.ts)
-  Hebrew structure generation
+  Hebrew structural boundary generation
 - [src/timeline/hebrewTime.ts](/Users/jms/code/timeline-react/src/timeline/hebrewTime.ts)
   Hebrew time/date/sunset semantics
+- [src/timeline/hebrewIntraday.ts](/Users/jms/code/timeline-react/src/timeline/hebrewIntraday.ts)
+  Hebrew day-view intraday marker construction
+- [src/timeline/proportionalHours.ts](/Users/jms/code/timeline-react/src/timeline/proportionalHours.ts)
+  dedicated proportional-hours marker layer
 - [src/timeline/gregorianLabels.ts](/Users/jms/code/timeline-react/src/timeline/gregorianLabels.ts)
   Gregorian label policy
 - [src/timeline/hebrewLabels.ts](/Users/jms/code/timeline-react/src/timeline/hebrewLabels.ts)
@@ -149,6 +153,9 @@ Useful “where things live” summary:
 These are useful short reminders:
 
 - Hebrew is now a real structural peer to Gregorian.
+- Hebrew day view currently splits intraday meaning across:
+  - named moments on the Hebrew layer
+  - unlabeled proportional-hour markers on their own layer
 - Primary calendar semantics and visible structural layers are not the same.
 - Sticky context labels are viewport chrome, not ordinary timeline labels.
 - One-sided ticks significantly improved readability.
@@ -167,6 +174,8 @@ Some important active or near-active topics:
   Hebrew structure
 - broader label-composition normalization after the Hebrew intraday slice
 - later 24-hour mode exploration
+- a post-Phase-2 cleanup/refactor pass to tighten code seams after the product
+  model stabilizes
 
 ## Current Product Truths Worth Remembering
 

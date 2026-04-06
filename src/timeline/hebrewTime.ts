@@ -54,6 +54,9 @@ const getCivilDateInTimezone = (timestamp: Date, timezone: string) => {
   return new Date(Date.UTC(year, month - 1, day, 12))
 }
 
+export const getCivilDateAtNoonUtc = (date: Date) =>
+  new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 12))
+
 export const createHebcalLocation = (environment: TimelineEnvironment) =>
   new Location(
     environment.location.latitude,
