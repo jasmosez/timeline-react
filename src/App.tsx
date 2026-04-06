@@ -248,7 +248,7 @@ function App() {
     }))
   }
 
-  const handleWheelZoom = (zoomFactor: number) => {
+  const handleWheelZoom = (zoomFactor: number, anchorPercent: number) => {
     if (zoomFactor === 1) {
       return
     }
@@ -259,8 +259,15 @@ function App() {
         maxVisibleDurationMs,
       )
 
+      const clampedAnchorPercent = Math.min(Math.max(anchorPercent, 0), 1)
+      const anchorTimeMs =
+        prevViewport.focusTimeMs
+        + (clampedAnchorPercent - 0.5) * prevViewport.visibleDurationMs
+      const nextFocusTimeMs =
+        anchorTimeMs + (0.5 - clampedAnchorPercent) * nextVisibleDurationMs
+
       return {
-        focusTimeMs: prevViewport.focusTimeMs,
+        focusTimeMs: nextFocusTimeMs,
         visibleDurationMs: nextVisibleDurationMs,
         rangeStrategy: 'centered',
       }

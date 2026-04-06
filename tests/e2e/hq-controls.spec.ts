@@ -77,7 +77,7 @@ test.describe('HQ controls', () => {
     await page.goto('/')
 
     await expect(page.getByTestId('scale-title')).toHaveText('Week View')
-    await expect(page.getByTestId('start-tick-value')).toHaveText('Sun, Mar 29, 2026, 12:00 AM')
+    await expect(page.getByTestId('start-tick-value')).toHaveText('Sun, Apr 5, 2026, 12:00 AM')
   })
 
   test('HQ button zoom keeps anchored current-period framing', async ({ page }) => {
@@ -167,6 +167,55 @@ test.describe('HQ controls', () => {
     })
 
     await expect(page.getByTestId('navigation-mode-value')).toHaveText('centered')
+  })
+
+  test('gesture zoom anchors around the cursor instead of always the viewport center', async ({ page }) => {
+    await page.goto('/')
+
+    const timeline = page.locator('.timeline-root')
+
+    const before = await timeline.evaluate((element) => {
+      const nowTick = document.querySelector('.now-tick') as HTMLElement | null
+      const timelineRect = element.getBoundingClientRect()
+      const nowRect = nowTick?.getBoundingClientRect()
+
+      return {
+        timelineTop: timelineRect.top,
+        timelineHeight: timelineRect.height,
+        nowTop: nowRect?.top ?? 0,
+      }
+    })
+
+    await timeline.evaluate((element) => {
+      const rect = element.getBoundingClientRect()
+      element.dispatchEvent(
+        new WheelEvent('wheel', {
+          deltaY: -120,
+          ctrlKey: true,
+          clientX: rect.left + rect.width / 2,
+          clientY: rect.top + rect.height * 0.2,
+          bubbles: true,
+          cancelable: true,
+        }),
+      )
+    })
+
+    const after = await timeline.evaluate((element) => {
+      const nowTick = document.querySelector('.now-tick') as HTMLElement | null
+      const timelineRect = element.getBoundingClientRect()
+      const nowRect = nowTick?.getBoundingClientRect()
+
+      return {
+        timelineTop: timelineRect.top,
+        timelineHeight: timelineRect.height,
+        nowTop: nowRect?.top ?? 0,
+      }
+    })
+
+    const beforeRelative = (before.nowTop - before.timelineTop) / before.timelineHeight
+    const afterRelative = (after.nowTop - after.timelineTop) / after.timelineHeight
+
+    expect(afterRelative).toBeGreaterThan(beforeRelative)
   })
 
   test('reset returns exploratory navigation to anchored current-period mode', async ({ page }) => {

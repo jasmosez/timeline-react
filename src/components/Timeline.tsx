@@ -30,7 +30,7 @@ interface TimelineProps {
     isGregorianVisible: boolean;
     isHebrewVisible: boolean;
     onPanTimeDelta: (deltaMs: number) => void;
-    onZoomByFactor: (factor: number) => void;
+    onZoomByFactor: (factor: number, anchorPercent: number) => void;
 }
 
 type PromotedSpanLabel = {
@@ -132,7 +132,12 @@ function Timeline({
 
       if (event.ctrlKey || event.metaKey) {
         const zoomFactor = Math.exp(event.deltaY * 0.0015)
-        onZoomByFactor(zoomFactor)
+        const viewportRect = viewportElement.getBoundingClientRect()
+        const anchorPercent = Math.min(
+          Math.max((event.clientY - viewportRect.top) / viewportRect.height, 0),
+          1,
+        )
+        onZoomByFactor(zoomFactor, anchorPercent)
 
         return;
       }
