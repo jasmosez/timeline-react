@@ -33,6 +33,53 @@ interface TimelineProps {
     onZoomByFactor: (factor: number) => void;
 }
 
+type PromotedSpanLabel = {
+  id: string
+  label: string
+  className: string
+}
+
+const getPromotedSpanLabels = (
+  spans: PositionedTimelineSpan[],
+  visibleTimeRange: ReturnType<typeof getVisibleTimeRange>,
+) => {
+  const labelsBySide = new Map<'leading' | 'supporting', PromotedSpanLabel>()
+
+  spans.forEach((span) => {
+    if (span.kind !== 'structural-period') {
+      return
+    }
+
+    if (!(span.startTimeMs < visibleTimeRange.startTimeMs && span.endTimeMs > visibleTimeRange.endTimeMs)) {
+      return
+    }
+
+    const side = span.className?.includes('structural-span-leading')
+      ? 'leading'
+      : span.className?.includes('structural-span-supporting')
+        ? 'supporting'
+        : undefined
+
+    if (!side || labelsBySide.has(side) || !span.label) {
+      return
+    }
+
+    labelsBySide.set(side, {
+      id: `promoted-span-label-${span.id}`,
+      label: `... ${span.label}`,
+      className: [
+        'timeline',
+        'tick-label',
+        'promoted-span-label',
+        side === 'leading' ? 'structural-label-leading' : 'structural-label-supporting',
+        span.className?.includes('hebrew-structural-span') ? 'hebrew-label' : '',
+      ].join(' ').trim(),
+    })
+  })
+
+  return [...labelsBySide.values()]
+}
+
 function Timeline({
   environment,
   leadingCalendarSystemId,
@@ -161,6 +208,7 @@ function Timeline({
         }
       : point,
   )
+  const promotedSpanLabels = getPromotedSpanLabels(timelineSpans, visibleTimeRange)
 
   return (
     <div ref={viewportRef} className='timeline-root'>
@@ -205,6 +253,11 @@ function Timeline({
           ) : null}
         </>
       ) : null}
+      {promotedSpanLabels.map((promotedLabel) => (
+        <div key={promotedLabel.id} className={promotedLabel.className}>
+          {promotedLabel.label}
+        </div>
+      ))}
       {timelineSpans.map((span) => <Span key={span.id} span={span} />)}
       {displayTickPoints.map((point) => <TickPoint key={point.id} point={point} />)}
       <NowTick

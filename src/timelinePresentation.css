@@ -36,6 +36,7 @@
   --tick-rank-ordinary-width: 10px;
   --hebrew-subtick-width: 7px;
   --context-top-offset: 12px;
+  --promoted-span-label-top-offset: 34px;
   --structural-label-column-offset: calc(var(--tick-rank-primary-width) + var(--tick-label-gap));
   --now-label-column-offset: calc(var(--now-tick-width) + var(--tick-label-gap));
 }
@@ -157,6 +158,13 @@
 .structural-label-supporting {
   left: calc(var(--timeline-axis-x) + var(--structural-label-column-offset));
   text-align: left;
+}
+
+.promoted-span-label {
+  top: var(--promoted-span-label-top-offset);
+  transform: none;
+  z-index: 20;
+  font-weight: 500;
 }
 
 .now-tick {
