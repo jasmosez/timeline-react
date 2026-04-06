@@ -145,8 +145,8 @@ describe('hebrew structural layer', () => {
       TEST_ENVIRONMENT,
     )
 
-    expect(points.some((point) => point.rankClass === 'tick-rank-ordinary' && point.label === '')).toBe(true)
-    expect(points.some((point) => (point.label ?? '').startsWith('Netz,'))).toBe(true)
+    expect(points.some((point) => point.kind === 'proportional-hour-marker' && point.rankClass === 'tick-rank-ordinary' && point.label === '')).toBe(true)
+    expect(points.some((point) => point.kind === 'named-intraday-marker' && (point.label ?? '').startsWith('Netz,'))).toBe(true)
   })
 
   it('uses Hebrew weekday labels at week scale', () => {

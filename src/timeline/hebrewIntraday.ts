@@ -13,6 +13,7 @@ export type HebrewIntradayPointData = {
   timeMs: number
   label: string
   rankClass: HebrewIntradayPointRankClass
+  kind: 'proportional-hour-marker' | 'named-intraday-marker'
 }
 
 type HebrewIntradaySpanData = {
@@ -53,10 +54,11 @@ const getDaylightBoundaries = (sunrise: Date, sunset: Date) => {
   return boundaries
 }
 
-export const isNamedHebrewIntradayPoint = (point: HebrewIntradayPointData) => point.label !== ''
+export const isNamedHebrewIntradayPoint = (point: HebrewIntradayPointData) =>
+  point.kind === 'named-intraday-marker'
 
 export const isProportionalHourMarkerPoint = (point: HebrewIntradayPointData) =>
-  point.rankClass === 'tick-rank-ordinary' && point.label === ''
+  point.kind === 'proportional-hour-marker'
 
 export const getHebrewIntradayDayPoints = (
   focusTimeMs: number,
@@ -86,6 +88,7 @@ export const getHebrewIntradayDayPoints = (
         timeMs,
         label: '',
         rankClass: 'tick-rank-ordinary',
+        kind: 'proportional-hour-marker',
       })
     }
 
@@ -115,6 +118,7 @@ export const getHebrewIntradayDayPoints = (
         timeMs,
         label: `${label}, ${formatCivilTime(time)}`,
         rankClass: rankClass ?? 'tick-rank-ordinary',
+        kind: 'named-intraday-marker',
       })
     })
 
@@ -128,6 +132,7 @@ export const getHebrewIntradayDayPoints = (
           timeMs,
           label: `Shabbat Ends / Tzeit 8.5°, ${formatCivilTime(shabbatEnd)}`,
           rankClass: 'tick-rank-primary',
+          kind: 'named-intraday-marker',
         })
       }
     }
