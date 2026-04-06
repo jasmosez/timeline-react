@@ -6,9 +6,10 @@ import { getNow } from './utils'
 import HQ from './components/HQ'
 import Timeline from './components/Timeline'
 import { PAN_AMOUNT, DEFAULT_BIRTH_DATE } from './config'
-import { birthdayLayer } from './timeline/birthday'
 import { gregorianLayer } from './timeline/gregorian'
 import { hebrewLayer } from './timeline/hebrew'
+import { birthdayLayer } from './timeline/birthday'
+import { proportionalHoursLayer } from './timeline/proportionalHours'
 import type { LeadingCalendarSystemId, TimelineEnvironment, TimelineLayerId } from './timeline/layers'
 import { createInitialViewport, getViewportStartTickDate, type Viewport } from './viewport'
 import { getContainingPeriodFocusTimeMs } from './timeline/periodAnchoring'
@@ -22,7 +23,7 @@ import {
   getScaleLevelVisibleDurationMs,
 } from './timeline/scales'
 
-const AVAILABLE_TIMELINE_LAYERS = [gregorianLayer, hebrewLayer, birthdayLayer]
+const AVAILABLE_TIMELINE_LAYERS = [gregorianLayer, hebrewLayer, proportionalHoursLayer, birthdayLayer]
 const LOCK_NOW_DEFAULT_PERCENT = 0.5
 const DEFAULT_TIMELINE_LOCATION = {
   city: 'Northampton',

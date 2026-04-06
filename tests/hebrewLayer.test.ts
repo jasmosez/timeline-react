@@ -1,4 +1,8 @@
-import { createHebrewStructuralPoints, createHebrewStructuralSpans } from '../src/timeline/hebrew'
+import {
+  getHebrewProportionalHourDayPoints,
+  createHebrewStructuralPoints,
+  createHebrewStructuralSpans,
+} from '../src/timeline/hebrew'
 import type { TimelineEnvironment } from '../src/timeline/layers'
 
 const TEST_ENVIRONMENT: TimelineEnvironment = {
@@ -71,7 +75,7 @@ describe('hebrew structural layer', () => {
     expect(hourPoints).toHaveLength(0)
   })
 
-  it('creates zmanim and proportional-hour structural points at day scale', () => {
+  it('creates named intraday structural points at day scale without proportional-hour markers', () => {
     const points = createHebrewStructuralPoints({
       leadingCalendarSystemId: 'hebrew',
       activeScaleLevel: 1,
@@ -82,12 +86,17 @@ describe('hebrew structural layer', () => {
 
     expect(points.length).toBeGreaterThan(0)
     expect(points.some((point) => point.labelClassName?.includes('structural-label-leading'))).toBe(true)
-    expect(points.some((point) => point.className?.includes('tick-rank-ordinary'))).toBe(true)
-    expect(points.some((point) => point.className?.includes('tick-rank-secondary'))).toBe(true)
-    expect(points.some((point) => point.label === 'Netz')).toBe(true)
-    expect(points.some((point) => point.label === 'Chatzot')).toBe(true)
-    expect(points.some((point) => point.label === '1')).toBe(true)
-    expect(points.some((point) => (point.label ?? '').includes('PM'))).toBe(false)
+    expect(points.some((point) => (point.label ?? '').startsWith('Netz,'))).toBe(true)
+    expect(points.some((point) => (point.label ?? '').startsWith('Shma,'))).toBe(true)
+    expect(points.some((point) => (point.label ?? '').startsWith('Tfila,'))).toBe(true)
+    expect(points.some((point) => (point.label ?? '').startsWith('Chatzot,'))).toBe(true)
+    expect(points.some((point) => (point.label ?? '').startsWith('Chatzot Night,'))).toBe(true)
+    expect(points.some((point) => (point.label ?? '').startsWith('Mincha G.,'))).toBe(true)
+    expect(points.some((point) => (point.label ?? '').startsWith('Mincha K.,'))).toBe(true)
+    expect(points.some((point) => (point.label ?? '').startsWith('Plag,'))).toBe(true)
+    expect(points.some((point) => (point.label ?? '').startsWith('Tzeit 8.5°,' ) && point.className?.includes('tick-rank-secondary'))).toBe(true)
+    expect(points.some((point) => point.label === '')).toBe(false)
+    expect(points.some((point) => (point.label ?? '').includes('PM'))).toBe(true)
 
     const spans = createHebrewStructuralSpans({
       leadingCalendarSystemId: 'hebrew',
@@ -97,12 +106,10 @@ describe('hebrew structural layer', () => {
       environment: TEST_ENVIRONMENT,
     })
 
-    expect(spans.length).toBeGreaterThan(0)
-    expect(spans.length).toBeGreaterThanOrEqual(10)
-    expect(spans.every((span) => span.id.startsWith('hebrew-'))).toBe(true)
+    expect(spans).toHaveLength(0)
   })
 
-  it('uses proportional daylight spans when hebrew is secondary at day scale', () => {
+  it('currently has no hebrew day spans while the intraday span design is paused', () => {
     const spans = createHebrewStructuralSpans({
       leadingCalendarSystemId: 'gregorian',
       activeScaleLevel: 1,
@@ -111,8 +118,7 @@ describe('hebrew structural layer', () => {
       environment: TEST_ENVIRONMENT,
     })
 
-    expect(spans.length).toBeGreaterThan(0)
-    expect(spans.length).toBeGreaterThanOrEqual(10)
+    expect(spans).toHaveLength(0)
   })
 
   it('marks the end of shabbat as a primary day-view tick', () => {
@@ -124,7 +130,18 @@ describe('hebrew structural layer', () => {
       environment: TEST_ENVIRONMENT,
     })
 
-    expect(points.some((point) => point.label === 'Shabbat Ends' && point.className?.includes('tick-rank-primary'))).toBe(true)
+    expect(points.some((point) => (point.label ?? '').startsWith('Shabbat Ends / Tzeit 8.5°') && point.className?.includes('tick-rank-primary'))).toBe(true)
+  })
+
+  it('exposes proportional-hour markers separately for a dedicated layer', () => {
+    const points = getHebrewProportionalHourDayPoints(
+      new Date('2026-04-01T12:00:00-04:00').getTime(),
+      25 * 60 * 60 * 1000,
+      TEST_ENVIRONMENT,
+    )
+
+    expect(points.some((point) => point.rankClass === 'tick-rank-ordinary' && point.label === '')).toBe(true)
+    expect(points.some((point) => (point.label ?? '').startsWith('Netz,'))).toBe(true)
   })
 
   it('uses Hebrew weekday labels at week scale', () => {

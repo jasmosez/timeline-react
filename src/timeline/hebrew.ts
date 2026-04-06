@@ -19,6 +19,13 @@ const ENABLE_HEBREW_QUARTER_WEEK_TICKS = false
 const getCivilDateAtNoonUtc = (date: Date) =>
   new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 12))
 
+const formatCivilTime = (date: Date) =>
+  date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  })
+
 const shouldEmitHebrewBoundary = (
   activeScaleLevel: ScaleLevel,
   dayInfo: ReturnType<typeof getHebrewDayInfo>,
@@ -60,6 +67,8 @@ type HebrewIntradaySpan = {
   stripeClass: 'structural-span-stripe-a' | 'structural-span-stripe-b'
 }
 
+export type HebrewIntradayPointData = HebrewIntradayPoint
+
 const getHebrewSpanStripeClass = (
   activeScaleLevel: ScaleLevel,
   startTimeMs: number,
@@ -91,7 +100,7 @@ const getHebrewSpanStripeClass = (
   return dayInfo.hebrewDate.year % 2 === 0 ? 'structural-span-stripe-a' : 'structural-span-stripe-b'
 }
 
-const getDayViewIntradayPoints = (
+export const getHebrewProportionalHourDayPoints = (
   focusTimeMs: number,
   visibleDurationMs: number,
   environment: HebrewLayerParams['environment'],
@@ -124,35 +133,38 @@ const getDayViewIntradayPoints = (
         points.set(timeMs, {
           id: `hebrew-proportional-hour-${timeMs}`,
           timeMs,
-          label: String(hourIndex),
+          label: '',
           rankClass: 'tick-rank-ordinary',
         })
       }
     }
 
-    const secondaryMoments = [
+    const namedMoments = [
+      { id: 'alot', label: 'Alot 16.1°', time: zmanim.alotHaShachar() },
+      { id: 'misheyakir', label: 'Misheyakir 11.5°', time: zmanim.misheyakir() },
       { id: 'netz', label: 'Netz', time: zmanim.sunrise() },
       { id: 'shma', label: 'Shma', time: zmanim.sofZmanShma() },
       { id: 'tfilla', label: 'Tfila', time: zmanim.sofZmanTfilla() },
       { id: 'chatzot', label: 'Chatzot', time: zmanim.chatzot() },
+      { id: 'chatzot-night', label: 'Chatzot Night', time: zmanim.chatzotNight() },
       { id: 'mincha-gedola', label: 'Mincha G.', time: zmanim.minchaGedola() },
       { id: 'mincha-ketana', label: 'Mincha K.', time: zmanim.minchaKetana() },
       { id: 'plag', label: 'Plag', time: zmanim.plagHaMincha() },
       { id: 'shkiah', label: 'Shkiah', time: zmanim.sunset() },
-      { id: 'tzeit', label: 'Tzeit', time: zmanim.tzeit() },
+      { id: 'tzeit', label: 'Tzeit 8.5°', time: zmanim.tzeit(), rankClass: 'tick-rank-secondary' as const },
     ]
 
-    secondaryMoments.forEach(({ id, label, time }) => {
+    namedMoments.forEach(({ id, label, time, rankClass }) => {
       const timeMs = time.getTime()
-      if (timeMs < bufferedStart || timeMs > bufferedEnd || points.has(timeMs)) {
+      if (timeMs < bufferedStart || timeMs > bufferedEnd) {
         return
       }
 
       points.set(timeMs, {
         id: `hebrew-zman-${id}-${timeMs}`,
         timeMs,
-        label,
-        rankClass: 'tick-rank-secondary',
+        label: `${label}, ${formatCivilTime(time)}`,
+        rankClass: rankClass ?? 'tick-rank-ordinary',
       })
     })
 
@@ -164,7 +176,7 @@ const getDayViewIntradayPoints = (
         points.set(timeMs, {
           id: `hebrew-shabbat-ends-${timeMs}`,
           timeMs,
-          label: 'Shabbat Ends',
+          label: `Shabbat Ends / Tzeit 8.5°, ${formatCivilTime(shabbatEnd)}`,
           rankClass: 'tick-rank-primary',
         })
       }
@@ -176,7 +188,7 @@ const getDayViewIntradayPoints = (
   return [...points.values()].sort((a, b) => a.timeMs - b.timeMs)
 }
 
-const getDayViewIntradaySpans = (
+export const getDayViewIntradaySpans = (
   focusTimeMs: number,
   visibleDurationMs: number,
   environment: HebrewLayerParams['environment'],
@@ -427,7 +439,9 @@ export const createHebrewStructuralPoints = ({
   })
 
   if (activeScaleLevel === 1) {
-    getDayViewIntradayPoints(focusTimeMs, visibleDurationMs, environment).forEach((point) => {
+    getHebrewProportionalHourDayPoints(focusTimeMs, visibleDurationMs, environment)
+      .filter((point) => point.label !== '')
+      .forEach((point) => {
       points.push(
         positionTimelinePoint(
           {
@@ -454,7 +468,7 @@ export const createHebrewStructuralPoints = ({
           },
         ),
       )
-    })
+      })
   }
 
   if (activeScaleLevel === 5) {
@@ -486,16 +500,16 @@ export const createHebrewStructuralSpans = ({
   }
 
   if (activeScaleLevel === 1) {
-    return getDayViewIntradaySpans(focusTimeMs, visibleDurationMs, environment).map(({ span, stripeClass }) =>
-      positionTimelineSpan(span, focusTimeMs, visibleDurationMs, {
-        className: [
-          leadingCalendarSystemId === 'hebrew'
-            ? 'hebrew-structural-span structural-span structural-span-leading'
-            : 'hebrew-structural-span structural-span structural-span-supporting',
-          stripeClass,
-        ].join(' '),
-      }),
-    )
+    // return getDayViewIntradaySpans(focusTimeMs, visibleDurationMs, environment).map(({ span, stripeClass }) =>
+    //   positionTimelineSpan(span, focusTimeMs, visibleDurationMs, {
+    //     className: [
+    //       leadingCalendarSystemId === 'hebrew'
+    //         ? 'hebrew-structural-span structural-span structural-span-leading'
+    //         : 'hebrew-structural-span structural-span structural-span-supporting',
+    //       stripeClass,
+    //     ].join(' '),
+    //   }),
+    // )
   }
 
   const boundaries = collectHebrewBoundaries(activeScaleLevel, focusTimeMs, visibleDurationMs, environment)

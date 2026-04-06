@@ -20,8 +20,10 @@
   --now-color: #dc2626;
   --birthday-color: #b45309;
   --birthday-fill: rgba(180, 83, 9, 0.14);
+  --proportional-hours-color: #0f766e;
   --tick-label-gap: 10px;
   --context-lane-gap: 28px;
+  --proportional-hours-lane-gap: 56px;
   --birthday-secondary-lane-gap: 48px;
   --birthday-outer-lane-gap: 62px;
   --birthday-marker-width: 38px;
@@ -195,6 +197,18 @@
 .birthday-marker-label {
   color: var(--birthday-color);
   font-weight: 600;
+}
+
+.proportional-hours-marker {
+  transform: translateX(0);
+  width: var(--tick-rank-ordinary-width);
+  background-color: var(--proportional-hours-color);
+}
+
+.proportional-hours-marker-label {
+  left: calc(var(--timeline-axis-x) + var(--proportional-hours-lane-gap));
+  text-align: left;
+  color: var(--proportional-hours-color);
 }
 
 .hebrew-tick {
