@@ -85,6 +85,18 @@
   font-size: 0.66rem;
 }
 
+.hq-primary-shell button:focus,
+.hq-panel button:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.hq-primary-shell button:focus-visible,
+.hq-panel button:focus-visible {
+  outline: 1px solid rgba(154, 107, 33, 0.55);
+  outline-offset: 1px;
+}
+
 .hq-controls-toggle-button {
   min-width: 4.8rem;
 }

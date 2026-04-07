@@ -321,6 +321,11 @@ function App() {
     setIsControlsPanelOpen((prev) => !prev)
   }
 
+  const handleCloseControlsPanel = () => {
+    setControlsPreferenceSet(true)
+    setIsControlsPanelOpen(false)
+  }
+
   const handleBirthDateChange = (nextBirthDate: Date) => {
     if (Number.isNaN(nextBirthDate.getTime())) {
       return
@@ -359,6 +364,7 @@ function App() {
         onToggleLockNow={handleToggleLockNow}
         isControlsPanelOpen={isControlsPanelOpen}
         onToggleControlsPanel={handleToggleControlsPanel}
+        onCloseControlsPanel={handleCloseControlsPanel}
         birthDate={birthDate}
         onBirthDateChange={handleBirthDateChange}
         timezone={timelineTimezone}

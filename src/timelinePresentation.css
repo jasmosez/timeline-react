@@ -1,5 +1,5 @@
 .app-shell {
-  --timeline-left-gutter: 190px;
+  --timeline-left-gutter: 220px;
   --timeline-axis-x: var(--timeline-left-gutter);
   --timeline-axis-color: #111827;
   --gregorian-tick-color: #a16207;
@@ -183,7 +183,7 @@
   background: rgba(255, 255, 255, 0.82);
   padding: 0 2px;
   border-radius: 2px;
-  max-width: calc(var(--timeline-axis-x) - 18px);
+  max-width: calc(var(--timeline-axis-x) - 6px);
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -306,13 +306,13 @@
   }
 
   .now-tick-label {
-    max-width: calc(var(--timeline-axis-x) - 14px);
+    max-width: calc(var(--timeline-axis-x) - 2px);
   }
 }
 
 @media (max-width: 560px) {
   .app-shell {
-    --timeline-left-gutter: 198px;
+    --timeline-left-gutter: 228px;
     --tick-rank-primary-width: 16px;
     --tick-rank-secondary-width: 12px;
     --tick-rank-ordinary-width: 8px;

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { LOCALE } from '../config'
 import { SCALE_LEVEL_CONFIG, scaleLevelMax, scaleLevelMin } from '../timeline/scales'
 import type { LeadingCalendarSystemId, TimelineLayer, TimelineLayerId } from '../timeline/layers'
@@ -23,6 +23,7 @@ interface HQProps {
   onToggleLockNow: () => void
   isControlsPanelOpen: boolean
   onToggleControlsPanel: () => void
+  onCloseControlsPanel: () => void
   birthDate: Date
   onBirthDateChange: (nextBirthDate: Date) => void
   timezone: string
@@ -67,6 +68,7 @@ export default function HQ({
   onToggleLockNow,
   isControlsPanelOpen,
   onToggleControlsPanel,
+  onCloseControlsPanel,
   birthDate,
   onBirthDateChange,
   timezone,
@@ -84,6 +86,8 @@ export default function HQ({
     () => availableLayers.filter(isStructuralLayer),
     [availableLayers],
   )
+  const primaryShellRef = useRef<HTMLDivElement | null>(null)
+  const panelRef = useRef<HTMLDivElement | null>(null)
   const [activeTab, setActiveTab] = useState<ControlsTab>('layers')
   const [birthDateInputValue, setBirthDateInputValue] = useState(formatDateTimeLocalValue(birthDate))
   const [timezoneInputValue, setTimezoneInputValue] = useState(timezone)
@@ -113,6 +117,36 @@ export default function HQ({
     })
   }, [location])
 
+  useEffect(() => {
+    if (!isControlsPanelOpen) {
+      return
+    }
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target
+      if (!(target instanceof Node)) {
+        return
+      }
+
+      if (primaryShellRef.current?.contains(target) || panelRef.current?.contains(target)) {
+        return
+      }
+
+      onCloseControlsPanel()
+    }
+
+    document.addEventListener('pointerdown', handlePointerDown)
+    return () => document.removeEventListener('pointerdown', handlePointerDown)
+  }, [isControlsPanelOpen, onCloseControlsPanel])
+
+  const handleButtonClick = (
+    event: React.MouseEvent<HTMLButtonElement>,
+    action: () => void,
+  ) => {
+    action()
+    event.currentTarget.blur()
+  }
+
   const handleApplySettings = () => {
     const nextBirthDate = new Date(birthDateInputValue)
     if (!Number.isNaN(nextBirthDate.getTime())) {
@@ -137,19 +171,39 @@ export default function HQ({
 
   return (
     <>
-      <div className='hq-primary-shell'>
+      <div className='hq-primary-shell' ref={primaryShellRef}>
         <div className='hq-scale-status' data-testid='scale-title'>
           {SCALE_LEVEL_CONFIG[scaleLevel].label}
         </div>
         <div className='hq-primary-controls'>
           <div className='hq-zoom-group'>
-            <button aria-label='Zoom out' disabled={scaleLevel === scaleLevelMax} onClick={() => handleZoom('+')}>-</button>
-            <button aria-label='Zoom in' disabled={scaleLevel === scaleLevelMin} onClick={() => handleZoom('-')}>+</button>
+            <button
+              aria-label='Zoom in'
+              disabled={scaleLevel === scaleLevelMin}
+              onClick={(event) => handleButtonClick(event, () => handleZoom('-'))}
+            >
+              +
+            </button>
+            <button
+              aria-label='Zoom out'
+              disabled={scaleLevel === scaleLevelMax}
+              onClick={(event) => handleButtonClick(event, () => handleZoom('+'))}
+            >
+              -
+            </button>
           </div>
-          <button aria-label='Reset timeline' onClick={onResetTimeline} className='hq-primary-pill-button'>
+          <button
+            aria-label='Reset timeline'
+            onClick={(event) => handleButtonClick(event, onResetTimeline)}
+            className='hq-primary-pill-button'
+          >
             Reset
           </button>
-          <button aria-label='Lock now' onClick={onToggleLockNow} className='hq-primary-pill-button hq-lock-toggle'>
+          <button
+            aria-label='Lock now'
+            onClick={(event) => handleButtonClick(event, onToggleLockNow)}
+            className='hq-primary-pill-button hq-lock-toggle'
+          >
             {lockNow ? 'Unlock' : 'Lock Now'}
           </button>
         </div>
@@ -157,14 +211,17 @@ export default function HQ({
           <button
             aria-label={isControlsPanelOpen ? 'Close controls' : 'Open controls'}
             className='hq-primary-pill-button hq-controls-toggle-button'
-            onClick={onToggleControlsPanel}
+            onClick={(event) => handleButtonClick(event, onToggleControlsPanel)}
           >
             {isControlsPanelOpen ? 'Close' : 'Controls'}
           </button>
         </div>
       </div>
 
-      <div className={`hq-panel ${isControlsPanelOpen ? 'hq-panel-open' : 'hq-panel-closed'}`}>
+      <div
+        className={`hq-panel ${isControlsPanelOpen ? 'hq-panel-open' : 'hq-panel-closed'}`}
+        ref={panelRef}
+      >
         {activeTab === 'layers' ? (
           <div className='hq-panel-section'>
             <div className='hq-section-title'>Visible Layers</div>
@@ -261,21 +318,14 @@ export default function HQ({
                 />
               </label>
             </div>
-            <label className='hq-layer-option hq-lock-option'>
-              <input
-                type='checkbox'
-                checked={lockNow}
-                onChange={onToggleLockNow}
-                aria-label='Lock now'
-                data-testid='lock-now-toggle'
-              />
-              <span>Lock Now</span>
-            </label>
             <div className='hq-settings-summary'>
               <div>{locationLabel}</div>
               <div>{timezone}</div>
             </div>
-            <button className='hq-primary-pill-button' onClick={handleApplySettings}>
+            <button
+              className='hq-primary-pill-button'
+              onClick={(event) => handleButtonClick(event, handleApplySettings)}
+            >
               Apply Settings
             </button>
           </div>
@@ -286,7 +336,7 @@ export default function HQ({
             role='tab'
             aria-selected={activeTab === 'layers'}
             className={`hq-panel-tab ${activeTab === 'layers' ? 'hq-panel-tab-active' : ''}`}
-            onClick={() => setActiveTab('layers')}
+            onClick={(event) => handleButtonClick(event, () => setActiveTab('layers'))}
           >
             Layers
           </button>
@@ -294,7 +344,7 @@ export default function HQ({
             role='tab'
             aria-selected={activeTab === 'settings'}
             className={`hq-panel-tab ${activeTab === 'settings' ? 'hq-panel-tab-active' : ''}`}
-            onClick={() => setActiveTab('settings')}
+            onClick={(event) => handleButtonClick(event, () => setActiveTab('settings'))}
           >
             Settings
           </button>
