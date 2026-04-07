@@ -172,7 +172,7 @@ These are useful short reminders:
 
 Some important active or near-active topics:
 
-- mobile responsiveness and touch interaction before broader sharing
+- responsive timeline UX across desktop and mobile before broader sharing
 - label-density suppression near primary boundaries
 - Gregorian visual primacy still being a bit too strong in some views
 - richer Hebrew boundary context at broader scales
@@ -205,18 +205,23 @@ Some important active or near-active topics:
   is the lightweight visual-regression checklist to use before or after
   meaningful presentation changes.
 
-## Current Mobile Reality
+## Current Cross-Device Reality
 
-If re-entering with mobile in mind, the important current truths are:
+If re-entering with desktop/mobile responsiveness in mind, the important
+current truths are:
 
-- unintended dark mode is still coming from the default Vite global stylesheet
-  in [src/index.css](/Users/jms/code/timeline-react/src/index.css)
-- HQ currently assumes a fixed desktop rail in
-  [src/App.css](/Users/jms/code/timeline-react/src/App.css)
-- the timeline layout assumes a desktop left gutter in
-  [src/timelinePresentation.css](/Users/jms/code/timeline-react/src/timelinePresentation.css)
-- touch/pinch interaction is not yet mapped to intentional timeline gestures;
-  mobile pinch currently zooms the page, not the timeline
+- the accidental Vite dark-mode/global-boilerplate styling has been removed
+- HQ has started transitioning from a monolithic rail into:
+  - compact primary controls
+  - an expanded controls surface
+  - dev-only debug information
+- desktop and small-screen layout now share one responsive shell model
+- touch pan and pinch are now mapped to the timeline surface rather than left
+  entirely to browser defaults
+- the likely target is not a separate mobile product, but one shared product
+  with responsive layout, control density, and input adaptations
+- [HQ_PRODUCT_REDESIGN.md](/Users/jms/code/timeline-react/HQ_PRODUCT_REDESIGN.md)
+  is the design map for the new control information architecture
 
 ## How To Stay On Top Of The Project
 

@@ -1,6 +1,6 @@
-#root {
+.app-shell {
   --timeline-left-gutter: 190px;
-  --timeline-axis-x: calc(var(--hq-rail-width) + var(--timeline-left-gutter));
+  --timeline-axis-x: var(--timeline-left-gutter);
   --timeline-axis-color: #111827;
   --gregorian-tick-color: #a16207;
   --gregorian-label-color: #9a6b21;
@@ -51,6 +51,7 @@
   min-height: 100vh;
   overflow: hidden;
   z-index: 0;
+  touch-action: none;
 }
 
 .line {
@@ -182,6 +183,9 @@
   background: rgba(255, 255, 255, 0.82);
   padding: 0 2px;
   border-radius: 2px;
+  max-width: calc(var(--timeline-axis-x) - 18px);
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .now-tick-label, .now {
@@ -279,4 +283,43 @@
 .hebrew-structural-span.structural-span-stripe-b {
   background-color: var(--hebrew-span-fill-alt);
   border-color: var(--hebrew-span-border-alt);
+}
+
+@media (max-width: 900px) {
+  .app-shell {
+    --tick-label-gap: 8px;
+    --context-lane-gap: 18px;
+    --proportional-hours-lane-gap: 34px;
+    --birthday-secondary-lane-gap: 30px;
+    --birthday-outer-lane-gap: 42px;
+    --context-top-offset: 10px;
+    --promoted-span-label-top-offset: 28px;
+    --structural-label-column-offset: calc(var(--tick-rank-primary-width) + 8px);
+  }
+
+  .structural-context-label {
+    font-size: 0.76rem;
+  }
+
+  .tick-label {
+    font-size: 0.48rem;
+  }
+
+  .now-tick-label {
+    max-width: calc(var(--timeline-axis-x) - 14px);
+  }
+}
+
+@media (max-width: 560px) {
+  .app-shell {
+    --timeline-left-gutter: 198px;
+    --tick-rank-primary-width: 16px;
+    --tick-rank-secondary-width: 12px;
+    --tick-rank-ordinary-width: 8px;
+    --span-width: 4px;
+  }
+
+  .tick-label {
+    font-size: 0.44rem;
+  }
 }

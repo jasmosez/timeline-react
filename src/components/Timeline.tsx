@@ -39,6 +39,13 @@ type PromotedSpanLabel = {
   className: string
 }
 
+const TOUCH_PINCH_PIXELS_PER_E_FOLD = 5
+
+type PinchGestureState = {
+  startDistance: number
+  startVisibleDurationMs: number
+}
+
 export const getPromotedSpanLabels = (
   spans: PositionedTimelineSpan[],
   visibleTimeRange: ReturnType<typeof getVisibleTimeRange>,
@@ -90,6 +97,8 @@ function Timeline({
   const [tickPoints, setTickPoints] = useState<PositionedTimelinePoint[]>([]);
   const [timelineSpans, setTimelineSpans] = useState<PositionedTimelineSpan[]>([]);
   const viewportRef = useRef<HTMLDivElement>(null);
+  const lastPanTouchRef = useRef<{ clientY: number } | null>(null)
+  const pinchGestureRef = useRef<PinchGestureState | null>(null)
 
   useEffect(() => {
     const context = {
@@ -153,6 +162,92 @@ function Timeline({
       window.removeEventListener('wheel', handleWheel);
     };
   }, [visibleDurationMs, onPanTimeDelta, onZoomByFactor]);
+
+  useEffect(() => {
+    const viewportElement = viewportRef.current
+    if (!viewportElement) {
+      return
+    }
+
+    const getTouchDistance = (touches: TouchList) =>
+      Math.hypot(
+        touches[0].clientX - touches[1].clientX,
+        touches[0].clientY - touches[1].clientY,
+      )
+
+    const handleTouchStart = (event: TouchEvent) => {
+      if (event.touches.length === 1) {
+        lastPanTouchRef.current = { clientY: event.touches[0].clientY }
+        pinchGestureRef.current = null
+      } else if (event.touches.length === 2) {
+        lastPanTouchRef.current = null
+        pinchGestureRef.current = {
+          startDistance: getTouchDistance(event.touches),
+          startVisibleDurationMs: visibleDurationMs,
+        }
+      }
+    }
+
+    const handleTouchMove = (event: TouchEvent) => {
+      if (event.touches.length === 1 && lastPanTouchRef.current) {
+        event.preventDefault()
+        const nextTouch = event.touches[0]
+        const deltaY = nextTouch.clientY - lastPanTouchRef.current.clientY
+        const viewportHeight = viewportElement.clientHeight || window.innerHeight
+
+        if (viewportHeight > 0 && deltaY !== 0) {
+          onPanTimeDelta((-deltaY / viewportHeight) * visibleDurationMs)
+        }
+
+        lastPanTouchRef.current = { clientY: nextTouch.clientY }
+        return
+      }
+
+      if (event.touches.length === 2 && pinchGestureRef.current) {
+        event.preventDefault()
+        const nextDistance = getTouchDistance(event.touches)
+        if (nextDistance <= 0 || pinchGestureRef.current.startDistance <= 0) {
+          return
+        }
+
+        const viewportRect = viewportElement.getBoundingClientRect()
+        const centerY = (event.touches[0].clientY + event.touches[1].clientY) / 2
+        const anchorPercent = Math.min(
+          Math.max((centerY - viewportRect.top) / viewportRect.height, 0),
+          1,
+        )
+        const deltaDistance = nextDistance - pinchGestureRef.current.startDistance
+        const desiredVisibleDurationMs =
+          pinchGestureRef.current.startVisibleDurationMs
+          * Math.exp(-deltaDistance / TOUCH_PINCH_PIXELS_PER_E_FOLD)
+        const zoomFactor = desiredVisibleDurationMs / visibleDurationMs
+
+        onZoomByFactor(zoomFactor, anchorPercent)
+      }
+    }
+
+    const handleTouchEnd = (event: TouchEvent) => {
+      if (event.touches.length === 0) {
+        lastPanTouchRef.current = null
+        pinchGestureRef.current = null
+      } else if (event.touches.length === 1) {
+        lastPanTouchRef.current = { clientY: event.touches[0].clientY }
+        pinchGestureRef.current = null
+      }
+    }
+
+    viewportElement.addEventListener('touchstart', handleTouchStart, { passive: true })
+    viewportElement.addEventListener('touchmove', handleTouchMove, { passive: false })
+    viewportElement.addEventListener('touchend', handleTouchEnd, { passive: true })
+    viewportElement.addEventListener('touchcancel', handleTouchEnd, { passive: true })
+
+    return () => {
+      viewportElement.removeEventListener('touchstart', handleTouchStart)
+      viewportElement.removeEventListener('touchmove', handleTouchMove)
+      viewportElement.removeEventListener('touchend', handleTouchEnd)
+      viewportElement.removeEventListener('touchcancel', handleTouchEnd)
+    }
+  }, [onPanTimeDelta, onZoomByFactor, visibleDurationMs])
 
   const visibleTimeRange = getVisibleTimeRange(focusTimeMs, visibleDurationMs)
   const gregorianStickyContextLabelTop = isGregorianVisible

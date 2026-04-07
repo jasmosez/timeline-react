@@ -1,11 +1,24 @@
+import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 
 test.describe('HQ controls', () => {
+  const gesturePan = async (page: Page) => {
+    await page.locator('.timeline-root').evaluate((element) => {
+      element.dispatchEvent(
+        new WheelEvent('wheel', {
+          deltaY: 120,
+          bubbles: true,
+          cancelable: true,
+        }),
+      )
+    })
+  }
+
   test('buttons remain clickable above the timeline', async ({ page }) => {
     await page.goto('/')
 
     const scaleTitle = page.getByTestId('scale-title')
-    await expect(scaleTitle).toHaveText(/Week View|Day View|Month View|Hour View|Minute View|Quarter View|Year View|Decade View/)
+    await expect(scaleTitle).toHaveText(/Week|Day|Month|Hour|Minute|Quarter|Year|Decade/)
 
     const initialTitle = await scaleTitle.textContent()
     await page.getByLabel('Zoom in').click()
@@ -18,7 +31,7 @@ test.describe('HQ controls', () => {
     const startTick = page.getByTestId('start-tick-value')
     const initialStartTick = await startTick.textContent()
 
-    await page.getByLabel('Pan forward').click()
+    await gesturePan(page)
     await expect(startTick).not.toHaveText(initialStartTick ?? '')
 
     await page.getByLabel('Reset timeline').click()
@@ -28,12 +41,12 @@ test.describe('HQ controls', () => {
   test('manual pan disables lock now mode immediately', async ({ page }) => {
     await page.goto('/')
 
-    const lockNowToggle = page.getByTestId('lock-now-toggle')
-    await lockNowToggle.check()
-    await expect(lockNowToggle).toBeChecked()
+    const lockNowButton = page.getByRole('button', { name: 'Lock now' })
+    await lockNowButton.click()
+    await expect(lockNowButton).toHaveText('Unlock')
 
-    await page.getByLabel('Pan forward').click()
-    await expect(lockNowToggle).not.toBeChecked()
+    await gesturePan(page)
+    await expect(page.getByRole('button', { name: 'Lock now' })).toHaveText('Lock Now')
   })
 
   test('primary calendar system stays selected even if its structure is hidden', async ({ page }) => {
@@ -76,7 +89,7 @@ test.describe('HQ controls', () => {
   test('initial anchored week view starts at the containing-period boundary', async ({ page }) => {
     await page.goto('/')
 
-    await expect(page.getByTestId('scale-title')).toHaveText('Week View')
+    await expect(page.getByTestId('scale-title')).toHaveText('Week')
     await expect(page.getByTestId('start-tick-value')).toHaveText('Sun, Apr 5, 2026, 12:00 AM')
   })
 
@@ -86,7 +99,7 @@ test.describe('HQ controls', () => {
     await expect(page.getByTestId('navigation-mode-value')).toHaveText('currentContainingPeriod')
     await page.getByLabel('Zoom out').click()
 
-    await expect(page.getByTestId('scale-title')).toHaveText('Month View')
+    await expect(page.getByTestId('scale-title')).toHaveText('Month')
     await expect(page.getByTestId('navigation-mode-value')).toHaveText('currentContainingPeriod')
     await expect(page.getByTestId('start-tick-value')).toHaveText('Tue, Mar 31, 2026, 12:00 AM')
   })
@@ -94,20 +107,10 @@ test.describe('HQ controls', () => {
   test('HQ button zoom preserves exploratory mode after manual pan', async ({ page }) => {
     await page.goto('/')
 
-    await page.getByLabel('Pan forward').click()
+    await gesturePan(page)
     await expect(page.getByTestId('navigation-mode-value')).toHaveText('centered')
 
     await page.getByLabel('Zoom out').click()
-
-    await expect(page.getByTestId('navigation-mode-value')).toHaveText('centered')
-  })
-
-  test('HQ button pan enters exploratory mode', async ({ page }) => {
-    await page.goto('/')
-
-    await expect(page.getByTestId('navigation-mode-value')).toHaveText('currentContainingPeriod')
-
-    await page.getByLabel('Pan forward').click()
 
     await expect(page.getByTestId('navigation-mode-value')).toHaveText('centered')
   })
@@ -117,15 +120,7 @@ test.describe('HQ controls', () => {
 
     await expect(page.getByTestId('navigation-mode-value')).toHaveText('currentContainingPeriod')
 
-    await page.locator('.timeline-root').evaluate((element) => {
-      element.dispatchEvent(
-        new WheelEvent('wheel', {
-          deltaY: 120,
-          bubbles: true,
-          cancelable: true,
-        }),
-      )
-    })
+    await gesturePan(page)
 
     await expect(page.getByTestId('navigation-mode-value')).toHaveText('centered')
   })
@@ -152,7 +147,7 @@ test.describe('HQ controls', () => {
   test('gesture zoom stays exploratory when already exploring', async ({ page }) => {
     await page.goto('/')
 
-    await page.getByLabel('Pan forward').click()
+    await gesturePan(page)
     await expect(page.getByTestId('navigation-mode-value')).toHaveText('centered')
 
     await page.locator('.timeline-root').evaluate((element) => {
@@ -226,21 +221,21 @@ test.describe('HQ controls', () => {
     await expect(hebrewLayerToggle).toBeChecked()
 
     await page.getByLabel('Zoom in').click()
-    await expect(page.getByTestId('scale-title')).toHaveText('Day View')
+    await expect(page.getByTestId('scale-title')).toHaveText('Day')
     await expect(page.locator('.promoted-span-label.hebrew-label')).toHaveCount(0)
 
     await page.getByLabel('Zoom in').click()
-    await expect(page.getByTestId('scale-title')).toHaveText('Hour View')
+    await expect(page.getByTestId('scale-title')).toHaveText('Hour')
 
     await page.getByLabel('Zoom in').click()
-    await expect(page.getByTestId('scale-title')).toHaveText('Minute View')
+    await expect(page.getByTestId('scale-title')).toHaveText('Minute')
     await expect(page.locator('.promoted-span-label.hebrew-label')).toContainText('...')
     await expect(page.locator('.promoted-span-label.hebrew-label')).toHaveCount(1)
 
     await page.getByLabel('Zoom out').click()
-    await expect(page.getByTestId('scale-title')).toHaveText('Hour View')
+    await expect(page.getByTestId('scale-title')).toHaveText('Hour')
     await page.getByLabel('Zoom out').click()
-    await expect(page.getByTestId('scale-title')).toHaveText('Day View')
+    await expect(page.getByTestId('scale-title')).toHaveText('Day')
     await expect(page.locator('.promoted-span-label.hebrew-label')).toHaveCount(0)
   })
 
@@ -268,7 +263,7 @@ test.describe('HQ controls', () => {
   test('reset returns exploratory navigation to anchored current-period mode', async ({ page }) => {
     await page.goto('/')
 
-    await page.getByLabel('Pan forward').click()
+    await gesturePan(page)
     await expect(page.getByTestId('navigation-mode-value')).toHaveText('centered')
 
     await page.getByLabel('Reset timeline').click()

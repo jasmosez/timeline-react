@@ -5,7 +5,7 @@ import './timelinePresentation.css'
 import { getNow } from './utils'
 import HQ from './components/HQ'
 import Timeline from './components/Timeline'
-import { PAN_AMOUNT, DEFAULT_BIRTH_DATE } from './config'
+import { DEFAULT_BIRTH_DATE } from './config'
 import { gregorianLayer } from './timeline/gregorian'
 import { hebrewLayer } from './timeline/hebrew'
 import { birthdayLayer } from './timeline/birthday'
@@ -33,20 +33,38 @@ const DEFAULT_TIMELINE_LOCATION = {
   longitude: -72.6412,
 }
 const DEFAULT_TIMELINE_TIMEZONE = 'America/New_York'
+const COMPACT_LAYOUT_MEDIA_QUERY = '(max-width: 900px)'
+
+const isValidTimezone = (value: string) => {
+  try {
+    Intl.DateTimeFormat('en-US', { timeZone: value })
+    return true
+  } catch {
+    return false
+  }
+}
 
 function App() {
   const [now, setNow] = useState(getNow)
-  const [birthDate] = useState(DEFAULT_BIRTH_DATE)
-  const initialEnvironment = {
-    birthDate,
-    timezone: DEFAULT_TIMELINE_TIMEZONE,
-    location: DEFAULT_TIMELINE_LOCATION,
-  } as const
+  const [birthDate, setBirthDate] = useState(DEFAULT_BIRTH_DATE)
+  const [timelineTimezone, setTimelineTimezone] = useState(DEFAULT_TIMELINE_TIMEZONE)
+  const [timelineLocation, setTimelineLocation] = useState(DEFAULT_TIMELINE_LOCATION)
   const [activeLayerIds, setActiveLayerIds] = useState<TimelineLayerId[]>(['gregorian'])
   const [leadingCalendarSystemId, setLeadingCalendarSystemId] = useState<LeadingCalendarSystemId>('gregorian')
   const [lockNow, setLockNow] = useState(false)
   const [lockNowAnchorPercent, setLockNowAnchorPercent] = useState<number | null>(null)
-  const [viewport, setViewport] = useState<Viewport>(() => createInitialViewport(now, initialEnvironment))
+  const [viewport, setViewport] = useState<Viewport>(() => createInitialViewport(now, {
+    birthDate: DEFAULT_BIRTH_DATE,
+    timezone: DEFAULT_TIMELINE_TIMEZONE,
+    location: DEFAULT_TIMELINE_LOCATION,
+  }))
+  const [isCompactLayout, setIsCompactLayout] = useState(() =>
+    typeof window !== 'undefined' ? window.matchMedia(COMPACT_LAYOUT_MEDIA_QUERY).matches : false,
+  )
+  const [controlsPreferenceSet, setControlsPreferenceSet] = useState(false)
+  const [isControlsPanelOpen, setIsControlsPanelOpen] = useState(() =>
+    typeof window !== 'undefined' ? !window.matchMedia(COMPACT_LAYOUT_MEDIA_QUERY).matches : true,
+  )
 
   const activeScaleLevel = getNearestScaleLevel(viewport.visibleDurationMs)
   const startTickDate = getViewportStartTickDate(viewport)
@@ -58,7 +76,9 @@ function App() {
   const activeLayers = AVAILABLE_TIMELINE_LAYERS.filter((layer) => activeLayerIds.includes(layer.id))
   const timelineEnvironment: TimelineEnvironment = {
     now,
-    ...initialEnvironment,
+    birthDate,
+    timezone: timelineTimezone,
+    location: timelineLocation,
   }
   const locationLabel = `${timelineEnvironment.location.city}, ${timelineEnvironment.location.region} ${timelineEnvironment.location.postalCode}`
   const scaleLevelOrder = getScaleLevelOrder()
@@ -67,6 +87,25 @@ function App() {
     const { startTimeMs } = getVisibleTimeRange(focusTimeMs, visibleDurationMs)
     return (now.getTime() - startTimeMs) / visibleDurationMs
   }
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(COMPACT_LAYOUT_MEDIA_QUERY)
+    const applyLayoutMode = (matches: boolean) => {
+      setIsCompactLayout(matches)
+      if (!controlsPreferenceSet) {
+        setIsControlsPanelOpen(!matches)
+      }
+    }
+
+    applyLayoutMode(mediaQuery.matches)
+
+    const handleChange = (event: MediaQueryListEvent) => {
+      applyLayoutMode(event.matches)
+    }
+
+    mediaQuery.addEventListener('change', handleChange)
+    return () => mediaQuery.removeEventListener('change', handleChange)
+  }, [controlsPreferenceSet])
 
   useEffect(() => {
     const updateIntervalMs = SCALE_LEVEL_CONFIG[activeScaleLevel].key === 'minute' ? 10 : 1000
@@ -180,38 +219,17 @@ function App() {
     updateZoomByScaleSteps(direction === '+' ? 1 : -1)
   }
 
-  const handlePan = (direction: '+' | '-' | 'reset') => {
-    if (direction !== 'reset') {
-      setLockNow(false)
-      setLockNowAnchorPercent(null)
-    }
-
+  const handleResetTimeline = () => {
     setViewport((prevViewport) => {
-      if (direction === 'reset') {
-        return {
-          focusTimeMs: getContainingPeriodFocusTimeMs(
-            leadingCalendarSystemId,
-            getNearestScaleLevel(prevViewport.visibleDurationMs),
-            now,
-            timelineEnvironment,
-          ),
-          visibleDurationMs: prevViewport.visibleDurationMs,
-          rangeStrategy: 'currentContainingPeriod',
-        }
-      }
-
-      const activeScaleLevel = getNearestScaleLevel(prevViewport.visibleDurationMs)
-      const prevStartTickDate = getViewportStartTickDate(prevViewport)
-      const nextBoundaryTimeMs = direction === '+'
-        ? SCALE_LEVEL_CONFIG[activeScaleLevel].calculateTickTimeFunc(prevStartTickDate, PAN_AMOUNT)
-        : SCALE_LEVEL_CONFIG[activeScaleLevel].calculateTickTimeFunc(prevStartTickDate, -PAN_AMOUNT)
-      const boundaryDeltaMs = nextBoundaryTimeMs - prevStartTickDate.getTime()
-      const nextFocusTimeMs = prevViewport.focusTimeMs + boundaryDeltaMs
-
       return {
-        focusTimeMs: nextFocusTimeMs,
+        focusTimeMs: getContainingPeriodFocusTimeMs(
+          leadingCalendarSystemId,
+          getNearestScaleLevel(prevViewport.visibleDurationMs),
+          now,
+          timelineEnvironment,
+        ),
         visibleDurationMs: prevViewport.visibleDurationMs,
-        rangeStrategy: 'centered',
+        rangeStrategy: 'currentContainingPeriod',
       }
     })
   }
@@ -298,24 +316,60 @@ function App() {
     }
   }
 
+  const handleToggleControlsPanel = () => {
+    setControlsPreferenceSet(true)
+    setIsControlsPanelOpen((prev) => !prev)
+  }
+
+  const handleBirthDateChange = (nextBirthDate: Date) => {
+    if (Number.isNaN(nextBirthDate.getTime())) {
+      return
+    }
+
+    setBirthDate(nextBirthDate)
+  }
+
+  const handleTimezoneChange = (nextTimezone: string) => {
+    if (!isValidTimezone(nextTimezone)) {
+      return
+    }
+
+    setTimelineTimezone(nextTimezone)
+  }
+
+  const handleLocationChange = (nextLocation: typeof DEFAULT_TIMELINE_LOCATION) => {
+    setTimelineLocation(nextLocation)
+  }
+
   return (
-    <>
+    <div
+      className={[
+        'app-shell',
+        isCompactLayout ? 'compact-layout' : 'desktop-layout',
+        isControlsPanelOpen ? 'controls-open' : 'controls-closed',
+      ].join(' ')}
+    >
       <HQ
-        now={now}
         scaleLevel={activeScaleLevel}
         rangeStrategy={viewport.rangeStrategy}
         firstVisibleTickDate={firstVisibleTickDate}
         handleZoom={handleZoom}
-        handlePan={handlePan}
+        onResetTimeline={handleResetTimeline}
         lockNow={lockNow}
         onToggleLockNow={handleToggleLockNow}
+        isControlsPanelOpen={isControlsPanelOpen}
+        onToggleControlsPanel={handleToggleControlsPanel}
         birthDate={birthDate}
+        onBirthDateChange={handleBirthDateChange}
+        timezone={timelineTimezone}
+        onTimezoneChange={handleTimezoneChange}
+        location={timelineLocation}
+        onLocationChange={handleLocationChange}
         availableLayers={AVAILABLE_TIMELINE_LAYERS}
         activeLayerIds={activeLayerIds}
         leadingCalendarSystemId={leadingCalendarSystemId}
         onSetLeadingCalendarSystem={handleSetLeadingCalendarSystem}
         onToggleLayer={handleToggleLayer}
-        timezone={timelineEnvironment.timezone}
         locationLabel={locationLabel}
       />
       <Timeline
@@ -331,7 +385,7 @@ function App() {
         onPanTimeDelta={handleWheelPan}
         onZoomByFactor={handleWheelZoom}
       />
-    </>
+    </div>
   )
 }
 

@@ -12,10 +12,11 @@ Usage:
 
 ## Soon
 
-- Mobile / responsive accessibility phase
-  Notes: remove unintended Vite dark-mode defaults, make HQ usable on small
-  screens, add a mobile/touch-first timeline interaction model, and define a
-  clean responsive lane/layout strategy before wider sharing
+- Responsive timeline UX phase
+  Notes: treat desktop and mobile as one product with one core interaction
+  model; make HQ collapsible/minimizable across device classes, define a
+  responsive lane/layout system, add touch-native pan/pinch behavior, and tune
+  accessibility/readability before broader sharing
   Target: Next prioritization pass
 
 - Birthday date/time input in HQ or adjacent controls

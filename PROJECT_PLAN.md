@@ -390,43 +390,47 @@ Success looks like:
 - the timeline can represent both schedule and reflection
 - users can attach meaning to time buckets directly in the interface
 
-### Mobile Accessibility / Responsiveness Phase
+### Responsive Timeline UX Phase
 
-Goal: make the current timeline usable and legible on phones and other small
-touch devices before broader sharing.
+Goal: make the timeline feel like one coherent product across desktop and
+mobile, with responsive layout and input adaptations rather than divergent UX.
 
 Motivation:
 
-- the app still carries default Vite global styling that introduces unintended
-  dark-mode behavior
-- the HQ rail currently assumes desktop width and consumes too much of the
-  mobile viewport
-- the timeline layout assumes a fixed desktop left gutter
-- touch gestures do not yet provide intentional timeline pan/zoom behavior,
-  so mobile pinch currently zooms the browser window instead of the timeline
+- the app still carries some desktop-first layout assumptions
+- HQ currently behaves like a fixed rail rather than a responsive control
+  system
+- the timeline layout still assumes a large left gutter and generous label
+  lanes
+- touch gestures do not yet provide intentional timeline pan/zoom behavior, so
+  mobile pinch currently zooms the browser window instead of the timeline
 
 Initial milestones:
 
-- replace remaining Vite boilerplate global theming with app-owned defaults
-- define a mobile HQ pattern:
-  - collapsible sheet, drawer, or compact top bar
-- define a mobile timeline layout:
-  - smaller gutters
-  - narrower label lanes
-  - calmer context placement
-- add touch-first timeline interaction behavior:
-  - single-finger pan
+- redesign the current HQ rail into a more intentional control architecture
+- replace remaining boilerplate global styling with app-owned defaults
+- define a responsive HQ/control system:
+  - rail on large screens when useful
+  - collapsible/minimizable controls on desktop when preferred
+  - sheet/drawer/top-bar behavior on smaller screens
+- define a responsive timeline layout:
+  - breakpoint-aware gutters
+  - adaptive lane spacing
+  - calmer context/prompted-label placement in tight spaces
+- add cross-device interaction behavior:
+  - wheel/trackpad support on desktop
+  - single-finger pan on touch devices
   - two-finger pinch zoom mapped to viewport duration
-  - prevent accidental page zoom when interacting with the timeline surface
-- identify minimum tap targets and readability thresholds for small screens
+  - prevent accidental page zoom while interacting with the timeline surface
+- identify minimum accessibility and readability thresholds across screen sizes
 
 Success looks like:
 
-- the app is intentionally light-themed unless a deliberate theme system is
-  introduced
-- controls do not dominate the mobile viewport
-- the timeline remains the primary surface on small screens
-- touch interaction feels native to the timeline rather than delegated to the
+- desktop and mobile feel like the same product
+- controls do not dominate the viewport on any device class
+- the timeline remains the primary surface on both desktop and phone
+- responsive adaptations feel intentional rather than bolted on
+- touch interaction feels native to the timeline instead of delegated to the
   browser window
 
 ### Phase 4: Add External Time Sources
