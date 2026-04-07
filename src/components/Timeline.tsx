@@ -39,7 +39,7 @@ type PromotedSpanLabel = {
   className: string
 }
 
-const TOUCH_PINCH_PIXELS_PER_E_FOLD = 5
+const TOUCH_PINCH_PIXELS_PER_E_FOLD = 32
 
 type PinchGestureState = {
   startDistance: number
