@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { LOCALE } from '../config'
 import { SCALE_LEVEL_CONFIG, scaleLevelMax, scaleLevelMin } from '../timeline/scales'
 import type { LeadingCalendarSystemId, TimelineLayer, TimelineLayerId } from '../timeline/layers'
+import { formatDateTimeInputValueForTimezone, parseDateTimeInputValueInTimezone } from '../timeline/personalTime'
 import type { ViewportRangeStrategy } from '../viewport'
 import { FULL_DATE_FORMAT } from '../utils'
 
@@ -28,6 +29,7 @@ interface HQProps {
   onBirthDateChange: (nextBirthDate: Date) => void
   timezone: string
   onTimezoneChange: (nextTimezone: string) => void
+  derivedHebrewBirthDateLabel: string
   location: TimelineLocationSettings
   onLocationChange: (nextLocation: TimelineLocationSettings) => void
   availableLayers: TimelineLayer[]
@@ -44,11 +46,6 @@ const isStructuralLayer = (
   layer: TimelineLayer,
 ): layer is TimelineLayer & { id: LeadingCalendarSystemId; role: 'structural' } =>
   layer.role === 'structural'
-
-const formatDateTimeLocalValue = (date: Date) => {
-  const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60 * 1000)
-  return localDate.toISOString().slice(0, 16)
-}
 
 const formatDebugDate = (date: Date, scaleLevel: keyof typeof SCALE_LEVEL_CONFIG) =>
   date.toLocaleString(
@@ -73,6 +70,7 @@ export default function HQ({
   onBirthDateChange,
   timezone,
   onTimezoneChange,
+  derivedHebrewBirthDateLabel,
   location,
   onLocationChange,
   availableLayers,
@@ -89,7 +87,9 @@ export default function HQ({
   const primaryShellRef = useRef<HTMLDivElement | null>(null)
   const panelRef = useRef<HTMLDivElement | null>(null)
   const [activeTab, setActiveTab] = useState<ControlsTab>('layers')
-  const [birthDateInputValue, setBirthDateInputValue] = useState(formatDateTimeLocalValue(birthDate))
+  const [birthDateInputValue, setBirthDateInputValue] = useState(
+    formatDateTimeInputValueForTimezone(birthDate, timezone),
+  )
   const [timezoneInputValue, setTimezoneInputValue] = useState(timezone)
   const [locationDraft, setLocationDraft] = useState({
     city: location.city,
@@ -100,8 +100,8 @@ export default function HQ({
   })
 
   useEffect(() => {
-    setBirthDateInputValue(formatDateTimeLocalValue(birthDate))
-  }, [birthDate])
+    setBirthDateInputValue(formatDateTimeInputValueForTimezone(birthDate, timezone))
+  }, [birthDate, timezone])
 
   useEffect(() => {
     setTimezoneInputValue(timezone)
@@ -148,8 +148,8 @@ export default function HQ({
   }
 
   const handleApplySettings = () => {
-    const nextBirthDate = new Date(birthDateInputValue)
-    if (!Number.isNaN(nextBirthDate.getTime())) {
+    const nextBirthDate = parseDateTimeInputValueInTimezone(birthDateInputValue, timezoneInputValue)
+    if (nextBirthDate && !Number.isNaN(nextBirthDate.getTime())) {
       onBirthDateChange(nextBirthDate)
     }
 
@@ -319,6 +319,8 @@ export default function HQ({
               </label>
             </div>
             <div className='hq-settings-summary'>
+              <div>Derived Hebrew birth date: {derivedHebrewBirthDateLabel}</div>
+              <div>Birth input and personal counters currently use the timeline timezone.</div>
               <div>{locationLabel}</div>
               <div>{timezone}</div>
             </div>

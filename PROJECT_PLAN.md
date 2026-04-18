@@ -36,7 +36,7 @@ Gregorian time is the baseline, but it is not the only lens.
 The app should support at least three parallel ways of interpreting time:
 
 - Gregorian calendar time
-- birthday-relative time
+- personal time, including birthday-relative counters and anniversaries
 - Hebrew calendar time
 
 These modes should be able to coexist in the same view, be toggled on or off,
@@ -153,7 +153,7 @@ A renderable interpretation of time.
 Initial target layers:
 
 - Gregorian layer
-- birthday-relative layer
+- personal-time / birthday-relative layer
 - Hebrew layer
 
 Likely future layers:
@@ -205,6 +205,7 @@ The current app already demonstrates the basic product direction:
 - a configurable birth date
 - life-relative day and week counters
 - layered rendering for Gregorian structure and birthday markers
+- layered rendering for Gregorian structure and an early birthday marker layer
 - app-level layer toggles
 - explicit viewport state built around focus time
 - normalized point and span rendering primitives
@@ -222,6 +223,9 @@ Known current limitations include:
   first real design pass
 - the birth date settings UI currently captures only a date, not a full
   date-time with timezone intent
+- the current birthday layer is still too narrow for the broader personal-time
+  direction, especially once Gregorian and Hebrew anniversaries are both in
+  scope
 - marker-style and segmentation-style layers still share one lightweight
   interface
 - spans are implemented structurally, but not yet as user-authored annotations

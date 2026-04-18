@@ -29,7 +29,8 @@ Current structural systems:
 
 Current non-structural personal overlay:
 
-- birthday marker layer
+- early birthday marker layer, likely to evolve into a broader personal-time
+  layer
 
 Core product qualities being pursued:
 
@@ -218,6 +219,9 @@ current truths are:
 - desktop and small-screen layout now share one responsive shell model
 - touch pan and pinch are now mapped to the timeline surface rather than left
   entirely to browser defaults
+- the current birthday feature is now better understood as the early edge of a
+  larger personal-time layer; birth data is Gregorian-entered but may need both
+  Gregorian and Hebrew recurrence semantics
 - the likely target is not a separate mobile product, but one shared product
   with responsive layout, control density, and input adaptations
 - [HQ_PRODUCT_REDESIGN.md](/Users/jms/code/timeline-react/HQ_PRODUCT_REDESIGN.md)

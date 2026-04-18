@@ -1,5 +1,5 @@
 .app-shell {
-  --timeline-left-gutter: 220px;
+  --timeline-left-gutter: 225px;
   --timeline-axis-x: var(--timeline-left-gutter);
   --timeline-axis-color: #111827;
   --gregorian-tick-color: #a16207;
@@ -312,7 +312,6 @@
 
 @media (max-width: 560px) {
   .app-shell {
-    --timeline-left-gutter: 228px;
     --tick-rank-primary-width: 16px;
     --tick-rank-secondary-width: 12px;
     --tick-rank-ordinary-width: 8px;

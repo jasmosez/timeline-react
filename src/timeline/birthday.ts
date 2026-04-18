@@ -69,7 +69,7 @@ export const createBirthdayLayerPoints = ({
 
 export const birthdayLayer: TimelineLayer = {
   id: 'birthday',
-  label: 'Birthday',
+  label: 'Personal',
   role: 'marker',
   getPoints: ({
     activeScaleLevel,

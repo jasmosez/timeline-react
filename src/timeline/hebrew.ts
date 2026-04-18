@@ -4,6 +4,7 @@ import { getVisibleRangeStartTickDate, getVisibleTimeRange, type ScaleLevel } fr
 import type { PositionedTimelinePoint, PositionedTimelineSpan, TimelinePoint, TimelineSpan } from './types'
 import { getCivilDateAtNoonUtc, getHebrewDayInfo, isHebrewQuarterStartMonth } from './hebrewTime'
 import { getHebrewTickLabel } from './hebrewLabels'
+import { augmentLabelWithPersonalTime } from './personalTime'
 import {
   formatHebrewIntradayPointLabel,
   getDayViewIntradaySpans,
@@ -12,6 +13,7 @@ import {
 } from './hebrewIntraday'
 
 type HebrewLayerParams = {
+  activeLayerIds?: string[]
   leadingCalendarSystemId: LeadingCalendarSystemId
   activeScaleLevel: ScaleLevel
   focusTimeMs: number
@@ -21,6 +23,7 @@ type HebrewLayerParams = {
 
 const HEBREW_ENABLED_SCALES: ScaleLevel[] = [-1, 0, 1, 2, 3, 4, 5, 6]
 const ENABLE_HEBREW_QUARTER_WEEK_TICKS = false
+const PERSONAL_LAYER_ID = 'birthday'
 
 const shouldEmitHebrewBoundary = (
   activeScaleLevel: ScaleLevel,
@@ -227,6 +230,7 @@ const addHebrewYearQuarterBoundaryTicks = (
 }
 
 export const createHebrewStructuralPoints = ({
+  activeLayerIds,
   leadingCalendarSystemId,
   activeScaleLevel,
   focusTimeMs,
@@ -240,16 +244,27 @@ export const createHebrewStructuralPoints = ({
 
   boundaries.forEach(({ timeMs, label }) => {
     const dayInfo = getHebrewDayInfo(new Date(timeMs), environment)
+    const isLeading = leadingCalendarSystemId === 'hebrew'
+    const rawLabel = getHebrewTickLabel(
+      activeScaleLevel,
+      dayInfo,
+      timeMs,
+      isLeading,
+    ) ?? label
     const point: TimelinePoint = {
       id: `hebrew-${timeMs}`,
       kind: 'tick',
       timeMs,
-      label: getHebrewTickLabel(
-        activeScaleLevel,
-        dayInfo,
-        timeMs,
-        leadingCalendarSystemId === 'hebrew',
-      ) ?? label,
+      label: activeLayerIds?.includes(PERSONAL_LAYER_ID) && activeScaleLevel <= 3
+        ? augmentLabelWithPersonalTime({
+            label: rawLabel,
+            timeMs,
+            environment,
+            isLeading,
+            includeDayOfLife: true,
+            includeWeekOfLife: false,
+          })
+        : rawLabel,
     }
 
     points.push(
@@ -279,17 +294,28 @@ export const createHebrewStructuralPoints = ({
     getHebrewIntradayDayPoints(focusTimeMs, visibleDurationMs, environment)
       .filter(isNamedHebrewIntradayPoint)
       .forEach((point) => {
+      const isLeading = leadingCalendarSystemId === 'hebrew'
+      const rawLabel = formatHebrewIntradayPointLabel(
+        point,
+        isLeading,
+        environment,
+      )
       points.push(
         positionTimelinePoint(
           {
             id: point.id,
             kind: 'tick',
             timeMs: point.timeMs,
-            label: formatHebrewIntradayPointLabel(
-              point,
-              leadingCalendarSystemId === 'hebrew',
-              environment,
-            ),
+            label: activeLayerIds?.includes(PERSONAL_LAYER_ID) && point.source === 'shkiah'
+              ? augmentLabelWithPersonalTime({
+                  label: rawLabel,
+                  timeMs: point.timeMs,
+                  environment,
+                  isLeading,
+                  includeDayOfLife: true,
+                  includeWeekOfLife: false,
+                })
+              : rawLabel,
           },
           activeScaleLevel,
           focusTimeMs,

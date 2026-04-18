@@ -21,6 +21,7 @@ import { useStickyContextPresentation } from './useStickyContextPresentation';
 
 interface TimelineProps {
     environment: TimelineEnvironment;
+    activeLayerIds: string[];
     leadingCalendarSystemId: LeadingCalendarSystemId;
     activeScaleLevel: ScaleLevel;
     focusTimeMs: number;
@@ -83,6 +84,7 @@ export const getPromotedSpanLabels = (
 
 function Timeline({
   environment,
+  activeLayerIds,
   leadingCalendarSystemId,
   activeScaleLevel,
   focusTimeMs,
@@ -103,6 +105,7 @@ function Timeline({
   useEffect(() => {
     const context = {
       environment,
+      activeLayerIds,
       leadingCalendarSystemId,
       activeScaleLevel,
       focusTimeMs,
@@ -115,6 +118,7 @@ function Timeline({
   }, [
     activeLayers,
     environment,
+    activeLayerIds,
     leadingCalendarSystemId,
     activeScaleLevel,
     focusTimeMs,

@@ -13,6 +13,7 @@ import { proportionalHoursLayer } from './timeline/proportionalHours'
 import type { LeadingCalendarSystemId, TimelineEnvironment, TimelineLayerId } from './timeline/layers'
 import { createInitialViewport, getViewportStartTickDate, type Viewport } from './viewport'
 import { getContainingPeriodFocusTimeMs } from './timeline/periodAnchoring'
+import { getDerivedHebrewBirthDateLabel } from './timeline/personalTime'
 import {
   SCALE_LEVEL_CONFIG,
   getVisibleTimeRange,
@@ -80,6 +81,7 @@ function App() {
     timezone: timelineTimezone,
     location: timelineLocation,
   }
+  const derivedHebrewBirthDateLabel = getDerivedHebrewBirthDateLabel(timelineEnvironment)
   const locationLabel = `${timelineEnvironment.location.city}, ${timelineEnvironment.location.region} ${timelineEnvironment.location.postalCode}`
   const scaleLevelOrder = getScaleLevelOrder()
   const { minVisibleDurationMs, maxVisibleDurationMs } = getScaleDurationBounds()
@@ -371,6 +373,7 @@ function App() {
         onTimezoneChange={handleTimezoneChange}
         location={timelineLocation}
         onLocationChange={handleLocationChange}
+        derivedHebrewBirthDateLabel={derivedHebrewBirthDateLabel}
         availableLayers={AVAILABLE_TIMELINE_LAYERS}
         activeLayerIds={activeLayerIds}
         leadingCalendarSystemId={leadingCalendarSystemId}
@@ -380,6 +383,7 @@ function App() {
       />
       <Timeline
         environment={timelineEnvironment}
+        activeLayerIds={activeLayerIds}
         leadingCalendarSystemId={leadingCalendarSystemId}
         activeScaleLevel={activeScaleLevel}
         focusTimeMs={viewport.focusTimeMs}

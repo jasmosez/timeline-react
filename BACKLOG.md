@@ -22,6 +22,14 @@ Usage:
 - Birthday date/time input in HQ or adjacent controls
   Target: Phase 2
 
+- Personal time layer design and roadmap
+  Notes: move beyond a narrow "birthday marker" concept toward a personal-time
+  layer that includes day-of-life, week-of-life, Gregorian and Hebrew
+  anniversaries, seven-year cycles, and eventually multiple people; keep the
+  distinction clear between the birth event, Gregorian recurrences, Hebrew
+  recurrences, and date-based lived-time counters
+  Target: Next prioritization pass
+
 - Label strategy pass for motion and overlap
   Notes: revisit Tufte-style economy under fluid pan/zoom and multi-layer views
   Target: Phase 2

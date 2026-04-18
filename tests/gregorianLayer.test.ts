@@ -42,4 +42,30 @@ describe('gregorian structural layer', () => {
     expect(points.some((point) => point.label === '' && point.className?.includes('tick-rank-secondary'))).toBe(true)
     expect(points.some((point) => point.label === '2026, Jan')).toBe(true)
   })
+
+  it('adds personal day and week counters when the personal layer is active', () => {
+    const focusTimeMs = new Date('2026-03-29T12:00:00-04:00').getTime()
+    const visibleDurationMs = 8 * 24 * 60 * 60 * 1000
+    const points = createGregorianTickPoints({
+      activeLayerIds: ['birthday'],
+      environment: {
+        now: new Date('2026-04-01T12:00:00-04:00'),
+        birthDate: new Date('1982-04-19T02:25:00-05:00'),
+        timezone: 'America/New_York',
+        location: {
+          city: 'Northampton',
+          region: 'MA',
+          postalCode: '01060',
+          latitude: 42.3251,
+          longitude: -72.6412,
+        },
+      },
+      leadingCalendarSystemId: 'gregorian',
+      activeScaleLevel: 2,
+      focusTimeMs,
+      visibleDurationMs,
+    })
+
+    expect(points.some((point) => point.label === 'Week 2293, Day 16051 - W14, Sun 29')).toBe(true)
+  })
 })

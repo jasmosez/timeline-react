@@ -295,6 +295,7 @@ describe('hebrew structural layer', () => {
 
   it('uses Hebrew weekday labels at week scale', () => {
     const points = createHebrewStructuralPoints({
+      activeLayerIds: ['birthday'],
       leadingCalendarSystemId: 'hebrew',
       activeScaleLevel: 2,
       focusTimeMs: new Date('2026-04-01T12:00:00-04:00').getTime(),
@@ -302,7 +303,7 @@ describe('hebrew structural layer', () => {
       environment: TEST_ENVIRONMENT,
     })
 
-    expect(points.some((point) => /Sheni|Shlishi|Shabbat/.test(point.label ?? ''))).toBe(true)
+    expect(points.some((point) => /^Day \d+ - /.test(point.label ?? ''))).toBe(true)
   })
 
   it('marks shabbat within month view labels', () => {

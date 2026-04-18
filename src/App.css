@@ -9,15 +9,15 @@
   --hq-shell-bottom: 12px;
   --hq-shell-width: auto;
   --hq-primary-height: 32px;
-  --timeline-left-gutter: 220px;
+  --timeline-left-gutter: 225px;
 }
 
 .app-shell.desktop-layout.controls-open {
-  --timeline-left-gutter: 220px;
+  --timeline-left-gutter: 225px;
 }
 
 .app-shell.controls-closed {
-  --timeline-left-gutter: 220px;
+  --timeline-left-gutter: 225px;
 }
 
 .app-shell.compact-layout {
@@ -25,7 +25,7 @@
   --hq-shell-bottom: 10px;
   --hq-shell-width: auto;
   --hq-panel-width: min(360px, calc(100vw - 20px));
-  --timeline-left-gutter: 184px;
+  --timeline-left-gutter: 225px;
 }
 
 .hq-primary-shell,

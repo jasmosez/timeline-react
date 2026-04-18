@@ -2,6 +2,7 @@ import { SCALE_LEVEL_CONFIG, getVisibleRangeStartTickDate, getVisibleTimeRange, 
 import { createStructuralSpansForRange, positionTimelinePoint, positionTimelineSpan } from './layout'
 import type { LeadingCalendarSystemId, TimelineLayer } from './layers'
 import { getGregorianQuarterBoundaryLabel, getGregorianStructuralTickLabel } from './gregorianLabels'
+import { augmentLabelWithPersonalTime } from './personalTime'
 import type {
   PositionedTimelinePoint,
   PositionedTimelineSpan,
@@ -9,6 +10,8 @@ import type {
 } from './types'
 
 type TickCollectionParams = {
+  activeLayerIds?: string[]
+  environment: Parameters<TimelineLayer['getPoints']>[0]['environment']
   leadingCalendarSystemId: LeadingCalendarSystemId
   activeScaleLevel: ScaleLevel
   focusTimeMs: number
@@ -119,6 +122,47 @@ const createTickPoint = (tickTime: number): TimelinePoint => ({
   timeMs: tickTime,
 })
 
+const PERSONAL_LAYER_ID = 'birthday'
+
+const getRegularTickPersonalCounterKinds = (scaleLevel: ScaleLevel, tickTime: number) => {
+  const tickDate = new Date(tickTime)
+
+  switch (scaleLevel) {
+    case -1:
+    case 0:
+      return {
+        includeDayOfLife: tickDate.getHours() === 0 && tickDate.getMinutes() === 0 && tickDate.getSeconds() === 0,
+        includeWeekOfLife: false,
+      }
+    case 1:
+      return {
+        includeDayOfLife: tickDate.getHours() === 0 && tickDate.getMinutes() === 0,
+        includeWeekOfLife: tickDate.getHours() === 0 && tickDate.getMinutes() === 0 && tickDate.getDay() === 0,
+      }
+    case 2:
+    case 3:
+      return {
+        includeDayOfLife: true,
+        includeWeekOfLife: tickDate.getDay() === 0,
+      }
+    case 4:
+      return {
+        includeDayOfLife: false,
+        includeWeekOfLife: true,
+      }
+    default:
+      return {
+        includeDayOfLife: false,
+        includeWeekOfLife: false,
+      }
+  }
+}
+
+const getQuarterBoundaryPersonalCounterKinds = (tickTime: number) => ({
+  includeDayOfLife: false,
+  includeWeekOfLife: new Date(tickTime).getDay() === 0,
+})
+
 const addMonths = (date: Date, months: number) => {
   const nextDate = new Date(date)
   nextDate.setMonth(nextDate.getMonth() + months)
@@ -134,6 +178,8 @@ const startOfMonth = (date: Date) => {
 
 const addPositionedTicksForScaleLevel = (
   points: Map<number, PositionedTimelinePoint>,
+  activeLayerIds: string[] | undefined,
+  environment: TickCollectionParams['environment'],
   leadingCalendarSystemId: LeadingCalendarSystemId,
   scaleLevel: ScaleLevel,
   focusTimeMs: number,
@@ -147,14 +193,24 @@ const addPositionedTicksForScaleLevel = (
   let tickTime = SCALE_LEVEL_CONFIG[scaleLevel].startTickDateFunc(new Date(bufferedStartMs)).getTime()
 
   while (tickTime <= bufferedEndMs) {
+    const isLeading = leadingCalendarSystemId === 'gregorian'
+    const rawLabel = getGregorianStructuralTickLabel(
+      scaleLevel,
+      tickTime,
+      tickTime === visibleRangeStartTickDate.getTime(),
+      isLeading,
+    )
     const point = {
       ...createTickPoint(tickTime),
-      label: getGregorianStructuralTickLabel(
-        scaleLevel,
-        tickTime,
-        tickTime === visibleRangeStartTickDate.getTime(),
-        leadingCalendarSystemId === 'gregorian',
-      ),
+      label: activeLayerIds?.includes(PERSONAL_LAYER_ID)
+        ? augmentLabelWithPersonalTime({
+            label: rawLabel,
+            timeMs: tickTime,
+            environment,
+            isLeading,
+            ...getRegularTickPersonalCounterKinds(scaleLevel, tickTime),
+          })
+        : rawLabel,
     }
 
     points.set(
@@ -185,6 +241,8 @@ const addPositionedTicksForScaleLevel = (
 
 const addQuarterBoundaryTicks = (
   points: Map<number, PositionedTimelinePoint>,
+  activeLayerIds: string[] | undefined,
+  environment: TickCollectionParams['environment'],
   leadingCalendarSystemId: LeadingCalendarSystemId,
   focusTimeMs: number,
   visibleDurationMs: number,
@@ -197,11 +255,21 @@ const addQuarterBoundaryTicks = (
   while (tickTime <= bufferedEndMs) {
     const tickDate = new Date(tickTime)
     const isQuarterStart = tickDate.getMonth() % 3 === 0
+    const isLeading = leadingCalendarSystemId === 'gregorian'
+    const rawLabel = getGregorianQuarterBoundaryLabel(tickTime, isLeading)
     const point: TimelinePoint = {
       id: `quarter-boundary-${tickTime}`,
       kind: 'tick',
       timeMs: tickTime,
-      label: getGregorianQuarterBoundaryLabel(tickTime, leadingCalendarSystemId === 'gregorian'),
+      label: activeLayerIds?.includes(PERSONAL_LAYER_ID)
+        ? augmentLabelWithPersonalTime({
+            label: rawLabel,
+            timeMs: tickTime,
+            environment,
+            isLeading,
+            ...getQuarterBoundaryPersonalCounterKinds(tickTime),
+          })
+        : rawLabel,
     }
 
     points.set(
@@ -282,6 +350,8 @@ const addYearQuarterBoundaryTicks = (
 }
 
 export const createGregorianTickPoints = ({
+  activeLayerIds,
+  environment,
   leadingCalendarSystemId,
   activeScaleLevel,
   focusTimeMs,
@@ -291,6 +361,8 @@ export const createGregorianTickPoints = ({
 
   addPositionedTicksForScaleLevel(
     points,
+    activeLayerIds,
+    environment,
     leadingCalendarSystemId,
     activeScaleLevel,
     focusTimeMs,
@@ -298,7 +370,7 @@ export const createGregorianTickPoints = ({
   )
 
   if (activeScaleLevel === 4) {
-    addQuarterBoundaryTicks(points, leadingCalendarSystemId, focusTimeMs, visibleDurationMs)
+    addQuarterBoundaryTicks(points, activeLayerIds, environment, leadingCalendarSystemId, focusTimeMs, visibleDurationMs)
   }
 
   if (activeScaleLevel === 5) {
