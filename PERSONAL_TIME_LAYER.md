@@ -9,6 +9,7 @@ This layer family should eventually support:
 
 - ongoing life-position counters such as day-of-life and week-of-life
 - annual anniversaries in more than one calendar system
+- day annotations keyed to lived days
 - longer personal cycles such as seven-year spans
 - multiple named people
 
@@ -123,7 +124,35 @@ Examples:
 
 These are naturally expressed as spans rather than points.
 
-### 4. Multiple People
+### 4. Day Annotations
+
+Day annotations are a first authored-meaning surface inside personal time.
+
+Current MVP direction:
+
+- one annotation per day-of-life
+- annotation belongs to the personal layer and is visible only when that layer
+  is on
+- fields:
+  - `plans`
+  - `journal`
+  - manual `journaledOnDay`
+- visibility:
+  - month view: truncated preview
+  - week view: wrapped preview
+  - not shown at day-and-below or quarter-and-above
+- presentation:
+  - right-side-only personal note surface
+  - spreadsheet-like side-by-side columns for `plans` and `journal`
+  - inline editing rather than a sidebar editor
+- storage:
+  - local-only MVP storage is acceptable
+  - durable persistence and version history are later concerns
+
+The key point is that these are not generic Gregorian date notes. They are
+notes attached to a person's lived days, with day-of-life as the dominant key.
+
+### 5. Multiple People
 
 Later, the same system should support:
 

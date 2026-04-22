@@ -30,6 +30,18 @@ Usage:
   recurrences, and date-based lived-time counters
   Target: Next prioritization pass
 
+- Day annotation version history
+  Notes: keep the first day-annotation MVP editable and lightweight, but plan
+  for a future per-day revision history so earlier plans/journal states are not
+  lost
+  Target: Personal time follow-up
+
+- Durable personal-data persistence
+  Notes: the first annotation MVP can rely on local storage, but personal data
+  will eventually want user identity, sync, and a more durable backend model
+  than browser-only storage
+  Target: Personal time follow-up
+
 - Label strategy pass for motion and overlap
   Notes: revisit Tufte-style economy under fluid pan/zoom and multi-layer views
   Target: Phase 2

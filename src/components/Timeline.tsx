@@ -18,6 +18,8 @@ import type {
 import NowTick from './NowTick';
 import Span from './Span';
 import { useStickyContextPresentation } from './useStickyContextPresentation';
+import DayAnnotationsOverlay from './DayAnnotationsOverlay';
+import type { DayAnnotationMap, PositionedDayAnnotation } from '../timeline/personalAnnotations';
 
 interface TimelineProps {
     environment: TimelineEnvironment;
@@ -30,6 +32,13 @@ interface TimelineProps {
     activeLayers: TimelineLayer[];
     isGregorianVisible: boolean;
     isHebrewVisible: boolean;
+    dayAnnotations: DayAnnotationMap;
+    positionedDayAnnotations: PositionedDayAnnotation[];
+    onUpdateDayAnnotation: (
+      dayOfLife: number,
+      field: 'plans' | 'journal' | 'journaledOnDay',
+      value: string | boolean,
+    ) => void;
     onPanTimeDelta: (deltaMs: number) => void;
     onZoomByFactor: (factor: number, anchorPercent: number) => void;
 }
@@ -93,6 +102,9 @@ function Timeline({
   activeLayers,
   isGregorianVisible,
   isHebrewVisible,
+  dayAnnotations,
+  positionedDayAnnotations,
+  onUpdateDayAnnotation,
   onPanTimeDelta,
   onZoomByFactor,
 }: TimelineProps) {
@@ -356,6 +368,14 @@ function Timeline({
           {promotedLabel.label}
         </div>
       ))}
+      {positionedDayAnnotations.length > 0 ? (
+        <DayAnnotationsOverlay
+          activeScaleLevel={activeScaleLevel}
+          annotations={dayAnnotations}
+          positionedAnnotations={positionedDayAnnotations}
+          onUpdateAnnotation={onUpdateDayAnnotation}
+        />
+      ) : null}
       {timelineSpans.map((span) => <Span key={span.id} span={span} />)}
       {displayTickPoints.map((point) => <TickPoint key={point.id} point={point} />)}
       <NowTick

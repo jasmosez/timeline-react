@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import './App.css'
 import './timelinePresentation.css'
@@ -14,6 +14,13 @@ import type { LeadingCalendarSystemId, TimelineEnvironment, TimelineLayerId } fr
 import { createInitialViewport, getViewportStartTickDate, type Viewport } from './viewport'
 import { getContainingPeriodFocusTimeMs } from './timeline/periodAnchoring'
 import { getDerivedHebrewBirthDateLabel } from './timeline/personalTime'
+import {
+  getPositionedDayAnnotations,
+  loadDayAnnotations,
+  saveDayAnnotations,
+  updateDayAnnotation,
+  type DayAnnotationMap,
+} from './timeline/personalAnnotations'
 import {
   SCALE_LEVEL_CONFIG,
   getVisibleTimeRange,
@@ -50,6 +57,7 @@ function App() {
   const [birthDate, setBirthDate] = useState(DEFAULT_BIRTH_DATE)
   const [timelineTimezone, setTimelineTimezone] = useState(DEFAULT_TIMELINE_TIMEZONE)
   const [timelineLocation, setTimelineLocation] = useState(DEFAULT_TIMELINE_LOCATION)
+  const [dayAnnotations, setDayAnnotations] = useState<DayAnnotationMap>(() => loadDayAnnotations())
   const [activeLayerIds, setActiveLayerIds] = useState<TimelineLayerId[]>(['gregorian'])
   const [leadingCalendarSystemId, setLeadingCalendarSystemId] = useState<LeadingCalendarSystemId>('gregorian')
   const [lockNow, setLockNow] = useState(false)
@@ -82,6 +90,26 @@ function App() {
     location: timelineLocation,
   }
   const derivedHebrewBirthDateLabel = getDerivedHebrewBirthDateLabel(timelineEnvironment)
+  const isPersonalLayerVisible = activeLayerIds.includes('birthday')
+  const positionedDayAnnotations = useMemo(
+    () => (
+      isPersonalLayerVisible
+        ? getPositionedDayAnnotations(
+            activeScaleLevel,
+            viewport.focusTimeMs,
+            viewport.visibleDurationMs,
+            timelineEnvironment,
+          )
+        : []
+    ),
+    [
+      activeScaleLevel,
+      isPersonalLayerVisible,
+      viewport.focusTimeMs,
+      viewport.visibleDurationMs,
+      timelineEnvironment,
+    ],
+  )
   const locationLabel = `${timelineEnvironment.location.city}, ${timelineEnvironment.location.region} ${timelineEnvironment.location.postalCode}`
   const scaleLevelOrder = getScaleLevelOrder()
   const { minVisibleDurationMs, maxVisibleDurationMs } = getScaleDurationBounds()
@@ -108,6 +136,10 @@ function App() {
     mediaQuery.addEventListener('change', handleChange)
     return () => mediaQuery.removeEventListener('change', handleChange)
   }, [controlsPreferenceSet])
+
+  useEffect(() => {
+    saveDayAnnotations(dayAnnotations)
+  }, [dayAnnotations])
 
   useEffect(() => {
     const updateIntervalMs = SCALE_LEVEL_CONFIG[activeScaleLevel].key === 'minute' ? 10 : 1000
@@ -348,6 +380,14 @@ function App() {
     setTimelineLocation(nextLocation)
   }
 
+  const handleUpdateDayAnnotation = (
+    dayOfLife: number,
+    field: 'plans' | 'journal' | 'journaledOnDay',
+    value: string | boolean,
+  ) => {
+    setDayAnnotations((prevAnnotations) => updateDayAnnotation(prevAnnotations, dayOfLife, field, value))
+  }
+
   return (
     <div
       className={[
@@ -392,6 +432,9 @@ function App() {
         activeLayers={activeLayers}
         isGregorianVisible={activeLayerIds.includes('gregorian')}
         isHebrewVisible={activeLayerIds.includes('hebrew')}
+        dayAnnotations={dayAnnotations}
+        positionedDayAnnotations={positionedDayAnnotations}
+        onUpdateDayAnnotation={handleUpdateDayAnnotation}
         onPanTimeDelta={handleWheelPan}
         onZoomByFactor={handleWheelZoom}
       />

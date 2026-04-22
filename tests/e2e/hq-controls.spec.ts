@@ -90,7 +90,7 @@ test.describe('HQ controls', () => {
     await page.goto('/')
 
     await expect(page.getByTestId('scale-title')).toHaveText('Week')
-    await expect(page.getByTestId('start-tick-value')).toHaveText('Sun, Apr 5, 2026, 12:00 AM')
+    await expect(page.getByTestId('start-tick-value')).toHaveText('Sun, Apr 12, 2026, 12:00 AM')
   })
 
   test('HQ button zoom keeps anchored current-period framing', async ({ page }) => {
@@ -243,7 +243,7 @@ test.describe('HQ controls', () => {
     await page.goto('/')
 
     const topContext = page.locator('.gregorian-context-label-top')
-    await expect(topContext).toHaveText('W14, Apr 2026')
+    await expect(topContext).toHaveText('W15, Apr 2026')
 
     await page.locator('.timeline-root').evaluate((element) => {
       const rect = element.getBoundingClientRect()
@@ -257,7 +257,7 @@ test.describe('HQ controls', () => {
     })
 
     await expect(page.getByTestId('navigation-mode-value')).toHaveText('centered')
-    await expect(topContext).toHaveText('W16, Apr 2026')
+    await expect(topContext).toHaveText('W17, Apr 2026')
   })
 
   test('reset returns exploratory navigation to anchored current-period mode', async ({ page }) => {

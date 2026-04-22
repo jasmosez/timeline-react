@@ -28,6 +28,9 @@
   --birthday-outer-lane-gap: 62px;
   --birthday-marker-width: 38px;
   --birthday-marker-width-outer: 52px;
+  --day-annotation-panel-width: clamp(220px, 26vw, 360px);
+  --day-annotation-day-width: 62px;
+  --day-annotation-column-gap: 8px;
   --now-tick-width: 50px;
   --span-width: 5px;
   --structural-tick-width: 10px;
@@ -168,6 +171,140 @@
   font-weight: 500;
 }
 
+.day-annotation-headers,
+.day-annotation-row {
+  right: 12px;
+  width: var(--day-annotation-panel-width);
+  z-index: 12;
+  pointer-events: none;
+}
+
+.day-annotation-headers {
+  top: calc(var(--context-top-offset) + 2px);
+  display: grid;
+  grid-template-columns: var(--day-annotation-day-width) minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: var(--day-annotation-column-gap);
+  align-items: end;
+  color: rgba(75, 85, 99, 0.84);
+  font-size: 0.56rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.day-annotation-headers-month {
+  opacity: 0.72;
+}
+
+.day-annotation-headers-week {
+  opacity: 0.84;
+}
+
+.day-annotation-header {
+  padding-bottom: 2px;
+}
+
+.day-annotation-header-plans {
+  grid-column: 2;
+}
+
+.day-annotation-header-journal {
+  grid-column: 3;
+}
+
+.day-annotation-row {
+  display: grid;
+  grid-template-columns: var(--day-annotation-day-width) minmax(0, 1fr);
+  column-gap: var(--day-annotation-column-gap);
+  align-items: start;
+  overflow: visible;
+}
+
+.day-annotation-row-month {
+  font-size: 0.62rem;
+}
+
+.day-annotation-row-week {
+  font-size: 0.66rem;
+}
+
+.day-annotation-day-of-life,
+.day-annotation-field,
+.day-annotation-field-editing {
+  pointer-events: auto;
+}
+
+.day-annotation-day-of-life {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 1px 0 0;
+  margin: 0;
+  text-align: right;
+  font: inherit;
+  color: rgba(55, 65, 81, 0.72);
+  font-size: 0.58rem;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.day-annotation-day-of-life-journaled {
+  font-weight: 700;
+  color: rgba(31, 41, 55, 0.92);
+}
+
+.day-annotation-columns {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: var(--day-annotation-column-gap);
+}
+
+.day-annotation-field {
+  min-height: 1.5em;
+  padding: 1px 4px 2px;
+  border-radius: 4px;
+  color: rgba(55, 65, 81, 0.88);
+  line-height: 1.2;
+  cursor: text;
+}
+
+.day-annotation-field-empty {
+  color: rgba(107, 114, 128, 0.42);
+}
+
+.day-annotation-field-filled {
+  background: rgba(243, 244, 246, 0.72);
+}
+
+.day-annotation-field-month {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.day-annotation-field-week {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.day-annotation-field-editing {
+  width: 100%;
+  box-sizing: border-box;
+  resize: none;
+  border: 1px solid rgba(156, 163, 175, 0.52);
+  background: rgba(255, 255, 255, 0.98);
+  padding: 3px 5px;
+  font: inherit;
+  color: rgba(31, 41, 55, 0.96);
+  line-height: 1.25;
+  border-radius: 4px;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+}
+
+.day-annotation-field-editing:focus {
+  outline: none;
+}
+
 .now-tick {
   height: 1px;
   width: var(--now-tick-width);
@@ -292,6 +429,9 @@
     --proportional-hours-lane-gap: 34px;
     --birthday-secondary-lane-gap: 30px;
     --birthday-outer-lane-gap: 42px;
+    --day-annotation-panel-width: clamp(210px, 34vw, 300px);
+    --day-annotation-day-width: 56px;
+    --day-annotation-column-gap: 7px;
     --context-top-offset: 10px;
     --promoted-span-label-top-offset: 28px;
     --structural-label-column-offset: calc(var(--tick-rank-primary-width) + 8px);
@@ -308,6 +448,15 @@
   .now-tick-label {
     max-width: calc(var(--timeline-axis-x) - 2px);
   }
+
+  .day-annotation-headers {
+    font-size: 0.52rem;
+  }
+
+  .day-annotation-row-week,
+  .day-annotation-row-month {
+    font-size: 0.6rem;
+  }
 }
 
 @media (max-width: 560px) {
@@ -316,9 +465,21 @@
     --tick-rank-secondary-width: 12px;
     --tick-rank-ordinary-width: 8px;
     --span-width: 4px;
+    --day-annotation-panel-width: min(46vw, 228px);
+    --day-annotation-day-width: 52px;
+    --day-annotation-column-gap: 6px;
   }
 
   .tick-label {
     font-size: 0.44rem;
+  }
+
+  .day-annotation-headers {
+    font-size: 0.48rem;
+  }
+
+  .day-annotation-row-week,
+  .day-annotation-row-month {
+    font-size: 0.56rem;
   }
 }

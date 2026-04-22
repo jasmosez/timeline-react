@@ -129,13 +129,23 @@ export const parseDateTimeInputValueInTimezone = (value: string, timezone: strin
   return new Date(utcMillis)
 }
 
-const getCivilDateOrdinal = (timestamp: Date, timezone: string) => {
+export const getCivilDateOrdinal = (timestamp: Date, timezone: string) => {
   const parts = getCivilDateFormatter(timezone).formatToParts(timestamp)
   const year = Number(parts.find((part) => part.type === 'year')?.value)
   const month = Number(parts.find((part) => part.type === 'month')?.value)
   const day = Number(parts.find((part) => part.type === 'day')?.value)
 
   return Math.floor(Date.UTC(year, month - 1, day) / DAY_IN_MS)
+}
+
+export const getDateForCivilDayOrdinalStart = (ordinal: number, timezone: string) => {
+  const utcDate = new Date(ordinal * DAY_IN_MS)
+  const year = utcDate.getUTCFullYear()
+  const month = String(utcDate.getUTCMonth() + 1).padStart(2, '0')
+  const day = String(utcDate.getUTCDate()).padStart(2, '0')
+
+  return parseDateTimeInputValueInTimezone(`${year}-${month}-${day}T00:00`, timezone)
+    ?? new Date(Date.UTC(year, utcDate.getUTCMonth(), utcDate.getUTCDate()))
 }
 
 export const getPersonalDayOfLife = (
