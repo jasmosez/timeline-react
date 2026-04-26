@@ -1,10 +1,13 @@
 import {
   createStructuralExpressionDecision,
   getStructuralExpressionDecision,
+  getStructuralSpanOpacity,
   type StructuralExpressionPolicyInput,
 } from '../src/timeline/structuralExpressionPolicy'
 import {
+  GREGORIAN_PERIOD_FAMILY_IDS,
   STRUCTURAL_PERIOD_FAMILIES,
+  getStructuralPeriodFamilyById,
   getStructuralPeriodFamiliesForCalendar,
 } from '../src/timeline/structuralPeriodFamilies'
 
@@ -44,12 +47,31 @@ describe('structural expression policy skeleton', () => {
     })
   })
 
-  it('returns a default no-op policy decision in phase 1', () => {
-    const family = STRUCTURAL_PERIOD_FAMILIES[0]
+  it('computes real Gregorian span decisions from family and scale', () => {
+    const activeFamily = getStructuralPeriodFamilyById(GREGORIAN_PERIOD_FAMILY_IDS.day)
+    const inactiveFamily = getStructuralPeriodFamilyById(GREGORIAN_PERIOD_FAMILY_IDS.week)
 
-    expect(getStructuralExpressionDecision(family, TEST_POLICY_INPUT)).toEqual(
-      createStructuralExpressionDecision(),
-    )
+    expect(activeFamily).toBeDefined()
+    expect(inactiveFamily).toBeDefined()
+
+    expect(getStructuralExpressionDecision(activeFamily!, TEST_POLICY_INPUT)).toMatchObject({
+      spanState: 'visible',
+      prominence: 1,
+    })
+    expect(getStructuralExpressionDecision(inactiveFamily!, TEST_POLICY_INPUT)).toMatchObject({
+      spanState: 'hidden',
+      prominence: 0,
+    })
+  })
+
+  it('maps span decisions to presentation opacity without changing visible defaults', () => {
+    expect(getStructuralSpanOpacity(createStructuralExpressionDecision())).toBeUndefined()
+    expect(
+      getStructuralSpanOpacity(createStructuralExpressionDecision({ spanState: 'visible-faint' })),
+    ).toBe(0.35)
+    expect(
+      getStructuralSpanOpacity(createStructuralExpressionDecision({ spanState: 'hidden' })),
+    ).toBe(0)
   })
 
   it('exposes seed period families by calendar', () => {

@@ -4,6 +4,12 @@ import type { LeadingCalendarSystemId, TimelineLayer } from './layers'
 import { getGregorianQuarterBoundaryLabel, getGregorianStructuralTickLabel } from './gregorianLabels'
 import { augmentLabelWithPersonalTime } from './personalTime'
 import {
+  createStructuralExpressionDecision,
+  getStructuralExpressionDecision,
+  getStructuralSpanOpacity,
+  type StructuralExpressionMetadata,
+} from './structuralExpressionPolicy'
+import {
   GREGORIAN_PERIOD_FAMILY_IDS,
   getStructuralPeriodFamilyById,
 } from './structuralPeriodFamilies'
@@ -12,7 +18,6 @@ import type {
   PositionedTimelineSpan,
   TimelinePoint,
 } from './types'
-import type { StructuralExpressionMetadata } from './structuralExpressionPolicy'
 
 type TickCollectionParams = {
   activeLayerIds?: string[]
@@ -496,11 +501,25 @@ export const createGregorianStructuralSpans = (
   activeScaleLevel: ScaleLevel,
   focusTimeMs: number,
   visibleDurationMs: number,
+  environment: TickCollectionParams['environment'],
 ): PositionedTimelineSpan[] => {
   const bufferedRange = getVisibleTimeRange(focusTimeMs, visibleDurationMs)
   const bufferedStartMs = bufferedRange.startTimeMs - visibleDurationMs * 0.5
   const bufferedEndMs = bufferedRange.endTimeMs + visibleDurationMs * 0.5
   const familyId = getGregorianSpanFamilyId(activeScaleLevel)
+  const family = getStructuralPeriodFamilyById(familyId)
+  const decision = family
+    ? getStructuralExpressionDecision(family, {
+        activeScaleLevel,
+        visibleDurationMs,
+        leadingCalendarSystemId,
+        environment,
+      })
+    : createStructuralExpressionDecision()
+
+  if (decision.spanState === 'hidden') {
+    return []
+  }
 
   return createStructuralSpansForRange(activeScaleLevel, bufferedStartMs, bufferedEndMs).map((span) =>
     positionTimelineSpan(
@@ -511,14 +530,15 @@ export const createGregorianStructuralSpans = (
       focusTimeMs,
       visibleDurationMs,
       {
-      className: [
-        leadingCalendarSystemId === 'gregorian'
-          ? 'structural-span structural-span-leading'
-          : 'structural-span structural-span-supporting',
-        getGregorianSpanStripeClass(activeScaleLevel, span.startTimeMs),
-      ].join(' '),
-      side: leadingCalendarSystemId === 'gregorian' ? 'leading' : 'supporting',
-      labelTheme: 'default',
+        opacity: getStructuralSpanOpacity(decision),
+        className: [
+          leadingCalendarSystemId === 'gregorian'
+            ? 'structural-span structural-span-leading'
+            : 'structural-span structural-span-supporting',
+          getGregorianSpanStripeClass(activeScaleLevel, span.startTimeMs),
+        ].join(' '),
+        side: leadingCalendarSystemId === 'gregorian' ? 'leading' : 'supporting',
+        labelTheme: 'default',
       },
     ),
   )
@@ -529,6 +549,12 @@ export const gregorianLayer: TimelineLayer = {
   label: 'Gregorian',
   role: 'structural',
   getPoints: createGregorianTickPoints,
-  getSpans: ({ leadingCalendarSystemId, activeScaleLevel, focusTimeMs, visibleDurationMs }) =>
-    createGregorianStructuralSpans(leadingCalendarSystemId, activeScaleLevel, focusTimeMs, visibleDurationMs),
+  getSpans: ({ leadingCalendarSystemId, activeScaleLevel, focusTimeMs, visibleDurationMs, environment }) =>
+    createGregorianStructuralSpans(
+      leadingCalendarSystemId,
+      activeScaleLevel,
+      focusTimeMs,
+      visibleDurationMs,
+      environment,
+    ),
 }

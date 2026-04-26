@@ -1,6 +1,19 @@
 import { createGregorianTickPoints, createGregorianStructuralSpans } from '../src/timeline/gregorian'
 import { GREGORIAN_PERIOD_FAMILY_IDS } from '../src/timeline/structuralPeriodFamilies'
 
+const TEST_ENVIRONMENT = {
+  now: new Date('2026-04-01T12:00:00-04:00'),
+  birthDate: new Date('1982-04-19T02:25:00-05:00'),
+  timezone: 'America/New_York',
+  location: {
+    city: 'Northampton',
+    region: 'MA',
+    postalCode: '01060',
+    latitude: 42.3251,
+    longitude: -72.6412,
+  },
+} as const
+
 describe('gregorian structural layer', () => {
   it('renders quarter view with weekly internals plus stronger month boundaries', () => {
     const focusTimeMs = new Date('2026-04-20T12:00:00-04:00').getTime()
@@ -25,6 +38,7 @@ describe('gregorian structural layer', () => {
       4,
       focusTimeMs,
       visibleDurationMs,
+      TEST_ENVIRONMENT,
     )
 
     expect(spans.length).toBeGreaterThan(8)
@@ -77,6 +91,7 @@ describe('gregorian structural layer', () => {
       4,
       focusTimeMs,
       visibleDurationMs,
+      TEST_ENVIRONMENT,
     )
 
     expect(spans[0]?.structuralMetadata).toMatchObject({

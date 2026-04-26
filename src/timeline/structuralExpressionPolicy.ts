@@ -73,9 +73,61 @@ export const createStructuralExpressionDecision = (
   ...overrides,
 })
 
-// Phase 1 intentionally keeps policy behavior as a stub. Runtime systems can
-// start attaching metadata now without changing current rendered behavior.
+const getGregorianActiveSpanKind = (activeScaleLevel: ScaleLevel) => {
+  switch (activeScaleLevel) {
+    case -1:
+      return 'second'
+    case 0:
+      return 'minute'
+    case 1:
+      return 'hour'
+    case 2:
+    case 3:
+      return 'day'
+    case 4:
+      return 'week'
+    case 5:
+      return 'month'
+    case 6:
+      return 'year'
+    default:
+      return null
+  }
+}
+
+const getGregorianStructuralExpressionDecision = (
+  family: StructuralPeriodFamilyDefinition,
+  input: StructuralExpressionPolicyInput,
+): StructuralExpressionDecision => {
+  const activeSpanKind = getGregorianActiveSpanKind(input.activeScaleLevel)
+  const isActiveSpanFamily = family.supportsIntervalExpression && family.kind === activeSpanKind
+
+  return createStructuralExpressionDecision({
+    spanState: isActiveSpanFamily ? 'visible' : 'hidden',
+    prominence: isActiveSpanFamily ? 1 : 0,
+  })
+}
+
 export const getStructuralExpressionDecision = (
-  _family: StructuralPeriodFamilyDefinition,
-  _input: StructuralExpressionPolicyInput,
-): StructuralExpressionDecision => createStructuralExpressionDecision()
+  family: StructuralPeriodFamilyDefinition,
+  input: StructuralExpressionPolicyInput,
+): StructuralExpressionDecision => {
+  if (family.calendarSystemId === 'gregorian') {
+    return getGregorianStructuralExpressionDecision(family, input)
+  }
+
+  return createStructuralExpressionDecision()
+}
+
+export const getStructuralSpanOpacity = (
+  decision: StructuralExpressionDecision,
+): number | undefined => {
+  switch (decision.spanState) {
+    case 'hidden':
+      return 0
+    case 'visible-faint':
+      return 0.35
+    default:
+      return undefined
+  }
+}
