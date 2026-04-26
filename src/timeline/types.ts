@@ -1,9 +1,12 @@
+import type { StructuralExpressionMetadata } from './structuralExpressionPolicy'
+
 export interface TimelinePoint {
   id: string
   kind: 'tick' | 'marker'
   timeMs: number
   label?: string
   priority?: number
+  structuralMetadata?: StructuralExpressionMetadata
 }
 
 export interface PositionedTimelinePoint extends TimelinePoint {
@@ -20,6 +23,7 @@ export interface TimelineSpan {
   endTimeMs: number
   label?: string
   priority?: number
+  structuralMetadata?: StructuralExpressionMetadata
 }
 
 export type PositionedSpanSide = 'leading' | 'supporting'
