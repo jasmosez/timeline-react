@@ -20,8 +20,13 @@ export const GREGORIAN_PERIOD_FAMILY_IDS = {
 } as const
 
 export const HEBREW_PERIOD_FAMILY_IDS = {
+  zmanim: 'hebrew-zmanim',
   day: 'hebrew-day',
+  week: 'hebrew-week',
   month: 'hebrew-month',
+  quarter: 'hebrew-quarter',
+  year: 'hebrew-year',
+  shmita: 'hebrew-shmita',
 } as const
 
 export const LIFE_RELATIVE_PERIOD_FAMILY_IDS = {
@@ -118,6 +123,15 @@ export const STRUCTURAL_PERIOD_FAMILIES: StructuralPeriodFamilyDefinition[] = [
     supportsLabels: true,
   }),
   defineFamily({
+    id: HEBREW_PERIOD_FAMILY_IDS.zmanim,
+    calendarSystemId: 'hebrew',
+    kind: 'zmanim',
+    significance: 'local',
+    supportsBoundaryExpression: true,
+    supportsIntervalExpression: true,
+    supportsLabels: true,
+  }),
+  defineFamily({
     id: HEBREW_PERIOD_FAMILY_IDS.day,
     calendarSystemId: 'hebrew',
     kind: 'day',
@@ -128,10 +142,51 @@ export const STRUCTURAL_PERIOD_FAMILIES: StructuralPeriodFamilyDefinition[] = [
     supportsStickyContext: true,
   }),
   defineFamily({
+    id: HEBREW_PERIOD_FAMILY_IDS.week,
+    calendarSystemId: 'hebrew',
+    kind: 'week',
+    significance: 'major',
+    supportsBoundaryExpression: true,
+    supportsIntervalExpression: true,
+    supportsLabels: true,
+    supportsStickyContext: true,
+    notes: 'Current structural expression uses weekly boundaries without week labels.',
+  }),
+  defineFamily({
     id: HEBREW_PERIOD_FAMILY_IDS.month,
     calendarSystemId: 'hebrew',
     kind: 'month',
     significance: 'major',
+    supportsBoundaryExpression: true,
+    supportsIntervalExpression: true,
+    supportsLabels: true,
+    supportsStickyContext: true,
+  }),
+  defineFamily({
+    id: HEBREW_PERIOD_FAMILY_IDS.quarter,
+    calendarSystemId: 'hebrew',
+    kind: 'quarter',
+    significance: 'macro',
+    supportsBoundaryExpression: true,
+    supportsIntervalExpression: true,
+    supportsLabels: true,
+    supportsStickyContext: true,
+  }),
+  defineFamily({
+    id: HEBREW_PERIOD_FAMILY_IDS.year,
+    calendarSystemId: 'hebrew',
+    kind: 'year',
+    significance: 'macro',
+    supportsBoundaryExpression: true,
+    supportsIntervalExpression: true,
+    supportsLabels: true,
+    supportsStickyContext: true,
+  }),
+  defineFamily({
+    id: HEBREW_PERIOD_FAMILY_IDS.shmita,
+    calendarSystemId: 'hebrew',
+    kind: 'shmita',
+    significance: 'macro',
     supportsBoundaryExpression: true,
     supportsIntervalExpression: true,
     supportsLabels: true,

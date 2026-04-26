@@ -5,12 +5,18 @@ import type { PositionedTimelinePoint, PositionedTimelineSpan, TimelinePoint, Ti
 import { getCivilDateAtNoonUtc, getHebrewDayInfo, isHebrewQuarterStartMonth } from './hebrewTime'
 import { getHebrewTickLabel } from './hebrewLabels'
 import { augmentLabelWithPersonalTime } from './personalTime'
+import type { StructuralExpressionMetadata } from './structuralExpressionPolicy'
 import {
   formatHebrewIntradayPointLabel,
   getDayViewIntradaySpans,
   getHebrewIntradayDayPoints,
+  type HebrewIntradayPointData,
   isNamedHebrewIntradayPoint,
 } from './hebrewIntraday'
+import {
+  HEBREW_PERIOD_FAMILY_IDS,
+  getStructuralPeriodFamilyById,
+} from './structuralPeriodFamilies'
 
 type HebrewLayerParams = {
   activeLayerIds?: string[]
@@ -52,6 +58,73 @@ const shouldEmitHebrewBoundary = (
 type HebrewBoundary = {
   timeMs: number
   label: string
+}
+
+const getHebrewStructuralMetadata = (
+  familyId: string,
+): StructuralExpressionMetadata => {
+  const family = getStructuralPeriodFamilyById(familyId)
+
+  return {
+    structuralPeriodFamilyId: familyId,
+    structuralCalendarSystemId: 'hebrew',
+    structuralSignificance: family?.significance,
+  }
+}
+
+const getHebrewBoundaryFamilyId = (
+  activeScaleLevel: ScaleLevel,
+  dayInfo: ReturnType<typeof getHebrewDayInfo>,
+) => {
+  switch (activeScaleLevel) {
+    case 2:
+    case 3:
+      if (dayInfo.hebrewDate.day === 1) {
+        return HEBREW_PERIOD_FAMILY_IDS.month
+      }
+      if (dayInfo.hdate.getDay() === 0) {
+        return HEBREW_PERIOD_FAMILY_IDS.week
+      }
+      return HEBREW_PERIOD_FAMILY_IDS.day
+    case 4:
+      if (dayInfo.hebrewDate.day === 1 && isHebrewQuarterStartMonth(dayInfo.hebrewDate.month)) {
+        return HEBREW_PERIOD_FAMILY_IDS.quarter
+      }
+      return HEBREW_PERIOD_FAMILY_IDS.month
+    case 5:
+      if (dayInfo.hebrewDate.month === 7) {
+        return HEBREW_PERIOD_FAMILY_IDS.year
+      }
+      return HEBREW_PERIOD_FAMILY_IDS.month
+    case 6:
+      return dayInfo.hebrewDate.year % 7 === 1
+        ? HEBREW_PERIOD_FAMILY_IDS.shmita
+        : HEBREW_PERIOD_FAMILY_IDS.year
+    default:
+      return HEBREW_PERIOD_FAMILY_IDS.day
+  }
+}
+
+const getHebrewIntradayFamilyId = (_point: HebrewIntradayPointData) =>
+  HEBREW_PERIOD_FAMILY_IDS.zmanim
+
+const getHebrewSpanFamilyId = (activeScaleLevel: ScaleLevel) => {
+  switch (activeScaleLevel) {
+    case -1:
+    case 0:
+    case 1:
+      return HEBREW_PERIOD_FAMILY_IDS.zmanim
+    case 2:
+    case 3:
+      return HEBREW_PERIOD_FAMILY_IDS.day
+    case 4:
+    case 5:
+      return HEBREW_PERIOD_FAMILY_IDS.month
+    case 6:
+      return HEBREW_PERIOD_FAMILY_IDS.year
+    default:
+      return HEBREW_PERIOD_FAMILY_IDS.day
+  }
 }
 
 const getHebrewSpanStripeClass = (
@@ -207,6 +280,7 @@ const addHebrewYearQuarterBoundaryTicks = (
           kind: 'tick',
           timeMs,
           label: '',
+          structuralMetadata: getHebrewStructuralMetadata(HEBREW_PERIOD_FAMILY_IDS.quarter),
         },
         5,
         focusTimeMs,
@@ -255,6 +329,9 @@ export const createHebrewStructuralPoints = ({
       id: `hebrew-${timeMs}`,
       kind: 'tick',
       timeMs,
+      structuralMetadata: getHebrewStructuralMetadata(
+        getHebrewBoundaryFamilyId(activeScaleLevel, dayInfo),
+      ),
       label: activeLayerIds?.includes(PERSONAL_LAYER_ID) && activeScaleLevel <= 3
         ? augmentLabelWithPersonalTime({
             label: rawLabel,
@@ -306,6 +383,9 @@ export const createHebrewStructuralPoints = ({
             id: point.id,
             kind: 'tick',
             timeMs: point.timeMs,
+            structuralMetadata: getHebrewStructuralMetadata(
+              getHebrewIntradayFamilyId(point),
+            ),
             label: activeLayerIds?.includes(PERSONAL_LAYER_ID) && point.source === 'shkiah'
               ? augmentLabelWithPersonalTime({
                   label: rawLabel,
@@ -364,16 +444,24 @@ export const createHebrewStructuralSpans = ({
 
   if (activeScaleLevel === -1 || activeScaleLevel === 0 || activeScaleLevel === 1) {
     return getDayViewIntradaySpans(focusTimeMs, visibleDurationMs, environment).map(({ span, stripeClass }) =>
-      positionTimelineSpan(span, focusTimeMs, visibleDurationMs, {
-        className: [
-          leadingCalendarSystemId === 'hebrew'
-            ? 'hebrew-structural-span structural-span structural-span-leading'
-            : 'hebrew-structural-span structural-span structural-span-supporting',
-          stripeClass,
-        ].join(' '),
-        side: leadingCalendarSystemId === 'hebrew' ? 'leading' : 'supporting',
-        labelTheme: 'hebrew',
-      }),
+      positionTimelineSpan(
+        {
+          ...span,
+          structuralMetadata: getHebrewStructuralMetadata(HEBREW_PERIOD_FAMILY_IDS.zmanim),
+        },
+        focusTimeMs,
+        visibleDurationMs,
+        {
+          className: [
+            leadingCalendarSystemId === 'hebrew'
+              ? 'hebrew-structural-span structural-span structural-span-leading'
+              : 'hebrew-structural-span structural-span structural-span-supporting',
+            stripeClass,
+          ].join(' '),
+          side: leadingCalendarSystemId === 'hebrew' ? 'leading' : 'supporting',
+          labelTheme: 'hebrew',
+        },
+      ),
     )
   }
 
@@ -394,6 +482,9 @@ export const createHebrewStructuralSpans = ({
       startTimeMs: start.timeMs,
       endTimeMs: end.timeMs,
       label: start.label,
+      structuralMetadata: getHebrewStructuralMetadata(
+        getHebrewSpanFamilyId(activeScaleLevel),
+      ),
     })
   }
 

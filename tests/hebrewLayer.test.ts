@@ -3,6 +3,7 @@ import {
   createHebrewStructuralSpans,
 } from '../src/timeline/hebrew'
 import { getDayViewIntradaySpans, getHebrewIntradayDayPoints } from '../src/timeline/hebrewIntraday'
+import { HEBREW_PERIOD_FAMILY_IDS } from '../src/timeline/structuralPeriodFamilies'
 import type { TimelineEnvironment } from '../src/timeline/layers'
 import { proportionalHoursLayer } from '../src/timeline/proportionalHours'
 import { getHebrewDayInfo, getHebrewWeekdayName } from '../src/timeline/hebrewTime'
@@ -252,6 +253,80 @@ describe('hebrew structural layer', () => {
     expect(dayPoints.every((point) => point.labelClassName?.includes('proportional-hours-marker-label'))).toBe(true)
     expect(proportionalHoursLayer.getSpans()).toEqual([])
     expect(hourPoints).toEqual([])
+  })
+
+  it('attaches structural period family metadata to hebrew ticks across scales', () => {
+    const dayPoints = createHebrewStructuralPoints({
+      leadingCalendarSystemId: 'hebrew',
+      activeScaleLevel: 2,
+      focusTimeMs: new Date('2026-04-18T12:00:00-04:00').getTime(),
+      visibleDurationMs: 8 * 24 * 60 * 60 * 1000,
+      environment: TEST_ENVIRONMENT,
+    })
+
+    expect(
+      dayPoints.some((point) =>
+        point.structuralMetadata?.structuralPeriodFamilyId === HEBREW_PERIOD_FAMILY_IDS.month
+        && point.className?.includes('tick-rank-primary'),
+      ),
+    ).toBe(true)
+    expect(
+      dayPoints.some((point) =>
+        point.structuralMetadata?.structuralPeriodFamilyId === HEBREW_PERIOD_FAMILY_IDS.week
+        && point.className?.includes('tick-rank-secondary'),
+      ),
+    ).toBe(true)
+    expect(
+      dayPoints.some((point) =>
+        point.structuralMetadata?.structuralPeriodFamilyId === HEBREW_PERIOD_FAMILY_IDS.day
+        && point.className?.includes('tick-rank-ordinary'),
+      ),
+    ).toBe(true)
+
+    const yearPoints = createHebrewStructuralPoints({
+      leadingCalendarSystemId: 'hebrew',
+      activeScaleLevel: 5,
+      focusTimeMs: new Date('2026-04-20T12:00:00-04:00').getTime(),
+      visibleDurationMs: 400 * 24 * 60 * 60 * 1000,
+      environment: TEST_ENVIRONMENT,
+    })
+
+    expect(
+      yearPoints.some((point) =>
+        point.label === ''
+        && point.structuralMetadata?.structuralPeriodFamilyId === HEBREW_PERIOD_FAMILY_IDS.quarter,
+      ),
+    ).toBe(true)
+  })
+
+  it('attaches structural period family metadata to hebrew spans', () => {
+    const intradaySpans = createHebrewStructuralSpans({
+      leadingCalendarSystemId: 'hebrew',
+      activeScaleLevel: 1,
+      focusTimeMs: new Date('2026-04-01T12:00:00-04:00').getTime(),
+      visibleDurationMs: 25 * 60 * 60 * 1000,
+      environment: TEST_ENVIRONMENT,
+    })
+
+    expect(
+      intradaySpans.every((span) =>
+        span.structuralMetadata?.structuralPeriodFamilyId === HEBREW_PERIOD_FAMILY_IDS.zmanim,
+      ),
+    ).toBe(true)
+
+    const monthScaleSpans = createHebrewStructuralSpans({
+      leadingCalendarSystemId: 'hebrew',
+      activeScaleLevel: 4,
+      focusTimeMs: new Date('2026-04-20T12:00:00-04:00').getTime(),
+      visibleDurationMs: 18 * 7 * 24 * 60 * 60 * 1000,
+      environment: TEST_ENVIRONMENT,
+    })
+
+    expect(
+      monthScaleSpans.every((span) =>
+        span.structuralMetadata?.structuralPeriodFamilyId === HEBREW_PERIOD_FAMILY_IDS.month,
+      ),
+    ).toBe(true)
   })
 
   it('keeps intraday spans available when the viewport is fully inside a named interval', () => {
