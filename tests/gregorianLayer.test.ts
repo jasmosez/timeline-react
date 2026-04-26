@@ -1,4 +1,5 @@
 import { createGregorianTickPoints, createGregorianStructuralSpans } from '../src/timeline/gregorian'
+import { GREGORIAN_PERIOD_FAMILY_IDS } from '../src/timeline/structuralPeriodFamilies'
 
 describe('gregorian structural layer', () => {
   it('renders quarter view with weekly internals plus stronger month boundaries', () => {
@@ -41,6 +42,48 @@ describe('gregorian structural layer', () => {
 
     expect(points.some((point) => point.label === '' && point.className?.includes('tick-rank-secondary'))).toBe(true)
     expect(points.some((point) => point.label === '2026, Jan')).toBe(true)
+  })
+
+  it('attaches structural period family metadata to gregorian ticks', () => {
+    const focusTimeMs = new Date('2026-03-29T12:00:00-04:00').getTime()
+    const visibleDurationMs = 8 * 24 * 60 * 60 * 1000
+    const points = createGregorianTickPoints({
+      leadingCalendarSystemId: 'gregorian',
+      activeScaleLevel: 2,
+      focusTimeMs,
+      visibleDurationMs,
+    })
+
+    const weekBoundary = points.find((point) => point.label === 'W14, Sun 29')
+    const ordinaryDay = points.find((point) => point.label === 'Thu 2')
+
+    expect(weekBoundary?.structuralMetadata).toMatchObject({
+      structuralCalendarSystemId: 'gregorian',
+      structuralPeriodFamilyId: GREGORIAN_PERIOD_FAMILY_IDS.week,
+      structuralSignificance: 'major',
+    })
+    expect(ordinaryDay?.structuralMetadata).toMatchObject({
+      structuralCalendarSystemId: 'gregorian',
+      structuralPeriodFamilyId: GREGORIAN_PERIOD_FAMILY_IDS.day,
+      structuralSignificance: 'intermediate',
+    })
+  })
+
+  it('attaches structural period family metadata to gregorian spans', () => {
+    const focusTimeMs = new Date('2026-04-20T12:00:00-04:00').getTime()
+    const visibleDurationMs = 18 * 7 * 24 * 60 * 60 * 1000
+    const spans = createGregorianStructuralSpans(
+      'gregorian',
+      4,
+      focusTimeMs,
+      visibleDurationMs,
+    )
+
+    expect(spans[0]?.structuralMetadata).toMatchObject({
+      structuralCalendarSystemId: 'gregorian',
+      structuralPeriodFamilyId: GREGORIAN_PERIOD_FAMILY_IDS.week,
+      structuralSignificance: 'major',
+    })
   })
 
   it('adds personal day and week counters when the personal layer is active', () => {
