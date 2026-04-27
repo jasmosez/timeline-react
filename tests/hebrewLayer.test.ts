@@ -283,6 +283,38 @@ describe('hebrew structural layer', () => {
       ),
     ).toBe(true)
 
+    const denseDayPoints = createHebrewStructuralPoints({
+      leadingCalendarSystemId: 'hebrew',
+      activeScaleLevel: 1,
+      focusTimeMs: new Date('2026-04-01T12:00:00-04:00').getTime(),
+      visibleDurationMs: 25 * 60 * 60 * 1000,
+      environment: TEST_ENVIRONMENT,
+    })
+
+    expect(
+      denseDayPoints.some((point) =>
+        point.label?.includes('Shkiah')
+        && point.structuralMetadata?.structuralPeriodFamilyId === HEBREW_PERIOD_FAMILY_IDS.day
+        && point.className?.includes('tick-rank-secondary'),
+      ),
+    ).toBe(true)
+
+    const shabbatDensePoints = createHebrewStructuralPoints({
+      leadingCalendarSystemId: 'hebrew',
+      activeScaleLevel: 1,
+      focusTimeMs: new Date('2026-04-04T12:00:00-04:00').getTime(),
+      visibleDurationMs: 25 * 60 * 60 * 1000,
+      environment: TEST_ENVIRONMENT,
+    })
+
+    expect(
+      shabbatDensePoints.some((point) =>
+        point.label?.startsWith('Shabbat Ends / Tzeit 8.5°')
+        && point.structuralMetadata?.structuralPeriodFamilyId === HEBREW_PERIOD_FAMILY_IDS.week
+        && point.className?.includes('tick-rank-primary'),
+      ),
+    ).toBe(true)
+
     const yearPoints = createHebrewStructuralPoints({
       leadingCalendarSystemId: 'hebrew',
       activeScaleLevel: 5,

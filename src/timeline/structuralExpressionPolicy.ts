@@ -78,6 +78,15 @@ export type GregorianStructuralLabelStrategy =
   | 'year-view-month-boundary'
 
 export type HebrewStructuralLabelStrategy =
+  | 'hebrew-minute-view-zman'
+  | 'hebrew-minute-view-day-boundary'
+  | 'hebrew-minute-view-week-boundary'
+  | 'hebrew-hour-view-zman'
+  | 'hebrew-hour-view-day-boundary'
+  | 'hebrew-hour-view-week-boundary'
+  | 'hebrew-day-view-zman'
+  | 'hebrew-day-view-day-boundary'
+  | 'hebrew-day-view-week-boundary'
   | 'hebrew-week-view-boundary'
   | 'hebrew-month-view-boundary'
   | 'hebrew-quarter-view-boundary-leading'
@@ -264,6 +273,21 @@ const HEBREW_EXPRESSION_DECLARATION: StructuralCalendarExpressionDeclaration = {
     [SCALE_DECADE]: 'year',
   },
   tickPolicyByScale: {
+    [SCALE_MINUTE]: {
+      zmanim: labeledTickPolicy('hebrew-minute-view-zman', 'tick-rank-ordinary'),
+      day: labeledTickPolicy('hebrew-minute-view-day-boundary', 'tick-rank-secondary'),
+      week: labeledTickPolicy('hebrew-minute-view-week-boundary', 'tick-rank-primary'),
+    },
+    [SCALE_HOUR]: {
+      zmanim: labeledTickPolicy('hebrew-hour-view-zman', 'tick-rank-ordinary'),
+      day: labeledTickPolicy('hebrew-hour-view-day-boundary', 'tick-rank-secondary'),
+      week: labeledTickPolicy('hebrew-hour-view-week-boundary', 'tick-rank-primary'),
+    },
+    [SCALE_DAY]: {
+      zmanim: labeledTickPolicy('hebrew-day-view-zman', 'tick-rank-ordinary'),
+      day: labeledTickPolicy('hebrew-day-view-day-boundary', 'tick-rank-secondary'),
+      week: labeledTickPolicy('hebrew-day-view-week-boundary', 'tick-rank-primary'),
+    },
     [SCALE_WEEK]: {
       day: labeledTickPolicy('hebrew-week-view-boundary', 'tick-rank-ordinary'),
       week: labeledTickPolicy('hebrew-week-view-boundary', 'tick-rank-secondary'),

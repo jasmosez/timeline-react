@@ -2,6 +2,7 @@ import type { HebrewDayInfo } from './hebrewTime'
 import { getHebrewDayInfo } from './hebrewTime'
 import type { TimelineEnvironment } from './layers'
 import type { HebrewStructuralLabelStrategy } from './structuralExpressionPolicy'
+import type { HebrewIntradayPointData } from './hebrewIntraday'
 
 const HEBREW_WEEKDAY_NAMES = [
   'Rishon',
@@ -157,8 +158,20 @@ export const renderHebrewStructuralLabelStrategy = (
   dayInfo: HebrewDayInfo,
   boundaryTimeMs: number,
   isPrimary: boolean,
+  intradayPoint?: HebrewIntradayPointData,
+  intradayLabel?: string,
 ) => {
   switch (labelStrategy) {
+    case 'hebrew-minute-view-zman':
+    case 'hebrew-minute-view-day-boundary':
+    case 'hebrew-minute-view-week-boundary':
+    case 'hebrew-hour-view-zman':
+    case 'hebrew-hour-view-day-boundary':
+    case 'hebrew-hour-view-week-boundary':
+    case 'hebrew-day-view-zman':
+    case 'hebrew-day-view-day-boundary':
+    case 'hebrew-day-view-week-boundary':
+      return intradayLabel ?? intradayPoint?.label ?? ''
     case 'hebrew-week-view-boundary':
       return getHebrewTickLabel(2, dayInfo, boundaryTimeMs, isPrimary) ?? ''
     case 'hebrew-month-view-boundary':

@@ -604,6 +604,43 @@ describe('structural expression policy skeleton', () => {
     })
   })
 
+  it('computes real Hebrew dense-family decisions for zmanim, day, and week ownership', () => {
+    const zmanimFamily = getStructuralPeriodFamilyById(HEBREW_PERIOD_FAMILY_IDS.zmanim)
+    const dayFamily = getStructuralPeriodFamilyById(HEBREW_PERIOD_FAMILY_IDS.day)
+    const weekFamily = getStructuralPeriodFamilyById(HEBREW_PERIOD_FAMILY_IDS.week)
+
+    expect(zmanimFamily).toBeDefined()
+    expect(dayFamily).toBeDefined()
+    expect(weekFamily).toBeDefined()
+    expect(getStructuralExpressionDecision(
+      zmanimFamily!,
+      { ...TEST_POLICY_INPUT, activeScaleLevel: -1, leadingCalendarSystemId: 'hebrew' },
+    )).toMatchObject({
+      tickState: 'visible-labeled',
+      showLabel: true,
+      labelStrategy: 'hebrew-minute-view-zman',
+      tickRankClass: 'tick-rank-ordinary',
+    })
+    expect(getStructuralExpressionDecision(
+      dayFamily!,
+      { ...TEST_POLICY_INPUT, activeScaleLevel: -1, leadingCalendarSystemId: 'hebrew' },
+    )).toMatchObject({
+      tickState: 'visible-labeled',
+      showLabel: true,
+      labelStrategy: 'hebrew-minute-view-day-boundary',
+      tickRankClass: 'tick-rank-secondary',
+    })
+    expect(getStructuralExpressionDecision(
+      weekFamily!,
+      { ...TEST_POLICY_INPUT, activeScaleLevel: 1, leadingCalendarSystemId: 'hebrew' },
+    )).toMatchObject({
+      tickState: 'visible-labeled',
+      showLabel: true,
+      labelStrategy: 'hebrew-day-view-week-boundary',
+      tickRankClass: 'tick-rank-primary',
+    })
+  })
+
   it('exposes seed period families by calendar', () => {
     expect(getStructuralPeriodFamiliesForCalendar('gregorian').map((family) => family.id)).toContain('gregorian-day')
     expect(getStructuralPeriodFamiliesForCalendar('hebrew').map((family) => family.id)).toContain('hebrew-month')

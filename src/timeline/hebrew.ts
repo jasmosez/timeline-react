@@ -9,6 +9,7 @@ import {
   createStructuralExpressionDecision,
   getStructuralExpressionDecision,
   getStructuralSpanOpacity,
+  getStructuralTickOpacity,
   isHebrewStructuralLabelStrategy,
   type StructuralExpressionDecision,
   type StructuralExpressionMetadata,
@@ -112,8 +113,17 @@ const getHebrewBoundaryFamilyId = (
   }
 }
 
-const getHebrewIntradayFamilyId = (_point: HebrewIntradayPointData) =>
-  HEBREW_PERIOD_FAMILY_IDS.zmanim
+const getHebrewIntradayFamilyId = (point: HebrewIntradayPointData) => {
+  if (point.source === 'shabbat-ends') {
+    return HEBREW_PERIOD_FAMILY_IDS.week
+  }
+
+  if (point.source === 'shkiah') {
+    return HEBREW_PERIOD_FAMILY_IDS.day
+  }
+
+  return HEBREW_PERIOD_FAMILY_IDS.zmanim
+}
 
 const getHebrewSpanFamilyId = (activeScaleLevel: ScaleLevel) => {
   switch (activeScaleLevel) {
@@ -182,6 +192,8 @@ const getHebrewPolicyAwareTickLabel = (
   dayInfo: ReturnType<typeof getHebrewDayInfo>,
   boundaryTimeMs: number,
   isLeading: boolean,
+  intradayPoint?: HebrewIntradayPointData,
+  intradayLabel?: string,
 ) => {
   if (decision.labelStrategy && isHebrewStructuralLabelStrategy(decision.labelStrategy)) {
     return renderHebrewStructuralLabelStrategy(
@@ -189,6 +201,8 @@ const getHebrewPolicyAwareTickLabel = (
       dayInfo,
       boundaryTimeMs,
       isLeading,
+      intradayPoint,
+      intradayLabel,
     )
   }
 
@@ -400,11 +414,37 @@ export const createHebrewStructuralPoints = ({
       .filter(isNamedHebrewIntradayPoint)
       .forEach((point) => {
       const isLeading = leadingCalendarSystemId === 'hebrew'
+      const familyId = getHebrewIntradayFamilyId(point)
+      const family = getStructuralPeriodFamilyById(familyId)
+      const decision = family
+        ? getStructuralExpressionDecision(family, {
+            activeScaleLevel,
+            visibleDurationMs,
+            leadingCalendarSystemId,
+            environment,
+          })
+        : createStructuralExpressionDecision()
+
+      if (decision.tickState === 'hidden') {
+        return
+      }
+
       const rawLabel = formatHebrewIntradayPointLabel(
         point,
         isLeading,
         environment,
       )
+      const label = !decision.showLabel
+        ? ''
+        : getHebrewPolicyAwareTickLabel(
+            decision,
+            activeScaleLevel,
+            getHebrewDayInfo(new Date(point.timeMs), environment),
+            point.timeMs,
+            isLeading,
+            point,
+            rawLabel,
+          )
       points.push(
         positionTimelinePoint(
           {
@@ -412,30 +452,31 @@ export const createHebrewStructuralPoints = ({
             kind: 'tick',
             timeMs: point.timeMs,
             structuralMetadata: getHebrewStructuralMetadata(
-              getHebrewIntradayFamilyId(point),
+              familyId,
             ),
             label: activeLayerIds?.includes(PERSONAL_LAYER_ID) && point.source === 'shkiah'
               ? augmentLabelWithPersonalTime({
-                  label: rawLabel,
+                  label,
                   timeMs: point.timeMs,
                   environment,
                   isLeading,
                   includeDayOfLife: true,
                   includeWeekOfLife: false,
                 })
-              : rawLabel,
+              : label,
           },
           activeScaleLevel,
           focusTimeMs,
           visibleDurationMs,
           new Date(point.timeMs),
           {
+            opacity: getStructuralTickOpacity(decision),
             className: [
               leadingCalendarSystemId === 'hebrew'
                 ? 'structural-tick-leading'
                 : 'structural-tick-supporting',
               'hebrew-tick',
-              point.rankClass,
+              decision.tickRankClass ?? 'tick-rank-ordinary',
             ].join(' '),
             labelClassName: leadingCalendarSystemId === 'hebrew'
               ? 'hebrew-label structural-label-leading'
