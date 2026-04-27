@@ -58,7 +58,6 @@ export type StructuralExpressionDecision = {
 export type StructuralTickInstanceVariantId =
   | 'default'
   | 'five-second'
-  | 'top-of-minute'
   | 'top-of-hour'
   | 'midnight-boundary'
 
@@ -269,6 +268,19 @@ export const getStructuralSpanOpacity = (
   }
 }
 
+export const getStructuralTickOpacity = (
+  decision: StructuralExpressionDecision,
+): number | undefined => {
+  switch (decision.tickState) {
+    case 'hidden':
+      return 0
+    case 'visible-faint':
+      return 0.35
+    default:
+      return undefined
+  }
+}
+
 const GREGORIAN_SECOND_INSTANCE_VARIANTS: StructuralTickInstanceVariant[] = [
   {
     id: 'five-second',
@@ -278,14 +290,9 @@ const GREGORIAN_SECOND_INSTANCE_VARIANTS: StructuralTickInstanceVariant[] = [
       prominence: 0.6,
     },
   },
-  {
-    id: 'top-of-minute',
-    decision: {
-      tickState: 'visible-labeled',
-      showLabel: true,
-      prominence: 0.8,
-    },
-  },
+]
+
+const GREGORIAN_MINUTE_INSTANCE_VARIANTS: StructuralTickInstanceVariant[] = [
   {
     id: 'top-of-hour',
     decision: {
@@ -311,24 +318,20 @@ export const getStructuralTickInstanceVariantId = (
   if (family.calendarSystemId === 'gregorian' && family.kind === 'second') {
     const tickDate = new Date(tickTimeMs)
 
-    if (
-      tickDate.getHours() === 0
-      && tickDate.getMinutes() === 0
-      && tickDate.getSeconds() === 0
-    ) {
+    if (tickDate.getSeconds() % 5 === 0) {
+      return 'five-second'
+    }
+  }
+
+  if (family.calendarSystemId === 'gregorian' && family.kind === 'minute') {
+    const tickDate = new Date(tickTimeMs)
+
+    if (tickDate.getHours() === 0 && tickDate.getMinutes() === 0) {
       return 'midnight-boundary'
     }
 
-    if (tickDate.getMinutes() === 0 && tickDate.getSeconds() === 0) {
+    if (tickDate.getMinutes() === 0) {
       return 'top-of-hour'
-    }
-
-    if (tickDate.getSeconds() === 0) {
-      return 'top-of-minute'
-    }
-
-    if (tickDate.getSeconds() % 5 === 0) {
-      return 'five-second'
     }
   }
 
@@ -346,9 +349,10 @@ export const getStructuralTickInstanceDecision = (
     return baseDecision
   }
 
-  const variant = GREGORIAN_SECOND_INSTANCE_VARIANTS.find(
-    (candidate) => candidate.id === variantId,
-  )
+  const variantSource = family.calendarSystemId === 'gregorian' && family.kind === 'minute'
+    ? GREGORIAN_MINUTE_INSTANCE_VARIANTS
+    : GREGORIAN_SECOND_INSTANCE_VARIANTS
+  const variant = variantSource.find((candidate) => candidate.id === variantId)
 
   return variant
     ? createStructuralExpressionDecision({

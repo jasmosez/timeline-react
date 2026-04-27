@@ -7,6 +7,8 @@ import {
   createStructuralExpressionDecision,
   getStructuralExpressionDecision,
   getStructuralSpanOpacity,
+  getStructuralTickInstanceDecision,
+  getStructuralTickOpacity,
   type StructuralExpressionMetadata,
 } from './structuralExpressionPolicy'
 import {
@@ -307,7 +309,7 @@ const addPositionedTicksForScaleLevel = (
     const isLeading = leadingCalendarSystemId === 'gregorian'
     const familyId = getGregorianPointFamilyId(scaleLevel, tickTime)
     const family = getStructuralPeriodFamilyById(familyId)
-    const decision = family
+    const baseDecision = family
       ? getStructuralExpressionDecision(family, {
           activeScaleLevel: scaleLevel,
           visibleDurationMs,
@@ -315,6 +317,9 @@ const addPositionedTicksForScaleLevel = (
           environment,
         })
       : createStructuralExpressionDecision()
+    const decision = family && scaleLevel === -1
+      ? getStructuralTickInstanceDecision(family, tickTime, baseDecision)
+      : baseDecision
 
     if (decision.tickState === 'hidden') {
       tickTime = calculateTickTimeFunc(new Date(tickTime), 1)
@@ -352,6 +357,7 @@ const addPositionedTicksForScaleLevel = (
         visibleDurationMs,
         visibleRangeStartTickDate,
         {
+          opacity: getStructuralTickOpacity(decision),
           className: [
             leadingCalendarSystemId === 'gregorian'
               ? 'structural-tick-leading'
