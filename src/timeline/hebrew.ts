@@ -324,6 +324,21 @@ export const createHebrewStructuralPoints = ({
   boundaries.forEach(({ timeMs, label }) => {
     const dayInfo = getHebrewDayInfo(new Date(timeMs), environment)
     const isLeading = leadingCalendarSystemId === 'hebrew'
+    const familyId = getHebrewBoundaryFamilyId(activeScaleLevel, dayInfo)
+    const family = getStructuralPeriodFamilyById(familyId)
+    const decision = family
+      ? getStructuralExpressionDecision(family, {
+          activeScaleLevel,
+          visibleDurationMs,
+          leadingCalendarSystemId,
+          environment,
+        })
+      : createStructuralExpressionDecision()
+
+    if (decision.tickState === 'hidden') {
+      return
+    }
+
     const rawLabel = getHebrewTickLabel(
       activeScaleLevel,
       dayInfo,
@@ -334,10 +349,10 @@ export const createHebrewStructuralPoints = ({
       id: `hebrew-${timeMs}`,
       kind: 'tick',
       timeMs,
-      structuralMetadata: getHebrewStructuralMetadata(
-        getHebrewBoundaryFamilyId(activeScaleLevel, dayInfo),
-      ),
-      label: activeLayerIds?.includes(PERSONAL_LAYER_ID) && activeScaleLevel <= 3
+      structuralMetadata: getHebrewStructuralMetadata(familyId),
+      label: !decision.showLabel
+        ? ''
+        : activeLayerIds?.includes(PERSONAL_LAYER_ID) && activeScaleLevel <= 3
         ? augmentLabelWithPersonalTime({
             label: rawLabel,
             timeMs,

@@ -103,6 +103,35 @@ const GREGORIAN_TICK_POLICY_BY_SCALE: Partial<
   },
 }
 
+const HEBREW_TICK_POLICY_BY_SCALE: Partial<
+  Record<ScaleLevel, Partial<Record<string, Partial<StructuralExpressionDecision>>>>
+> = {
+  2: {
+    day: { tickState: 'visible-labeled', showLabel: true },
+    week: { tickState: 'visible-labeled', showLabel: true },
+    month: { tickState: 'visible-labeled', showLabel: true },
+  },
+  3: {
+    day: { tickState: 'visible-labeled', showLabel: true },
+    week: { tickState: 'visible-labeled', showLabel: true },
+    month: { tickState: 'visible-labeled', showLabel: true },
+    quarter: { tickState: 'visible-labeled', showLabel: true },
+  },
+  4: {
+    month: { tickState: 'visible-labeled', showLabel: true },
+    quarter: { tickState: 'visible-labeled', showLabel: true },
+  },
+  5: {
+    month: { tickState: 'visible-labeled', showLabel: true },
+    year: { tickState: 'visible-labeled', showLabel: true },
+    quarter: { tickState: 'visible-unlabeled', showLabel: false },
+  },
+  6: {
+    year: { tickState: 'visible-labeled', showLabel: true },
+    shmita: { tickState: 'visible-labeled', showLabel: true },
+  },
+}
+
 const getGregorianActiveSpanKind = (activeScaleLevel: ScaleLevel) => {
   switch (activeScaleLevel) {
     case -1:
@@ -177,11 +206,26 @@ const getHebrewStructuralExpressionDecision = (
   input: StructuralExpressionPolicyInput,
 ): StructuralExpressionDecision => {
   const activeSpanKind = getHebrewActiveSpanKind(input.activeScaleLevel)
+  const tickPolicyForScale = HEBREW_TICK_POLICY_BY_SCALE[input.activeScaleLevel]
   const isActiveSpanFamily = family.supportsIntervalExpression && family.kind === activeSpanKind
+  const tickOverrides = tickPolicyForScale?.[family.kind]
+  const hasExplicitTickPolicy = tickOverrides !== undefined
+  const usesGovernedTickPolicy = tickPolicyForScale !== undefined
+  const isActiveTickFamily = hasExplicitTickPolicy
+    ? tickOverrides.tickState !== 'hidden'
+    : !usesGovernedTickPolicy
 
   return createStructuralExpressionDecision({
+    tickState: hasExplicitTickPolicy
+      ? tickOverrides.tickState ?? 'visible-labeled'
+      : usesGovernedTickPolicy
+      ? 'hidden'
+      : 'visible-labeled',
     spanState: isActiveSpanFamily ? 'visible' : 'hidden',
-    prominence: isActiveSpanFamily ? 1 : 0,
+    prominence: isActiveTickFamily || isActiveSpanFamily ? 1 : 0,
+    showLabel: hasExplicitTickPolicy
+      ? tickOverrides.showLabel ?? true
+      : !usesGovernedTickPolicy,
   })
 }
 

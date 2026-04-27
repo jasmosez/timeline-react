@@ -118,6 +118,45 @@ describe('structural expression policy skeleton', () => {
     })
   })
 
+  it('computes real Hebrew tick decisions for calmer structural scales', () => {
+    const dayFamily = getStructuralPeriodFamilyById(HEBREW_PERIOD_FAMILY_IDS.day)
+    const quarterFamily = getStructuralPeriodFamilyById(HEBREW_PERIOD_FAMILY_IDS.quarter)
+    const shmitaFamily = getStructuralPeriodFamilyById(HEBREW_PERIOD_FAMILY_IDS.shmita)
+
+    expect(dayFamily).toBeDefined()
+    expect(quarterFamily).toBeDefined()
+    expect(shmitaFamily).toBeDefined()
+
+    expect(getStructuralExpressionDecision(
+      dayFamily!,
+      { ...TEST_POLICY_INPUT, activeScaleLevel: 2 },
+    )).toMatchObject({
+      tickState: 'visible-labeled',
+      showLabel: true,
+    })
+    expect(getStructuralExpressionDecision(
+      quarterFamily!,
+      { ...TEST_POLICY_INPUT, activeScaleLevel: 2 },
+    )).toMatchObject({
+      tickState: 'hidden',
+      showLabel: false,
+    })
+    expect(getStructuralExpressionDecision(
+      quarterFamily!,
+      { ...TEST_POLICY_INPUT, activeScaleLevel: 5 },
+    )).toMatchObject({
+      tickState: 'visible-unlabeled',
+      showLabel: false,
+    })
+    expect(getStructuralExpressionDecision(
+      shmitaFamily!,
+      { ...TEST_POLICY_INPUT, activeScaleLevel: 6 },
+    )).toMatchObject({
+      tickState: 'visible-labeled',
+      showLabel: true,
+    })
+  })
+
   it('maps span decisions to presentation opacity without changing visible defaults', () => {
     expect(getStructuralSpanOpacity(createStructuralExpressionDecision())).toBeUndefined()
     expect(
