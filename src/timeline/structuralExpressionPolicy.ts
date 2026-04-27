@@ -69,6 +69,11 @@ export type GregorianStructuralLabelStrategy =
 
 export type StructuralTickLabelStrategy = GregorianStructuralLabelStrategy
 
+export type StructuralTickRankClass =
+  | 'tick-rank-ordinary'
+  | 'tick-rank-secondary'
+  | 'tick-rank-primary'
+
 export type StructuralExpressionDecision = {
   tickState: StructuralExpressionTickState
   spanState: StructuralExpressionSpanState
@@ -77,6 +82,7 @@ export type StructuralExpressionDecision = {
   showLabel: boolean
   showSpanLabel: boolean
   labelStrategy?: StructuralTickLabelStrategy
+  tickRankClass?: StructuralTickRankClass
 }
 
 export type StructuralTickInstanceVariantId =
@@ -141,18 +147,58 @@ const GREGORIAN_EXPRESSION_DECLARATION: StructuralCalendarExpressionDeclaration 
   },
   tickPolicyByScale: {
     [SCALE_WEEK]: {
-      day: { tickState: 'visible-labeled', showLabel: true, labelStrategy: 'weekday-plus-day' },
-      week: { tickState: 'visible-labeled', showLabel: true, labelStrategy: 'week-plus-day' },
-      month: { tickState: 'visible-labeled', showLabel: true, labelStrategy: 'week-view-contextual' },
+      day: {
+        tickState: 'visible-labeled',
+        showLabel: true,
+        labelStrategy: 'weekday-plus-day',
+        tickRankClass: 'tick-rank-ordinary',
+      },
+      week: {
+        tickState: 'visible-labeled',
+        showLabel: true,
+        labelStrategy: 'week-plus-day',
+        tickRankClass: 'tick-rank-secondary',
+      },
+      month: {
+        tickState: 'visible-labeled',
+        showLabel: true,
+        labelStrategy: 'week-view-contextual',
+        tickRankClass: 'tick-rank-primary',
+      },
     },
     [SCALE_MONTH]: {
-      day: { tickState: 'visible-labeled', showLabel: true, labelStrategy: 'month-contextual' },
-      week: { tickState: 'visible-labeled', showLabel: true, labelStrategy: 'month-contextual' },
-      month: { tickState: 'visible-labeled', showLabel: true, labelStrategy: 'month-contextual' },
-      quarter: { tickState: 'visible-labeled', showLabel: true, labelStrategy: 'month-contextual' },
+      day: {
+        tickState: 'visible-labeled',
+        showLabel: true,
+        labelStrategy: 'month-contextual',
+        tickRankClass: 'tick-rank-ordinary',
+      },
+      week: {
+        tickState: 'visible-labeled',
+        showLabel: true,
+        labelStrategy: 'month-contextual',
+        tickRankClass: 'tick-rank-secondary',
+      },
+      month: {
+        tickState: 'visible-labeled',
+        showLabel: true,
+        labelStrategy: 'month-contextual',
+        tickRankClass: 'tick-rank-primary',
+      },
+      quarter: {
+        tickState: 'visible-labeled',
+        showLabel: true,
+        labelStrategy: 'month-contextual',
+        tickRankClass: 'tick-rank-primary',
+      },
     },
     [SCALE_QUARTER]: {
-      week: { tickState: 'visible-labeled', showLabel: true, labelStrategy: 'week-number' },
+      week: {
+        tickState: 'visible-labeled',
+        showLabel: true,
+        labelStrategy: 'week-number',
+        tickRankClass: 'tick-rank-ordinary',
+      },
       month: {
         tickState: 'visible-labeled',
         showLabel: true,
@@ -160,6 +206,7 @@ const GREGORIAN_EXPRESSION_DECLARATION: StructuralCalendarExpressionDeclaration 
           input.leadingCalendarSystemId === 'gregorian'
             ? 'quarter-boundary-primary'
             : 'quarter-boundary-secondary',
+        tickRankClass: 'tick-rank-secondary',
       },
       quarter: {
         tickState: 'visible-labeled',
@@ -168,12 +215,27 @@ const GREGORIAN_EXPRESSION_DECLARATION: StructuralCalendarExpressionDeclaration 
           input.leadingCalendarSystemId === 'gregorian'
             ? 'quarter-boundary-primary'
             : 'quarter-boundary-secondary',
+        tickRankClass: 'tick-rank-primary',
       },
     },
     [SCALE_YEAR]: {
-      month: { tickState: 'visible-labeled', showLabel: true, labelStrategy: 'month-in-year' },
-      year: { tickState: 'visible-labeled', showLabel: true, labelStrategy: 'year-boundary' },
-      quarter: { tickState: 'visible-unlabeled', showLabel: false },
+      month: {
+        tickState: 'visible-labeled',
+        showLabel: true,
+        labelStrategy: 'month-in-year',
+        tickRankClass: 'tick-rank-ordinary',
+      },
+      year: {
+        tickState: 'visible-labeled',
+        showLabel: true,
+        labelStrategy: 'year-boundary',
+        tickRankClass: 'tick-rank-primary',
+      },
+      quarter: {
+        tickState: 'visible-unlabeled',
+        showLabel: false,
+        tickRankClass: 'tick-rank-secondary',
+      },
     },
     [SCALE_DECADE]: {
       year: { tickState: 'visible-labeled', showLabel: true },
@@ -294,6 +356,7 @@ const getCalendarStructuralExpressionDecision = (
       ? tickOverrides.showLabel ?? true
       : !usesGovernedTickPolicy,
     labelStrategy,
+    tickRankClass: tickOverrides?.tickRankClass,
   })
 }
 

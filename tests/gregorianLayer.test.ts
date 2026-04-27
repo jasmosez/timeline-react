@@ -56,6 +56,18 @@ describe('gregorian structural layer', () => {
 
     expect(points.some((point) => point.label === 'Thu 2')).toBe(true)
     expect(points.some((point) => point.label === 'W14, Sun 29')).toBe(true)
+    expect(
+      points.some((point) =>
+        point.label === 'Thu 2'
+        && point.className?.includes('tick-rank-ordinary'),
+      ),
+    ).toBe(true)
+    expect(
+      points.some((point) =>
+        point.label === 'W14, Sun 29'
+        && point.className?.includes('tick-rank-secondary'),
+      ),
+    ).toBe(true)
   })
 
   it('preserves month-view contextual labels for ordinary, Sunday, and quarter-start ticks', () => {
@@ -71,6 +83,24 @@ describe('gregorian structural layer', () => {
     expect(points.some((point) => point.label === '2')).toBe(true)
     expect(points.some((point) => point.label === 'W17, 19')).toBe(true)
     expect(points.some((point) => point.label === 'Q2, Apr 1')).toBe(true)
+    expect(
+      points.some((point) =>
+        point.label === '2'
+        && point.className?.includes('tick-rank-ordinary'),
+      ),
+    ).toBe(true)
+    expect(
+      points.some((point) =>
+        point.label === 'W17, 19'
+        && point.className?.includes('tick-rank-secondary'),
+      ),
+    ).toBe(true)
+    expect(
+      points.some((point) =>
+        point.label === 'Q2, Apr 1'
+        && point.className?.includes('tick-rank-primary'),
+      ),
+    ).toBe(true)
   })
 
   it('preserves month-view month-start labels for non-quarter boundaries', () => {
@@ -84,6 +114,12 @@ describe('gregorian structural layer', () => {
     })
 
     expect(points.some((point) => point.label === 'May 1')).toBe(true)
+    expect(
+      points.some((point) =>
+        point.label === 'May 1'
+        && point.className?.includes('tick-rank-primary'),
+      ),
+    ).toBe(true)
   })
 
   it('uses instance variance to label only selected second-family ticks in minute view', () => {
@@ -151,6 +187,30 @@ describe('gregorian structural layer', () => {
     expect(yearPoints.some((point) => point.label === 'Apr')).toBe(true)
     expect(yearPoints.some((point) => point.label === '2026, Jan')).toBe(true)
     expect(yearPoints.some((point) => point.label === '' && point.className?.includes('tick-rank-secondary'))).toBe(true)
+    expect(
+      quarterPoints.some((point) =>
+        point.label === 'W15'
+        && point.className?.includes('tick-rank-ordinary'),
+      ),
+    ).toBe(true)
+    expect(
+      quarterPoints.some((point) =>
+        point.label === 'Q2, Apr'
+        && point.className?.includes('tick-rank-primary'),
+      ),
+    ).toBe(true)
+    expect(
+      yearPoints.some((point) =>
+        point.label === 'Apr'
+        && point.className?.includes('tick-rank-ordinary'),
+      ),
+    ).toBe(true)
+    expect(
+      yearPoints.some((point) =>
+        point.label === '2026, Jan'
+        && point.className?.includes('tick-rank-primary'),
+      ),
+    ).toBe(true)
   })
 
   it('attaches structural period family metadata to gregorian ticks', () => {

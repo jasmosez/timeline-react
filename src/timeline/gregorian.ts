@@ -10,6 +10,7 @@ import {
   getStructuralSpanOpacity,
   getStructuralTickInstanceDecision,
   getStructuralTickOpacity,
+  type StructuralExpressionDecision,
   type StructuralExpressionMetadata,
 } from './structuralExpressionPolicy'
 import {
@@ -103,19 +104,6 @@ const getGregorianTickRankClass = (scaleLevel: ScaleLevel, tickTime: number) => 
         return 'tick-rank-secondary'
       }
       return 'tick-rank-ordinary'
-    case 2:
-    case 3:
-      if (tickDate.getDate() === 1) {
-        return 'tick-rank-primary'
-      }
-      if (tickDate.getDay() === 0) {
-        return 'tick-rank-secondary'
-      }
-      return 'tick-rank-ordinary'
-    case 4:
-      return 'tick-rank-ordinary'
-    case 5:
-      return tickDate.getMonth() === 0 ? 'tick-rank-primary' : 'tick-rank-ordinary'
     case 6:
       if (tickDate.getFullYear() % 10 === 0) {
         return 'tick-rank-primary'
@@ -127,6 +115,23 @@ const getGregorianTickRankClass = (scaleLevel: ScaleLevel, tickTime: number) => 
     default:
       return 'tick-rank-ordinary'
   }
+}
+
+const getGregorianPolicyAwareTickRankClass = (
+  decision: StructuralExpressionDecision,
+  scaleLevel: ScaleLevel,
+  tickTime: number,
+  family: ReturnType<typeof getStructuralPeriodFamilyById> | undefined,
+) => {
+  if (family && scaleLevel === -1) {
+    return getGregorianMinuteViewTickRankClass(family, tickTime)
+  }
+
+  if (decision.tickRankClass) {
+    return decision.tickRankClass
+  }
+
+  return getGregorianTickRankClass(scaleLevel, tickTime)
 }
 
 const createTickPoint = (tickTime: number): TimelinePoint => ({
@@ -399,9 +404,7 @@ const addPositionedTicksForScaleLevel = (
             leadingCalendarSystemId === 'gregorian'
               ? 'structural-tick-leading'
               : 'structural-tick-supporting',
-            family && scaleLevel === -1
-              ? getGregorianMinuteViewTickRankClass(family, tickTime)
-              : getGregorianTickRankClass(scaleLevel, tickTime),
+            getGregorianPolicyAwareTickRankClass(decision, scaleLevel, tickTime, family),
           ].join(' '),
           labelClassName: leadingCalendarSystemId === 'gregorian'
             ? 'structural-label-leading'
@@ -488,7 +491,7 @@ const addQuarterBoundaryTicks = (
             leadingCalendarSystemId === 'gregorian'
               ? 'structural-tick-leading'
               : 'structural-tick-supporting',
-            isQuarterStart ? 'tick-rank-primary' : 'tick-rank-secondary',
+            decision.tickRankClass ?? 'tick-rank-ordinary',
           ].join(' '),
           labelClassName: leadingCalendarSystemId === 'gregorian'
             ? 'structural-label-leading'
@@ -563,7 +566,7 @@ const addYearQuarterBoundaryTicks = (
               leadingCalendarSystemId === 'gregorian'
                 ? 'structural-tick-leading'
                 : 'structural-tick-supporting',
-              'tick-rank-secondary',
+              decision.tickRankClass ?? 'tick-rank-ordinary',
             ].join(' '),
             labelClassName: leadingCalendarSystemId === 'gregorian'
               ? 'structural-label-leading'

@@ -83,16 +83,19 @@ describe('structural expression policy skeleton', () => {
       tickState: 'visible-labeled',
       showLabel: true,
       labelStrategy: 'weekday-plus-day',
+      tickRankClass: 'tick-rank-ordinary',
     })
     expect(getStructuralExpressionDecision(weekFamily!, TEST_POLICY_INPUT)).toMatchObject({
       tickState: 'visible-labeled',
       showLabel: true,
       labelStrategy: 'week-plus-day',
+      tickRankClass: 'tick-rank-secondary',
     })
     expect(getStructuralExpressionDecision(monthFamily!, TEST_POLICY_INPUT)).toMatchObject({
       tickState: 'visible-labeled',
       showLabel: true,
       labelStrategy: 'week-view-contextual',
+      tickRankClass: 'tick-rank-primary',
     })
     expect(getStructuralExpressionDecision(quarterFamily!, TEST_POLICY_INPUT)).toMatchObject({
       tickState: 'hidden',
@@ -106,6 +109,7 @@ describe('structural expression policy skeleton', () => {
       tickState: 'visible-labeled',
       showLabel: true,
       labelStrategy: 'month-contextual',
+      tickRankClass: 'tick-rank-ordinary',
     })
     expect(getStructuralExpressionDecision(
       weekFamily!,
@@ -114,6 +118,16 @@ describe('structural expression policy skeleton', () => {
       tickState: 'visible-labeled',
       showLabel: true,
       labelStrategy: 'week-number',
+      tickRankClass: 'tick-rank-ordinary',
+    })
+    expect(getStructuralExpressionDecision(
+      monthFamily!,
+      { ...TEST_POLICY_INPUT, activeScaleLevel: 4 },
+    )).toMatchObject({
+      tickState: 'visible-labeled',
+      showLabel: true,
+      labelStrategy: 'quarter-boundary-primary',
+      tickRankClass: 'tick-rank-secondary',
     })
     expect(getStructuralExpressionDecision(
       quarterFamily!,
@@ -122,6 +136,7 @@ describe('structural expression policy skeleton', () => {
       tickState: 'visible-labeled',
       showLabel: true,
       labelStrategy: 'quarter-boundary-primary',
+      tickRankClass: 'tick-rank-primary',
     })
     expect(getStructuralExpressionDecision(
       quarterFamily!,
@@ -134,6 +149,7 @@ describe('structural expression policy skeleton', () => {
       tickState: 'visible-labeled',
       showLabel: true,
       labelStrategy: 'quarter-boundary-secondary',
+      tickRankClass: 'tick-rank-primary',
     })
     expect(getStructuralExpressionDecision(
       quarterFamily!,
@@ -141,6 +157,7 @@ describe('structural expression policy skeleton', () => {
     )).toMatchObject({
       tickState: 'visible-unlabeled',
       showLabel: false,
+      tickRankClass: 'tick-rank-secondary',
     })
     expect(getStructuralExpressionDecision(
       monthFamily!,
@@ -149,6 +166,7 @@ describe('structural expression policy skeleton', () => {
       tickState: 'visible-labeled',
       showLabel: true,
       labelStrategy: 'month-in-year',
+      tickRankClass: 'tick-rank-ordinary',
     })
     expect(getStructuralExpressionDecision(
       yearFamily!,
@@ -157,6 +175,7 @@ describe('structural expression policy skeleton', () => {
       tickState: 'visible-labeled',
       showLabel: true,
       labelStrategy: 'year-boundary',
+      tickRankClass: 'tick-rank-primary',
     })
   })
 
