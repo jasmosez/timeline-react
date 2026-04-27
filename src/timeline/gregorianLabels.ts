@@ -316,6 +316,20 @@ export const renderGregorianStructuralLabelStrategy = (
       return formatHourMinuteWithOptionalTimezone(tickDate)
     case 'hour-midnight-boundary':
       return `${tickDate.toLocaleDateString(LOCALE, WEEKDAY)} ${tickDate.toLocaleDateString(LOCALE, DAY)}, ${tickDate.toLocaleTimeString(LOCALE, HOUR_MINUTE)}`
+    case 'day-third-hour':
+      return formatHourWithOptionalTimezone(tickDate)
+    case 'day-midnight-boundary':
+      return `${tickDate.toLocaleDateString(LOCALE, WEEKDAY)} ${tickDate.toLocaleDateString(LOCALE, DAY)}, ${tickDate.toLocaleTimeString(LOCALE, HOUR)}`
+    case 'day-week-boundary': {
+      const timeLabel = tickDate.toLocaleTimeString(LOCALE, HOUR)
+      const dayLabel = tickDate.toLocaleDateString(LOCALE, DAY)
+      const weekdayLabel = tickDate.toLocaleDateString(LOCALE, WEEKDAY)
+      const weekLabel = formatWeekNumber(tickDate)
+
+      return isPrimary
+        ? `${weekLabel}, ${weekdayLabel} ${dayLabel}, ${timeLabel}`
+        : `${timeLabel}, ${dayLabel} ${weekdayLabel}, ${weekLabel}`
+    }
     case 'weekday-plus-day':
       return `${tickDate.toLocaleDateString(LOCALE, WEEKDAY)} ${tickDate.toLocaleDateString(LOCALE, DAY)}`
     case 'week-plus-day':

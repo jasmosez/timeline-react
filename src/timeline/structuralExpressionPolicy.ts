@@ -64,6 +64,9 @@ export type GregorianStructuralLabelStrategy =
   | 'hour-five-minute'
   | 'hour-top-of-hour'
   | 'hour-midnight-boundary'
+  | 'day-third-hour'
+  | 'day-midnight-boundary'
+  | 'day-week-boundary'
   | 'weekday-plus-day'
   | 'week-plus-day'
   | 'week-view-contextual'
@@ -96,6 +99,7 @@ export type StructuralTickInstanceVariantId =
   | 'default'
   | 'five-second'
   | 'five-minute'
+  | 'third-hour'
 
 export type StructuralTickInstanceVariant = {
   id: StructuralTickInstanceVariantId
@@ -193,6 +197,25 @@ const GREGORIAN_EXPRESSION_DECLARATION: StructuralCalendarExpressionDeclaration 
         tickState: 'visible-labeled',
         showLabel: true,
         labelStrategy: 'hour-midnight-boundary',
+        tickRankClass: 'tick-rank-primary',
+      },
+    },
+    [SCALE_DAY]: {
+      hour: {
+        tickState: 'visible-unlabeled',
+        showLabel: false,
+        tickRankClass: 'tick-rank-ordinary',
+      },
+      day: {
+        tickState: 'visible-labeled',
+        showLabel: true,
+        labelStrategy: 'day-midnight-boundary',
+        tickRankClass: 'tick-rank-secondary',
+      },
+      week: {
+        tickState: 'visible-labeled',
+        showLabel: true,
+        labelStrategy: 'day-week-boundary',
         tickRankClass: 'tick-rank-primary',
       },
     },
@@ -359,9 +382,23 @@ const GREGORIAN_MINUTE_INSTANCE_VARIANTS: StructuralTickInstanceVariant[] = [
   },
 ]
 
+const GREGORIAN_HOUR_INSTANCE_VARIANTS: StructuralTickInstanceVariant[] = [
+  {
+    id: 'third-hour',
+    matches: (tickTimeMs) => new Date(tickTimeMs).getHours() % 3 === 0,
+    decision: {
+      tickState: 'visible-labeled',
+      showLabel: true,
+      labelStrategy: 'day-third-hour',
+      prominence: 0.6,
+    },
+  },
+]
+
 const GREGORIAN_INSTANCE_VARIANCE_DECLARATION: StructuralFamilyInstanceVarianceDeclaration = {
   second: GREGORIAN_SECOND_INSTANCE_VARIANTS,
   minute: GREGORIAN_MINUTE_INSTANCE_VARIANTS,
+  hour: GREGORIAN_HOUR_INSTANCE_VARIANTS,
 }
 
 const getCalendarStructuralExpressionDecision = (
