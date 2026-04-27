@@ -387,13 +387,32 @@ const addQuarterBoundaryTicks = (
     const isQuarterStart = tickDate.getMonth() % 3 === 0
     const isLeading = leadingCalendarSystemId === 'gregorian'
     const rawLabel = getGregorianQuarterBoundaryLabel(tickTime, isLeading)
-    const familyId = isQuarterStart ? 'gregorian-quarter' : 'gregorian-month'
+    const familyId = isQuarterStart
+      ? GREGORIAN_PERIOD_FAMILY_IDS.quarter
+      : GREGORIAN_PERIOD_FAMILY_IDS.month
+    const family = getStructuralPeriodFamilyById(familyId)
+    const decision = family
+      ? getStructuralExpressionDecision(family, {
+          activeScaleLevel: 4,
+          visibleDurationMs,
+          leadingCalendarSystemId,
+          environment,
+        })
+      : createStructuralExpressionDecision()
+
+    if (decision.tickState === 'hidden') {
+      tickTime = addMonths(tickDate, 1)
+      continue
+    }
+
     const point: TimelinePoint = {
       id: `quarter-boundary-${tickTime}`,
       kind: 'tick',
       timeMs: tickTime,
       structuralMetadata: getGregorianStructuralMetadata(familyId),
-      label: activeLayerIds?.includes(PERSONAL_LAYER_ID)
+      label: !decision.showLabel
+        ? ''
+        : activeLayerIds?.includes(PERSONAL_LAYER_ID)
         ? augmentLabelWithPersonalTime({
             label: rawLabel,
             timeMs: tickTime,
@@ -432,6 +451,7 @@ const addQuarterBoundaryTicks = (
 
 const addYearQuarterBoundaryTicks = (
   points: Map<number, PositionedTimelinePoint>,
+  environment: TickCollectionParams['environment'],
   leadingCalendarSystemId: LeadingCalendarSystemId,
   focusTimeMs: number,
   visibleDurationMs: number,
@@ -447,12 +467,29 @@ const addYearQuarterBoundaryTicks = (
     const isYearStart = tickDate.getMonth() === 0
 
     if (isQuarterStart && !isYearStart) {
+      const family = getStructuralPeriodFamilyById(GREGORIAN_PERIOD_FAMILY_IDS.quarter)
+      const decision = family
+        ? getStructuralExpressionDecision(family, {
+            activeScaleLevel: 5,
+            visibleDurationMs,
+            leadingCalendarSystemId,
+            environment,
+          })
+        : createStructuralExpressionDecision()
+
+      if (decision.tickState === 'hidden') {
+        tickTime = addMonths(tickDate, 1)
+        continue
+      }
+
       const point: TimelinePoint = {
         id: `year-quarter-boundary-${tickTime}`,
         kind: 'tick',
         timeMs: tickTime,
-        label: '',
-        structuralMetadata: getGregorianStructuralMetadata('gregorian-quarter'),
+        label: decision.showLabel
+          ? getGregorianQuarterBoundaryLabel(tickTime, leadingCalendarSystemId === 'gregorian')
+          : '',
+        structuralMetadata: getGregorianStructuralMetadata(GREGORIAN_PERIOD_FAMILY_IDS.quarter),
       }
 
       points.set(
@@ -507,7 +544,7 @@ export const createGregorianTickPoints = ({
   }
 
   if (activeScaleLevel === 5) {
-    addYearQuarterBoundaryTicks(points, leadingCalendarSystemId, focusTimeMs, visibleDurationMs)
+    addYearQuarterBoundaryTicks(points, environment, leadingCalendarSystemId, focusTimeMs, visibleDurationMs)
   }
 
   return Array.from(points.values())

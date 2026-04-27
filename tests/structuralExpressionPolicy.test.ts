@@ -78,6 +78,14 @@ describe('structural expression policy skeleton', () => {
       tickState: 'hidden',
       showLabel: false,
     })
+
+    expect(getStructuralExpressionDecision(
+      quarterFamily!,
+      { ...TEST_POLICY_INPUT, activeScaleLevel: 5 },
+    )).toMatchObject({
+      tickState: 'visible-unlabeled',
+      showLabel: false,
+    })
   })
 
   it('maps span decisions to presentation opacity without changing visible defaults', () => {

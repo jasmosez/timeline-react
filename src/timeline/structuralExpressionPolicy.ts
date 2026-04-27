@@ -73,6 +73,36 @@ export const createStructuralExpressionDecision = (
   ...overrides,
 })
 
+const GREGORIAN_TICK_POLICY_BY_SCALE: Partial<
+  Record<ScaleLevel, Partial<Record<string, Partial<StructuralExpressionDecision>>>>
+> = {
+  2: {
+    day: { tickState: 'visible-labeled', showLabel: true },
+    week: { tickState: 'visible-labeled', showLabel: true },
+    month: { tickState: 'visible-labeled', showLabel: true },
+  },
+  3: {
+    day: { tickState: 'visible-labeled', showLabel: true },
+    week: { tickState: 'visible-labeled', showLabel: true },
+    month: { tickState: 'visible-labeled', showLabel: true },
+    quarter: { tickState: 'visible-labeled', showLabel: true },
+  },
+  4: {
+    week: { tickState: 'visible-labeled', showLabel: true },
+    month: { tickState: 'visible-labeled', showLabel: true },
+    quarter: { tickState: 'visible-labeled', showLabel: true },
+  },
+  5: {
+    month: { tickState: 'visible-labeled', showLabel: true },
+    year: { tickState: 'visible-labeled', showLabel: true },
+    quarter: { tickState: 'visible-unlabeled', showLabel: false },
+  },
+  6: {
+    year: { tickState: 'visible-labeled', showLabel: true },
+    decade: { tickState: 'visible-labeled', showLabel: true },
+  },
+}
+
 const getGregorianActiveSpanKind = (activeScaleLevel: ScaleLevel) => {
   switch (activeScaleLevel) {
     case -1:
@@ -95,37 +125,31 @@ const getGregorianActiveSpanKind = (activeScaleLevel: ScaleLevel) => {
   }
 }
 
-const getGregorianActiveTickKinds = (activeScaleLevel: ScaleLevel): string[] | null => {
-  switch (activeScaleLevel) {
-    case 2:
-      return ['day', 'week', 'month']
-    case 3:
-      return ['day', 'week', 'month', 'quarter']
-    case 4:
-      return ['week', 'month', 'quarter']
-    case 5:
-      return ['month', 'year']
-    case 6:
-      return ['year', 'decade']
-    default:
-      return null
-  }
-}
-
 const getGregorianStructuralExpressionDecision = (
   family: StructuralPeriodFamilyDefinition,
   input: StructuralExpressionPolicyInput,
 ): StructuralExpressionDecision => {
   const activeSpanKind = getGregorianActiveSpanKind(input.activeScaleLevel)
-  const activeTickKinds = getGregorianActiveTickKinds(input.activeScaleLevel)
+  const tickPolicyForScale = GREGORIAN_TICK_POLICY_BY_SCALE[input.activeScaleLevel]
   const isActiveSpanFamily = family.supportsIntervalExpression && family.kind === activeSpanKind
-  const isActiveTickFamily = activeTickKinds?.includes(family.kind) ?? true
+  const tickOverrides = tickPolicyForScale?.[family.kind]
+  const hasExplicitTickPolicy = tickOverrides !== undefined
+  const usesGovernedTickPolicy = tickPolicyForScale !== undefined
+  const isActiveTickFamily = hasExplicitTickPolicy
+    ? tickOverrides.tickState !== 'hidden'
+    : !usesGovernedTickPolicy
 
   return createStructuralExpressionDecision({
-    tickState: isActiveTickFamily ? 'visible-labeled' : 'hidden',
+    tickState: hasExplicitTickPolicy
+      ? tickOverrides.tickState ?? 'visible-labeled'
+      : usesGovernedTickPolicy
+      ? 'hidden'
+      : 'visible-labeled',
     spanState: isActiveSpanFamily ? 'visible' : 'hidden',
     prominence: isActiveTickFamily || isActiveSpanFamily ? 1 : 0,
-    showLabel: isActiveTickFamily,
+    showLabel: hasExplicitTickPolicy
+      ? tickOverrides.showLabel ?? true
+      : !usesGovernedTickPolicy,
   })
 }
 
