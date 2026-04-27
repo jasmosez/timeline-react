@@ -302,25 +302,25 @@ export const renderGregorianStructuralLabelStrategy = (
   const tickDate = new Date(tickTime)
 
   switch (labelStrategy) {
-    case 'minute-five-second':
+    case 'minute-view-five-second':
       return `:${String(tickDate.getSeconds()).padStart(2, '0')}`
-    case 'minute-top-of-minute':
+    case 'minute-view-minute-boundary':
       return tickDate.toLocaleTimeString(LOCALE, { ...HOUR, ...MINUTE })
-    case 'minute-top-of-hour':
+    case 'minute-view-hour-boundary':
       return tickDate.toLocaleTimeString(LOCALE, HOUR)
-    case 'minute-midnight-boundary':
+    case 'minute-view-day-boundary':
       return tickDate.toLocaleDateString(LOCALE, { ...WEEKDAY, ...DAY, ...HOUR })
-    case 'hour-five-minute':
+    case 'hour-view-five-minute':
       return `:${String(tickDate.getMinutes()).padStart(2, '0')}`
-    case 'hour-top-of-hour':
+    case 'hour-view-hour-boundary':
       return formatHourMinuteWithOptionalTimezone(tickDate)
-    case 'hour-midnight-boundary':
+    case 'hour-view-day-boundary':
       return `${tickDate.toLocaleDateString(LOCALE, WEEKDAY)} ${tickDate.toLocaleDateString(LOCALE, DAY)}, ${tickDate.toLocaleTimeString(LOCALE, HOUR_MINUTE)}`
-    case 'day-third-hour':
+    case 'day-view-third-hour':
       return formatHourWithOptionalTimezone(tickDate)
-    case 'day-midnight-boundary':
+    case 'day-view-day-boundary':
       return `${tickDate.toLocaleDateString(LOCALE, WEEKDAY)} ${tickDate.toLocaleDateString(LOCALE, DAY)}, ${tickDate.toLocaleTimeString(LOCALE, HOUR)}`
-    case 'day-week-boundary': {
+    case 'day-view-week-boundary': {
       const timeLabel = tickDate.toLocaleTimeString(LOCALE, HOUR)
       const dayLabel = tickDate.toLocaleDateString(LOCALE, DAY)
       const weekdayLabel = tickDate.toLocaleDateString(LOCALE, WEEKDAY)
@@ -330,25 +330,25 @@ export const renderGregorianStructuralLabelStrategy = (
         ? `${weekLabel}, ${weekdayLabel} ${dayLabel}, ${timeLabel}`
         : `${timeLabel}, ${dayLabel} ${weekdayLabel}, ${weekLabel}`
     }
-    case 'weekday-plus-day':
+    case 'week-view-ordinary-day':
       return `${tickDate.toLocaleDateString(LOCALE, WEEKDAY)} ${tickDate.toLocaleDateString(LOCALE, DAY)}`
-    case 'week-plus-day':
+    case 'week-view-week-boundary':
       return `${formatWeekNumber(tickDate)}, ${tickDate.toLocaleDateString(LOCALE, WEEKDAY)} ${tickDate.toLocaleDateString(LOCALE, DAY)}`
-    case 'week-view-contextual':
+    case 'week-view-month-boundary':
       return tickDate.getDay() === 0
         ? `${formatWeekNumber(tickDate)}, ${tickDate.toLocaleDateString(LOCALE, WEEKDAY)} ${tickDate.toLocaleDateString(LOCALE, DAY)}`
         : `${tickDate.toLocaleDateString(LOCALE, WEEKDAY)} ${tickDate.toLocaleDateString(LOCALE, DAY)}`
-    case 'month-contextual':
+    case 'month-view-context-boundary':
       return getGregorianStructuralTickLabel(3, tickTime, false, isPrimary) ?? ''
-    case 'week-number':
+    case 'quarter-view-week-boundary':
       return getGregorianQuarterWeekTickLabel(tickTime)
-    case 'quarter-boundary-primary':
+    case 'quarter-view-month-boundary-leading':
       return getGregorianQuarterBoundaryLabel(tickTime, true)
-    case 'quarter-boundary-secondary':
+    case 'quarter-view-month-boundary-supporting':
       return getGregorianQuarterBoundaryLabel(tickTime, false)
-    case 'year-boundary':
+    case 'year-view-year-boundary':
       return getGregorianStructuralTickLabel(5, tickTime, false, isPrimary) ?? ''
-    case 'month-in-year':
+    case 'year-view-month-boundary':
       return new Date(tickTime).toLocaleDateString(LOCALE, MONTH)
     default:
       return ''

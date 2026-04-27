@@ -159,17 +159,17 @@ export const renderHebrewStructuralLabelStrategy = (
   isPrimary: boolean,
 ) => {
   switch (labelStrategy) {
-    case 'hebrew-week-scale':
+    case 'hebrew-week-view-boundary':
       return getHebrewTickLabel(2, dayInfo, boundaryTimeMs, isPrimary) ?? ''
-    case 'hebrew-month-scale':
+    case 'hebrew-month-view-boundary':
       return getHebrewTickLabel(3, dayInfo, boundaryTimeMs, isPrimary) ?? ''
-    case 'hebrew-quarter-scale-primary':
+    case 'hebrew-quarter-view-boundary-leading':
       return getHebrewTickLabel(4, dayInfo, boundaryTimeMs, true) ?? ''
-    case 'hebrew-quarter-scale-secondary':
+    case 'hebrew-quarter-view-boundary-supporting':
       return getHebrewTickLabel(4, dayInfo, boundaryTimeMs, false) ?? ''
-    case 'hebrew-year-scale':
+    case 'hebrew-year-view-boundary':
       return getHebrewTickLabel(5, dayInfo, boundaryTimeMs, isPrimary) ?? ''
-    case 'hebrew-decade-scale':
+    case 'hebrew-decade-view-boundary':
       return getHebrewTickLabel(6, dayInfo, boundaryTimeMs, isPrimary) ?? ''
     default:
       return ''

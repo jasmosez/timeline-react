@@ -82,19 +82,19 @@ describe('structural expression policy skeleton', () => {
     expect(getStructuralExpressionDecision(dayFamily!, TEST_POLICY_INPUT)).toMatchObject({
       tickState: 'visible-labeled',
       showLabel: true,
-      labelStrategy: 'weekday-plus-day',
+      labelStrategy: 'week-view-ordinary-day',
       tickRankClass: 'tick-rank-ordinary',
     })
     expect(getStructuralExpressionDecision(weekFamily!, TEST_POLICY_INPUT)).toMatchObject({
       tickState: 'visible-labeled',
       showLabel: true,
-      labelStrategy: 'week-plus-day',
+      labelStrategy: 'week-view-week-boundary',
       tickRankClass: 'tick-rank-secondary',
     })
     expect(getStructuralExpressionDecision(monthFamily!, TEST_POLICY_INPUT)).toMatchObject({
       tickState: 'visible-labeled',
       showLabel: true,
-      labelStrategy: 'week-view-contextual',
+      labelStrategy: 'week-view-month-boundary',
       tickRankClass: 'tick-rank-primary',
     })
     expect(getStructuralExpressionDecision(quarterFamily!, TEST_POLICY_INPUT)).toMatchObject({
@@ -108,7 +108,7 @@ describe('structural expression policy skeleton', () => {
     )).toMatchObject({
       tickState: 'visible-labeled',
       showLabel: true,
-      labelStrategy: 'month-contextual',
+      labelStrategy: 'month-view-context-boundary',
       tickRankClass: 'tick-rank-ordinary',
     })
     expect(getStructuralExpressionDecision(
@@ -117,7 +117,7 @@ describe('structural expression policy skeleton', () => {
     )).toMatchObject({
       tickState: 'visible-labeled',
       showLabel: true,
-      labelStrategy: 'week-number',
+      labelStrategy: 'quarter-view-week-boundary',
       tickRankClass: 'tick-rank-ordinary',
     })
     expect(getStructuralExpressionDecision(
@@ -126,7 +126,7 @@ describe('structural expression policy skeleton', () => {
     )).toMatchObject({
       tickState: 'visible-labeled',
       showLabel: true,
-      labelStrategy: 'quarter-boundary-primary',
+      labelStrategy: 'quarter-view-month-boundary-leading',
       tickRankClass: 'tick-rank-secondary',
     })
     expect(getStructuralExpressionDecision(
@@ -135,7 +135,7 @@ describe('structural expression policy skeleton', () => {
     )).toMatchObject({
       tickState: 'visible-labeled',
       showLabel: true,
-      labelStrategy: 'quarter-boundary-primary',
+      labelStrategy: 'quarter-view-month-boundary-leading',
       tickRankClass: 'tick-rank-primary',
     })
     expect(getStructuralExpressionDecision(
@@ -148,7 +148,7 @@ describe('structural expression policy skeleton', () => {
     )).toMatchObject({
       tickState: 'visible-labeled',
       showLabel: true,
-      labelStrategy: 'quarter-boundary-secondary',
+      labelStrategy: 'quarter-view-month-boundary-supporting',
       tickRankClass: 'tick-rank-primary',
     })
     expect(getStructuralExpressionDecision(
@@ -165,7 +165,7 @@ describe('structural expression policy skeleton', () => {
     )).toMatchObject({
       tickState: 'visible-labeled',
       showLabel: true,
-      labelStrategy: 'month-in-year',
+      labelStrategy: 'year-view-month-boundary',
       tickRankClass: 'tick-rank-ordinary',
     })
     expect(getStructuralExpressionDecision(
@@ -174,7 +174,7 @@ describe('structural expression policy skeleton', () => {
     )).toMatchObject({
       tickState: 'visible-labeled',
       showLabel: true,
-      labelStrategy: 'year-boundary',
+      labelStrategy: 'year-view-year-boundary',
       tickRankClass: 'tick-rank-primary',
     })
   })
@@ -204,7 +204,7 @@ describe('structural expression policy skeleton', () => {
     )).toMatchObject({
       tickState: 'visible-labeled',
       showLabel: true,
-      labelStrategy: 'minute-top-of-minute',
+      labelStrategy: 'minute-view-minute-boundary',
       tickRankClass: 'tick-rank-secondary',
     })
     expect(getStructuralExpressionDecision(
@@ -213,7 +213,7 @@ describe('structural expression policy skeleton', () => {
     )).toMatchObject({
       tickState: 'visible-labeled',
       showLabel: true,
-      labelStrategy: 'minute-top-of-hour',
+      labelStrategy: 'minute-view-hour-boundary',
       tickRankClass: 'tick-rank-secondary',
     })
     expect(getStructuralExpressionDecision(
@@ -222,7 +222,7 @@ describe('structural expression policy skeleton', () => {
     )).toMatchObject({
       tickState: 'visible-labeled',
       showLabel: true,
-      labelStrategy: 'minute-midnight-boundary',
+      labelStrategy: 'minute-view-day-boundary',
       tickRankClass: 'tick-rank-primary',
     })
   })
@@ -250,7 +250,7 @@ describe('structural expression policy skeleton', () => {
     )).toMatchObject({
       tickState: 'visible-labeled',
       showLabel: true,
-      labelStrategy: 'hour-top-of-hour',
+      labelStrategy: 'hour-view-hour-boundary',
       tickRankClass: 'tick-rank-secondary',
     })
     expect(getStructuralExpressionDecision(
@@ -259,7 +259,7 @@ describe('structural expression policy skeleton', () => {
     )).toMatchObject({
       tickState: 'visible-labeled',
       showLabel: true,
-      labelStrategy: 'hour-midnight-boundary',
+      labelStrategy: 'hour-view-day-boundary',
       tickRankClass: 'tick-rank-primary',
     })
   })
@@ -287,7 +287,7 @@ describe('structural expression policy skeleton', () => {
     )).toMatchObject({
       tickState: 'visible-labeled',
       showLabel: true,
-      labelStrategy: 'day-midnight-boundary',
+      labelStrategy: 'day-view-day-boundary',
       tickRankClass: 'tick-rank-secondary',
     })
     expect(getStructuralExpressionDecision(
@@ -296,7 +296,7 @@ describe('structural expression policy skeleton', () => {
     )).toMatchObject({
       tickState: 'visible-labeled',
       showLabel: true,
-      labelStrategy: 'day-week-boundary',
+      labelStrategy: 'day-view-week-boundary',
       tickRankClass: 'tick-rank-primary',
     })
   })
@@ -351,7 +351,7 @@ describe('structural expression policy skeleton', () => {
     )).toMatchObject({
       tickState: 'visible-labeled',
       showLabel: true,
-      labelStrategy: 'hebrew-week-scale',
+      labelStrategy: 'hebrew-week-view-boundary',
       tickRankClass: 'tick-rank-ordinary',
     })
     expect(getStructuralExpressionDecision(
@@ -360,7 +360,7 @@ describe('structural expression policy skeleton', () => {
     )).toMatchObject({
       tickState: 'visible-labeled',
       showLabel: true,
-      labelStrategy: 'hebrew-week-scale',
+      labelStrategy: 'hebrew-week-view-boundary',
       tickRankClass: 'tick-rank-secondary',
     })
     expect(getStructuralExpressionDecision(
@@ -369,7 +369,7 @@ describe('structural expression policy skeleton', () => {
     )).toMatchObject({
       tickState: 'visible-labeled',
       showLabel: true,
-      labelStrategy: 'hebrew-week-scale',
+      labelStrategy: 'hebrew-week-view-boundary',
       tickRankClass: 'tick-rank-primary',
     })
     expect(getStructuralExpressionDecision(
@@ -385,7 +385,7 @@ describe('structural expression policy skeleton', () => {
     )).toMatchObject({
       tickState: 'visible-labeled',
       showLabel: true,
-      labelStrategy: 'hebrew-month-scale',
+      labelStrategy: 'hebrew-month-view-boundary',
       tickRankClass: 'tick-rank-ordinary',
     })
     expect(getStructuralExpressionDecision(
@@ -394,7 +394,7 @@ describe('structural expression policy skeleton', () => {
     )).toMatchObject({
       tickState: 'visible-labeled',
       showLabel: true,
-      labelStrategy: 'hebrew-quarter-scale-secondary',
+      labelStrategy: 'hebrew-quarter-view-boundary-supporting',
       tickRankClass: 'tick-rank-secondary',
     })
     expect(getStructuralExpressionDecision(
@@ -403,7 +403,7 @@ describe('structural expression policy skeleton', () => {
     )).toMatchObject({
       tickState: 'visible-labeled',
       showLabel: true,
-      labelStrategy: 'hebrew-quarter-scale-secondary',
+      labelStrategy: 'hebrew-quarter-view-boundary-supporting',
       tickRankClass: 'tick-rank-primary',
     })
     expect(getStructuralExpressionDecision(
@@ -416,7 +416,7 @@ describe('structural expression policy skeleton', () => {
     )).toMatchObject({
       tickState: 'visible-labeled',
       showLabel: true,
-      labelStrategy: 'hebrew-quarter-scale-primary',
+      labelStrategy: 'hebrew-quarter-view-boundary-leading',
       tickRankClass: 'tick-rank-primary',
     })
     expect(getStructuralExpressionDecision(
@@ -433,7 +433,7 @@ describe('structural expression policy skeleton', () => {
     )).toMatchObject({
       tickState: 'visible-labeled',
       showLabel: true,
-      labelStrategy: 'hebrew-year-scale',
+      labelStrategy: 'hebrew-year-view-boundary',
       tickRankClass: 'tick-rank-primary',
     })
     expect(getStructuralExpressionDecision(
@@ -442,7 +442,7 @@ describe('structural expression policy skeleton', () => {
     )).toMatchObject({
       tickState: 'visible-labeled',
       showLabel: true,
-      labelStrategy: 'hebrew-decade-scale',
+      labelStrategy: 'hebrew-decade-view-boundary',
       tickRankClass: 'tick-rank-primary',
     })
   })
@@ -505,7 +505,7 @@ describe('structural expression policy skeleton', () => {
     ).toMatchObject({
       tickState: 'visible-labeled',
       showLabel: true,
-      labelStrategy: 'minute-five-second',
+      labelStrategy: 'minute-view-five-second',
       prominence: 0.6,
     })
   })
@@ -551,7 +551,7 @@ describe('structural expression policy skeleton', () => {
     ).toMatchObject({
       tickState: 'visible-labeled',
       showLabel: true,
-      labelStrategy: 'hour-five-minute',
+      labelStrategy: 'hour-view-five-minute',
       tickRankClass: 'tick-rank-ordinary',
       prominence: 0.6,
     })
@@ -598,7 +598,7 @@ describe('structural expression policy skeleton', () => {
     ).toMatchObject({
       tickState: 'visible-labeled',
       showLabel: true,
-      labelStrategy: 'day-third-hour',
+      labelStrategy: 'day-view-third-hour',
       tickRankClass: 'tick-rank-ordinary',
       prominence: 0.6,
     })

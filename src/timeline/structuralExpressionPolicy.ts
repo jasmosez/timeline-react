@@ -57,33 +57,33 @@ export type StructuralExpressionPolicyInput = {
 }
 
 export type GregorianStructuralLabelStrategy =
-  | 'minute-five-second'
-  | 'minute-top-of-minute'
-  | 'minute-top-of-hour'
-  | 'minute-midnight-boundary'
-  | 'hour-five-minute'
-  | 'hour-top-of-hour'
-  | 'hour-midnight-boundary'
-  | 'day-third-hour'
-  | 'day-midnight-boundary'
-  | 'day-week-boundary'
-  | 'weekday-plus-day'
-  | 'week-plus-day'
-  | 'week-view-contextual'
-  | 'month-contextual'
-  | 'week-number'
-  | 'quarter-boundary-primary'
-  | 'quarter-boundary-secondary'
-  | 'year-boundary'
-  | 'month-in-year'
+  | 'minute-view-five-second'
+  | 'minute-view-minute-boundary'
+  | 'minute-view-hour-boundary'
+  | 'minute-view-day-boundary'
+  | 'hour-view-five-minute'
+  | 'hour-view-hour-boundary'
+  | 'hour-view-day-boundary'
+  | 'day-view-third-hour'
+  | 'day-view-day-boundary'
+  | 'day-view-week-boundary'
+  | 'week-view-ordinary-day'
+  | 'week-view-week-boundary'
+  | 'week-view-month-boundary'
+  | 'month-view-context-boundary'
+  | 'quarter-view-week-boundary'
+  | 'quarter-view-month-boundary-leading'
+  | 'quarter-view-month-boundary-supporting'
+  | 'year-view-year-boundary'
+  | 'year-view-month-boundary'
 
 export type HebrewStructuralLabelStrategy =
-  | 'hebrew-week-scale'
-  | 'hebrew-month-scale'
-  | 'hebrew-quarter-scale-primary'
-  | 'hebrew-quarter-scale-secondary'
-  | 'hebrew-year-scale'
-  | 'hebrew-decade-scale'
+  | 'hebrew-week-view-boundary'
+  | 'hebrew-month-view-boundary'
+  | 'hebrew-quarter-view-boundary-leading'
+  | 'hebrew-quarter-view-boundary-supporting'
+  | 'hebrew-year-view-boundary'
+  | 'hebrew-decade-view-boundary'
 
 export type StructuralTickLabelStrategy =
   | GregorianStructuralLabelStrategy
@@ -194,38 +194,38 @@ const GREGORIAN_EXPRESSION_DECLARATION: StructuralCalendarExpressionDeclaration 
   tickPolicyByScale: {
     [SCALE_MINUTE]: {
       second: unlabeledTickPolicy('tick-rank-ordinary'),
-      minute: labeledTickPolicy('minute-top-of-minute', 'tick-rank-secondary'),
-      hour: labeledTickPolicy('minute-top-of-hour', 'tick-rank-secondary'),
-      day: labeledTickPolicy('minute-midnight-boundary', 'tick-rank-primary'),
+      minute: labeledTickPolicy('minute-view-minute-boundary', 'tick-rank-secondary'),
+      hour: labeledTickPolicy('minute-view-hour-boundary', 'tick-rank-secondary'),
+      day: labeledTickPolicy('minute-view-day-boundary', 'tick-rank-primary'),
     },
     [SCALE_HOUR]: {
       minute: unlabeledTickPolicy('tick-rank-ordinary'),
-      hour: labeledTickPolicy('hour-top-of-hour', 'tick-rank-secondary'),
-      day: labeledTickPolicy('hour-midnight-boundary', 'tick-rank-primary'),
+      hour: labeledTickPolicy('hour-view-hour-boundary', 'tick-rank-secondary'),
+      day: labeledTickPolicy('hour-view-day-boundary', 'tick-rank-primary'),
     },
     [SCALE_DAY]: {
       hour: unlabeledTickPolicy('tick-rank-ordinary'),
-      day: labeledTickPolicy('day-midnight-boundary', 'tick-rank-secondary'),
-      week: labeledTickPolicy('day-week-boundary', 'tick-rank-primary'),
+      day: labeledTickPolicy('day-view-day-boundary', 'tick-rank-secondary'),
+      week: labeledTickPolicy('day-view-week-boundary', 'tick-rank-primary'),
     },
     [SCALE_WEEK]: {
-      day: labeledTickPolicy('weekday-plus-day', 'tick-rank-ordinary'),
-      week: labeledTickPolicy('week-plus-day', 'tick-rank-secondary'),
-      month: labeledTickPolicy('week-view-contextual', 'tick-rank-primary'),
+      day: labeledTickPolicy('week-view-ordinary-day', 'tick-rank-ordinary'),
+      week: labeledTickPolicy('week-view-week-boundary', 'tick-rank-secondary'),
+      month: labeledTickPolicy('week-view-month-boundary', 'tick-rank-primary'),
     },
     [SCALE_MONTH]: {
-      day: labeledTickPolicy('month-contextual', 'tick-rank-ordinary'),
-      week: labeledTickPolicy('month-contextual', 'tick-rank-secondary'),
-      month: labeledTickPolicy('month-contextual', 'tick-rank-primary'),
-      quarter: labeledTickPolicy('month-contextual', 'tick-rank-primary'),
+      day: labeledTickPolicy('month-view-context-boundary', 'tick-rank-ordinary'),
+      week: labeledTickPolicy('month-view-context-boundary', 'tick-rank-secondary'),
+      month: labeledTickPolicy('month-view-context-boundary', 'tick-rank-primary'),
+      quarter: labeledTickPolicy('month-view-context-boundary', 'tick-rank-primary'),
     },
     [SCALE_QUARTER]: {
-      week: labeledTickPolicy('week-number', 'tick-rank-ordinary'),
+      week: labeledTickPolicy('quarter-view-week-boundary', 'tick-rank-ordinary'),
       month: {
         labelStrategy: (input) =>
           input.leadingCalendarSystemId === 'gregorian'
-            ? 'quarter-boundary-primary'
-            : 'quarter-boundary-secondary',
+            ? 'quarter-view-month-boundary-leading'
+            : 'quarter-view-month-boundary-supporting',
         tickState: 'visible-labeled',
         showLabel: true,
         tickRankClass: 'tick-rank-secondary',
@@ -233,16 +233,16 @@ const GREGORIAN_EXPRESSION_DECLARATION: StructuralCalendarExpressionDeclaration 
       quarter: {
         labelStrategy: (input) =>
           input.leadingCalendarSystemId === 'gregorian'
-            ? 'quarter-boundary-primary'
-            : 'quarter-boundary-secondary',
+            ? 'quarter-view-month-boundary-leading'
+            : 'quarter-view-month-boundary-supporting',
         tickState: 'visible-labeled',
         showLabel: true,
         tickRankClass: 'tick-rank-primary',
       },
     },
     [SCALE_YEAR]: {
-      month: labeledTickPolicy('month-in-year', 'tick-rank-ordinary'),
-      year: labeledTickPolicy('year-boundary', 'tick-rank-primary'),
+      month: labeledTickPolicy('year-view-month-boundary', 'tick-rank-ordinary'),
+      year: labeledTickPolicy('year-view-year-boundary', 'tick-rank-primary'),
       quarter: unlabeledTickPolicy('tick-rank-secondary'),
     },
     [SCALE_DECADE]: {
@@ -265,22 +265,22 @@ const HEBREW_EXPRESSION_DECLARATION: StructuralCalendarExpressionDeclaration = {
   },
   tickPolicyByScale: {
     [SCALE_WEEK]: {
-      day: labeledTickPolicy('hebrew-week-scale', 'tick-rank-ordinary'),
-      week: labeledTickPolicy('hebrew-week-scale', 'tick-rank-secondary'),
-      month: labeledTickPolicy('hebrew-week-scale', 'tick-rank-primary'),
+      day: labeledTickPolicy('hebrew-week-view-boundary', 'tick-rank-ordinary'),
+      week: labeledTickPolicy('hebrew-week-view-boundary', 'tick-rank-secondary'),
+      month: labeledTickPolicy('hebrew-week-view-boundary', 'tick-rank-primary'),
     },
     [SCALE_MONTH]: {
-      day: labeledTickPolicy('hebrew-month-scale', 'tick-rank-ordinary'),
-      week: labeledTickPolicy('hebrew-month-scale', 'tick-rank-secondary'),
-      month: labeledTickPolicy('hebrew-month-scale', 'tick-rank-primary'),
-      quarter: labeledTickPolicy('hebrew-month-scale', 'tick-rank-primary'),
+      day: labeledTickPolicy('hebrew-month-view-boundary', 'tick-rank-ordinary'),
+      week: labeledTickPolicy('hebrew-month-view-boundary', 'tick-rank-secondary'),
+      month: labeledTickPolicy('hebrew-month-view-boundary', 'tick-rank-primary'),
+      quarter: labeledTickPolicy('hebrew-month-view-boundary', 'tick-rank-primary'),
     },
     [SCALE_QUARTER]: {
       month: {
         labelStrategy: (input) =>
           input.leadingCalendarSystemId === 'hebrew'
-            ? 'hebrew-quarter-scale-primary'
-            : 'hebrew-quarter-scale-secondary',
+            ? 'hebrew-quarter-view-boundary-leading'
+            : 'hebrew-quarter-view-boundary-supporting',
         tickState: 'visible-labeled',
         showLabel: true,
         tickRankClass: 'tick-rank-secondary',
@@ -288,21 +288,21 @@ const HEBREW_EXPRESSION_DECLARATION: StructuralCalendarExpressionDeclaration = {
       quarter: {
         labelStrategy: (input) =>
           input.leadingCalendarSystemId === 'hebrew'
-            ? 'hebrew-quarter-scale-primary'
-            : 'hebrew-quarter-scale-secondary',
+            ? 'hebrew-quarter-view-boundary-leading'
+            : 'hebrew-quarter-view-boundary-supporting',
         tickState: 'visible-labeled',
         showLabel: true,
         tickRankClass: 'tick-rank-primary',
       },
     },
     [SCALE_YEAR]: {
-      month: labeledTickPolicy('hebrew-year-scale', 'tick-rank-ordinary'),
-      year: labeledTickPolicy('hebrew-year-scale', 'tick-rank-primary'),
+      month: labeledTickPolicy('hebrew-year-view-boundary', 'tick-rank-ordinary'),
+      year: labeledTickPolicy('hebrew-year-view-boundary', 'tick-rank-primary'),
       quarter: unlabeledTickPolicy('tick-rank-secondary'),
     },
     [SCALE_DECADE]: {
-      year: labeledTickPolicy('hebrew-decade-scale', 'tick-rank-ordinary'),
-      shmita: labeledTickPolicy('hebrew-decade-scale', 'tick-rank-primary'),
+      year: labeledTickPolicy('hebrew-decade-view-boundary', 'tick-rank-ordinary'),
+      shmita: labeledTickPolicy('hebrew-decade-view-boundary', 'tick-rank-primary'),
     },
   },
 }
@@ -314,7 +314,7 @@ const GREGORIAN_SECOND_INSTANCE_VARIANTS: StructuralTickInstanceVariant[] = [
     decision: {
       tickState: 'visible-labeled',
       showLabel: true,
-      labelStrategy: 'minute-five-second',
+      labelStrategy: 'minute-view-five-second',
       prominence: 0.6,
     },
   },
@@ -327,7 +327,7 @@ const GREGORIAN_MINUTE_INSTANCE_VARIANTS: StructuralTickInstanceVariant[] = [
     decision: {
       tickState: 'visible-labeled',
       showLabel: true,
-      labelStrategy: 'hour-five-minute',
+      labelStrategy: 'hour-view-five-minute',
       prominence: 0.6,
     },
   },
@@ -340,7 +340,7 @@ const GREGORIAN_HOUR_INSTANCE_VARIANTS: StructuralTickInstanceVariant[] = [
     decision: {
       tickState: 'visible-labeled',
       showLabel: true,
-      labelStrategy: 'day-third-hour',
+      labelStrategy: 'day-view-third-hour',
       prominence: 0.6,
     },
   },
