@@ -5,7 +5,12 @@ import type { PositionedTimelinePoint, PositionedTimelineSpan, TimelinePoint, Ti
 import { getCivilDateAtNoonUtc, getHebrewDayInfo, isHebrewQuarterStartMonth } from './hebrewTime'
 import { getHebrewTickLabel } from './hebrewLabels'
 import { augmentLabelWithPersonalTime } from './personalTime'
-import type { StructuralExpressionMetadata } from './structuralExpressionPolicy'
+import {
+  createStructuralExpressionDecision,
+  getStructuralExpressionDecision,
+  getStructuralSpanOpacity,
+  type StructuralExpressionMetadata,
+} from './structuralExpressionPolicy'
 import {
   formatHebrewIntradayPointLabel,
   getDayViewIntradaySpans,
@@ -442,16 +447,32 @@ export const createHebrewStructuralSpans = ({
     return []
   }
 
+  const familyId = getHebrewSpanFamilyId(activeScaleLevel)
+  const family = getStructuralPeriodFamilyById(familyId)
+  const decision = family
+    ? getStructuralExpressionDecision(family, {
+        activeScaleLevel,
+        visibleDurationMs,
+        leadingCalendarSystemId,
+        environment,
+      })
+    : createStructuralExpressionDecision()
+
+  if (decision.spanState === 'hidden') {
+    return []
+  }
+
   if (activeScaleLevel === -1 || activeScaleLevel === 0 || activeScaleLevel === 1) {
     return getDayViewIntradaySpans(focusTimeMs, visibleDurationMs, environment).map(({ span, stripeClass }) =>
       positionTimelineSpan(
         {
           ...span,
-          structuralMetadata: getHebrewStructuralMetadata(HEBREW_PERIOD_FAMILY_IDS.zmanim),
+          structuralMetadata: getHebrewStructuralMetadata(familyId),
         },
         focusTimeMs,
         visibleDurationMs,
         {
+          opacity: getStructuralSpanOpacity(decision),
           className: [
             leadingCalendarSystemId === 'hebrew'
               ? 'hebrew-structural-span structural-span structural-span-leading'
@@ -482,14 +503,13 @@ export const createHebrewStructuralSpans = ({
       startTimeMs: start.timeMs,
       endTimeMs: end.timeMs,
       label: start.label,
-      structuralMetadata: getHebrewStructuralMetadata(
-        getHebrewSpanFamilyId(activeScaleLevel),
-      ),
+      structuralMetadata: getHebrewStructuralMetadata(familyId),
     })
   }
 
   return spans.map((span) =>
     positionTimelineSpan(span, focusTimeMs, visibleDurationMs, {
+      opacity: getStructuralSpanOpacity(decision),
       className: [
         leadingCalendarSystemId === 'hebrew'
           ? 'hebrew-structural-span structural-span structural-span-leading'

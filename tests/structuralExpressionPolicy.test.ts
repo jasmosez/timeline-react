@@ -6,6 +6,7 @@ import {
 } from '../src/timeline/structuralExpressionPolicy'
 import {
   GREGORIAN_PERIOD_FAMILY_IDS,
+  HEBREW_PERIOD_FAMILY_IDS,
   STRUCTURAL_PERIOD_FAMILIES,
   getStructuralPeriodFamilyById,
   getStructuralPeriodFamiliesForCalendar,
@@ -85,6 +86,35 @@ describe('structural expression policy skeleton', () => {
     )).toMatchObject({
       tickState: 'visible-unlabeled',
       showLabel: false,
+    })
+  })
+
+  it('computes real Hebrew span decisions from family and scale', () => {
+    const activeFamily = getStructuralPeriodFamilyById(HEBREW_PERIOD_FAMILY_IDS.day)
+    const inactiveFamily = getStructuralPeriodFamilyById(HEBREW_PERIOD_FAMILY_IDS.month)
+
+    expect(activeFamily).toBeDefined()
+    expect(inactiveFamily).toBeDefined()
+
+    expect(getStructuralExpressionDecision(
+      activeFamily!,
+      { ...TEST_POLICY_INPUT, activeScaleLevel: 2 },
+    )).toMatchObject({
+      spanState: 'visible',
+      prominence: 1,
+    })
+    expect(getStructuralExpressionDecision(
+      inactiveFamily!,
+      { ...TEST_POLICY_INPUT, activeScaleLevel: 2 },
+    )).toMatchObject({
+      spanState: 'hidden',
+    })
+    expect(getStructuralExpressionDecision(
+      inactiveFamily!,
+      { ...TEST_POLICY_INPUT, activeScaleLevel: 4 },
+    )).toMatchObject({
+      spanState: 'visible',
+      prominence: 1,
     })
   })
 

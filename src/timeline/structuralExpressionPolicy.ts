@@ -153,12 +153,48 @@ const getGregorianStructuralExpressionDecision = (
   })
 }
 
+const getHebrewActiveSpanKind = (activeScaleLevel: ScaleLevel) => {
+  switch (activeScaleLevel) {
+    case -1:
+    case 0:
+    case 1:
+      return 'zmanim'
+    case 2:
+    case 3:
+      return 'day'
+    case 4:
+    case 5:
+      return 'month'
+    case 6:
+      return 'year'
+    default:
+      return null
+  }
+}
+
+const getHebrewStructuralExpressionDecision = (
+  family: StructuralPeriodFamilyDefinition,
+  input: StructuralExpressionPolicyInput,
+): StructuralExpressionDecision => {
+  const activeSpanKind = getHebrewActiveSpanKind(input.activeScaleLevel)
+  const isActiveSpanFamily = family.supportsIntervalExpression && family.kind === activeSpanKind
+
+  return createStructuralExpressionDecision({
+    spanState: isActiveSpanFamily ? 'visible' : 'hidden',
+    prominence: isActiveSpanFamily ? 1 : 0,
+  })
+}
+
 export const getStructuralExpressionDecision = (
   family: StructuralPeriodFamilyDefinition,
   input: StructuralExpressionPolicyInput,
 ): StructuralExpressionDecision => {
   if (family.calendarSystemId === 'gregorian') {
     return getGregorianStructuralExpressionDecision(family, input)
+  }
+
+  if (family.calendarSystemId === 'hebrew') {
+    return getHebrewStructuralExpressionDecision(family, input)
   }
 
   return createStructuralExpressionDecision()
