@@ -1,4 +1,5 @@
 import { LOCALE } from '../config'
+import type { GregorianStructuralLabelStrategy } from './structuralExpressionPolicy'
 import type { ScaleLevel } from './scales'
 
 const MINUTE: Intl.DateTimeFormatOptions = { minute: '2-digit' }
@@ -291,6 +292,39 @@ export const getGregorianYearTickLabel = (tickTime: number, _isFirstTick: boolea
 export const getGregorianDecadeTickLabel = (tickTime: number) => {
   const tickDate = new Date(tickTime)
   return tickDate.toLocaleDateString(LOCALE, YEAR)
+}
+
+export const renderGregorianStructuralLabelStrategy = (
+  labelStrategy: GregorianStructuralLabelStrategy,
+  tickTime: number,
+  isPrimary: boolean,
+) => {
+  const tickDate = new Date(tickTime)
+
+  switch (labelStrategy) {
+    case 'weekday-plus-day':
+      return `${tickDate.toLocaleDateString(LOCALE, WEEKDAY)} ${tickDate.toLocaleDateString(LOCALE, DAY)}`
+    case 'week-plus-day':
+      return `${formatWeekNumber(tickDate)}, ${tickDate.toLocaleDateString(LOCALE, WEEKDAY)} ${tickDate.toLocaleDateString(LOCALE, DAY)}`
+    case 'week-view-contextual':
+      return tickDate.getDay() === 0
+        ? `${formatWeekNumber(tickDate)}, ${tickDate.toLocaleDateString(LOCALE, WEEKDAY)} ${tickDate.toLocaleDateString(LOCALE, DAY)}`
+        : `${tickDate.toLocaleDateString(LOCALE, WEEKDAY)} ${tickDate.toLocaleDateString(LOCALE, DAY)}`
+    case 'month-contextual':
+      return getGregorianStructuralTickLabel(3, tickTime, false, isPrimary) ?? ''
+    case 'week-number':
+      return getGregorianQuarterWeekTickLabel(tickTime)
+    case 'quarter-boundary-primary':
+      return getGregorianQuarterBoundaryLabel(tickTime, true)
+    case 'quarter-boundary-secondary':
+      return getGregorianQuarterBoundaryLabel(tickTime, false)
+    case 'year-boundary':
+      return getGregorianStructuralTickLabel(5, tickTime, false, isPrimary) ?? ''
+    case 'month-in-year':
+      return new Date(tickTime).toLocaleDateString(LOCALE, MONTH)
+    default:
+      return ''
+  }
 }
 
 export const getGregorianContextLabel = (scaleLevel: ScaleLevel, timeMs: number) => {

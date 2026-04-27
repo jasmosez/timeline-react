@@ -1,7 +1,7 @@
 import { SCALE_LEVEL_CONFIG, getVisibleRangeStartTickDate, getVisibleTimeRange, type ScaleLevel } from './scales'
 import { createStructuralSpansForRange, positionTimelinePoint, positionTimelineSpan } from './layout'
 import type { LeadingCalendarSystemId, TimelineLayer } from './layers'
-import { getGregorianQuarterBoundaryLabel, getGregorianStructuralTickLabel } from './gregorianLabels'
+import { getGregorianStructuralTickLabel, renderGregorianStructuralLabelStrategy } from './gregorianLabels'
 import { augmentLabelWithPersonalTime } from './personalTime'
 import {
   createStructuralExpressionDecision,
@@ -306,6 +306,25 @@ const startOfMonth = (date: Date) => {
   return nextDate
 }
 
+const getGregorianPolicyAwareTickLabel = (
+  decision: ReturnType<typeof createStructuralExpressionDecision>,
+  scaleLevel: ScaleLevel,
+  tickTime: number,
+  isFirstTick: boolean,
+  isLeading: boolean,
+) => {
+  if (decision.labelStrategy) {
+    return renderGregorianStructuralLabelStrategy(decision.labelStrategy, tickTime, isLeading)
+  }
+
+  return getGregorianStructuralTickLabel(
+    scaleLevel,
+    tickTime,
+    isFirstTick,
+    isLeading,
+  )
+}
+
 const addPositionedTicksForScaleLevel = (
   points: Map<number, PositionedTimelinePoint>,
   activeLayerIds: string[] | undefined,
@@ -343,7 +362,8 @@ const addPositionedTicksForScaleLevel = (
       continue
     }
 
-    const rawLabel = getGregorianStructuralTickLabel(
+    const rawLabel = getGregorianPolicyAwareTickLabel(
+      decision,
       scaleLevel,
       tickTime,
       tickTime === visibleRangeStartTickDate.getTime(),
@@ -411,7 +431,6 @@ const addQuarterBoundaryTicks = (
     const tickDate = new Date(tickTime)
     const isQuarterStart = tickDate.getMonth() % 3 === 0
     const isLeading = leadingCalendarSystemId === 'gregorian'
-    const rawLabel = getGregorianQuarterBoundaryLabel(tickTime, isLeading)
     const familyId = isQuarterStart
       ? GREGORIAN_PERIOD_FAMILY_IDS.quarter
       : GREGORIAN_PERIOD_FAMILY_IDS.month
@@ -429,6 +448,14 @@ const addQuarterBoundaryTicks = (
       tickTime = addMonths(tickDate, 1)
       continue
     }
+
+    const rawLabel = getGregorianPolicyAwareTickLabel(
+      decision,
+      4,
+      tickTime,
+      tickTime === getVisibleRangeStartTickDate(4, focusTimeMs, visibleDurationMs).getTime(),
+      isLeading,
+    )
 
     const point: TimelinePoint = {
       id: `quarter-boundary-${tickTime}`,
@@ -512,7 +539,13 @@ const addYearQuarterBoundaryTicks = (
         kind: 'tick',
         timeMs: tickTime,
         label: decision.showLabel
-          ? getGregorianQuarterBoundaryLabel(tickTime, leadingCalendarSystemId === 'gregorian')
+          ? getGregorianPolicyAwareTickLabel(
+              decision,
+              5,
+              tickTime,
+              tickTime === getVisibleRangeStartTickDate(5, focusTimeMs, visibleDurationMs).getTime(),
+              leadingCalendarSystemId === 'gregorian',
+            )
           : '',
         structuralMetadata: getGregorianStructuralMetadata(GREGORIAN_PERIOD_FAMILY_IDS.quarter),
       }

@@ -68,14 +68,31 @@ describe('structural expression policy skeleton', () => {
 
   it('computes real Gregorian tick decisions for calmer structural scales', () => {
     const dayFamily = getStructuralPeriodFamilyById(GREGORIAN_PERIOD_FAMILY_IDS.day)
+    const weekFamily = getStructuralPeriodFamilyById(GREGORIAN_PERIOD_FAMILY_IDS.week)
+    const monthFamily = getStructuralPeriodFamilyById(GREGORIAN_PERIOD_FAMILY_IDS.month)
     const quarterFamily = getStructuralPeriodFamilyById(GREGORIAN_PERIOD_FAMILY_IDS.quarter)
+    const yearFamily = getStructuralPeriodFamilyById(GREGORIAN_PERIOD_FAMILY_IDS.year)
 
     expect(dayFamily).toBeDefined()
+    expect(weekFamily).toBeDefined()
+    expect(monthFamily).toBeDefined()
     expect(quarterFamily).toBeDefined()
+    expect(yearFamily).toBeDefined()
 
     expect(getStructuralExpressionDecision(dayFamily!, TEST_POLICY_INPUT)).toMatchObject({
       tickState: 'visible-labeled',
       showLabel: true,
+      labelStrategy: 'weekday-plus-day',
+    })
+    expect(getStructuralExpressionDecision(weekFamily!, TEST_POLICY_INPUT)).toMatchObject({
+      tickState: 'visible-labeled',
+      showLabel: true,
+      labelStrategy: 'week-plus-day',
+    })
+    expect(getStructuralExpressionDecision(monthFamily!, TEST_POLICY_INPUT)).toMatchObject({
+      tickState: 'visible-labeled',
+      showLabel: true,
+      labelStrategy: 'week-view-contextual',
     })
     expect(getStructuralExpressionDecision(quarterFamily!, TEST_POLICY_INPUT)).toMatchObject({
       tickState: 'hidden',
@@ -83,11 +100,63 @@ describe('structural expression policy skeleton', () => {
     })
 
     expect(getStructuralExpressionDecision(
+      dayFamily!,
+      { ...TEST_POLICY_INPUT, activeScaleLevel: 3 },
+    )).toMatchObject({
+      tickState: 'visible-labeled',
+      showLabel: true,
+      labelStrategy: 'month-contextual',
+    })
+    expect(getStructuralExpressionDecision(
+      weekFamily!,
+      { ...TEST_POLICY_INPUT, activeScaleLevel: 4 },
+    )).toMatchObject({
+      tickState: 'visible-labeled',
+      showLabel: true,
+      labelStrategy: 'week-number',
+    })
+    expect(getStructuralExpressionDecision(
+      quarterFamily!,
+      { ...TEST_POLICY_INPUT, activeScaleLevel: 4 },
+    )).toMatchObject({
+      tickState: 'visible-labeled',
+      showLabel: true,
+      labelStrategy: 'quarter-boundary-primary',
+    })
+    expect(getStructuralExpressionDecision(
+      quarterFamily!,
+      {
+        ...TEST_POLICY_INPUT,
+        activeScaleLevel: 4,
+        leadingCalendarSystemId: 'hebrew',
+      },
+    )).toMatchObject({
+      tickState: 'visible-labeled',
+      showLabel: true,
+      labelStrategy: 'quarter-boundary-secondary',
+    })
+    expect(getStructuralExpressionDecision(
       quarterFamily!,
       { ...TEST_POLICY_INPUT, activeScaleLevel: 5 },
     )).toMatchObject({
       tickState: 'visible-unlabeled',
       showLabel: false,
+    })
+    expect(getStructuralExpressionDecision(
+      monthFamily!,
+      { ...TEST_POLICY_INPUT, activeScaleLevel: 5 },
+    )).toMatchObject({
+      tickState: 'visible-labeled',
+      showLabel: true,
+      labelStrategy: 'month-in-year',
+    })
+    expect(getStructuralExpressionDecision(
+      yearFamily!,
+      { ...TEST_POLICY_INPUT, activeScaleLevel: 5 },
+    )).toMatchObject({
+      tickState: 'visible-labeled',
+      showLabel: true,
+      labelStrategy: 'year-boundary',
     })
   })
 

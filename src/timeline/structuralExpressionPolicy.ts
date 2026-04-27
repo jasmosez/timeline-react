@@ -56,6 +56,19 @@ export type StructuralExpressionPolicyInput = {
   environment: TimelineEnvironment
 }
 
+export type GregorianStructuralLabelStrategy =
+  | 'weekday-plus-day'
+  | 'week-plus-day'
+  | 'week-view-contextual'
+  | 'month-contextual'
+  | 'week-number'
+  | 'quarter-boundary-primary'
+  | 'quarter-boundary-secondary'
+  | 'year-boundary'
+  | 'month-in-year'
+
+export type StructuralTickLabelStrategy = GregorianStructuralLabelStrategy
+
 export type StructuralExpressionDecision = {
   tickState: StructuralExpressionTickState
   spanState: StructuralExpressionSpanState
@@ -63,6 +76,7 @@ export type StructuralExpressionDecision = {
   prominence: number
   showLabel: boolean
   showSpanLabel: boolean
+  labelStrategy?: StructuralTickLabelStrategy
 }
 
 export type StructuralTickInstanceVariantId =
@@ -83,7 +97,15 @@ export type StructuralExpressionMetadata = {
   structuralSignificance?: StructuralExpressionSignificance
 }
 
-type StructuralFamilyPolicyByKind = Partial<Record<string, Partial<StructuralExpressionDecision>>>
+type StructuralFamilyDecisionOverrides = Omit<Partial<StructuralExpressionDecision>, 'labelStrategy'>
+
+type StructuralFamilyPolicy = StructuralFamilyDecisionOverrides & {
+  labelStrategy?:
+    | StructuralTickLabelStrategy
+    | ((input: StructuralExpressionPolicyInput) => StructuralTickLabelStrategy | undefined)
+}
+
+type StructuralFamilyPolicyByKind = Partial<Record<string, StructuralFamilyPolicy>>
 
 type StructuralCalendarExpressionDeclaration = {
   activeSpanKindByScale: Partial<Record<ScaleLevel, string>>
@@ -119,24 +141,38 @@ const GREGORIAN_EXPRESSION_DECLARATION: StructuralCalendarExpressionDeclaration 
   },
   tickPolicyByScale: {
     [SCALE_WEEK]: {
-      day: { tickState: 'visible-labeled', showLabel: true },
-      week: { tickState: 'visible-labeled', showLabel: true },
-      month: { tickState: 'visible-labeled', showLabel: true },
+      day: { tickState: 'visible-labeled', showLabel: true, labelStrategy: 'weekday-plus-day' },
+      week: { tickState: 'visible-labeled', showLabel: true, labelStrategy: 'week-plus-day' },
+      month: { tickState: 'visible-labeled', showLabel: true, labelStrategy: 'week-view-contextual' },
     },
     [SCALE_MONTH]: {
-      day: { tickState: 'visible-labeled', showLabel: true },
-      week: { tickState: 'visible-labeled', showLabel: true },
-      month: { tickState: 'visible-labeled', showLabel: true },
-      quarter: { tickState: 'visible-labeled', showLabel: true },
+      day: { tickState: 'visible-labeled', showLabel: true, labelStrategy: 'month-contextual' },
+      week: { tickState: 'visible-labeled', showLabel: true, labelStrategy: 'month-contextual' },
+      month: { tickState: 'visible-labeled', showLabel: true, labelStrategy: 'month-contextual' },
+      quarter: { tickState: 'visible-labeled', showLabel: true, labelStrategy: 'month-contextual' },
     },
     [SCALE_QUARTER]: {
-      week: { tickState: 'visible-labeled', showLabel: true },
-      month: { tickState: 'visible-labeled', showLabel: true },
-      quarter: { tickState: 'visible-labeled', showLabel: true },
+      week: { tickState: 'visible-labeled', showLabel: true, labelStrategy: 'week-number' },
+      month: {
+        tickState: 'visible-labeled',
+        showLabel: true,
+        labelStrategy: (input) =>
+          input.leadingCalendarSystemId === 'gregorian'
+            ? 'quarter-boundary-primary'
+            : 'quarter-boundary-secondary',
+      },
+      quarter: {
+        tickState: 'visible-labeled',
+        showLabel: true,
+        labelStrategy: (input) =>
+          input.leadingCalendarSystemId === 'gregorian'
+            ? 'quarter-boundary-primary'
+            : 'quarter-boundary-secondary',
+      },
     },
     [SCALE_YEAR]: {
-      month: { tickState: 'visible-labeled', showLabel: true },
-      year: { tickState: 'visible-labeled', showLabel: true },
+      month: { tickState: 'visible-labeled', showLabel: true, labelStrategy: 'month-in-year' },
+      year: { tickState: 'visible-labeled', showLabel: true, labelStrategy: 'year-boundary' },
       quarter: { tickState: 'visible-unlabeled', showLabel: false },
     },
     [SCALE_DECADE]: {
@@ -242,6 +278,10 @@ const getCalendarStructuralExpressionDecision = (
     ? tickOverrides.tickState !== 'hidden'
     : !usesGovernedTickPolicy
 
+  const labelStrategy = typeof tickOverrides?.labelStrategy === 'function'
+    ? tickOverrides.labelStrategy(input)
+    : tickOverrides?.labelStrategy
+
   return createStructuralExpressionDecision({
     tickState: hasExplicitTickPolicy
       ? tickOverrides.tickState ?? 'visible-labeled'
@@ -253,6 +293,7 @@ const getCalendarStructuralExpressionDecision = (
     showLabel: hasExplicitTickPolicy
       ? tickOverrides.showLabel ?? true
       : !usesGovernedTickPolicy,
+    labelStrategy,
   })
 }
 
