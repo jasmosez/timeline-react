@@ -57,6 +57,10 @@ export type StructuralExpressionPolicyInput = {
 }
 
 export type GregorianStructuralLabelStrategy =
+  | 'minute-five-second'
+  | 'minute-top-of-minute'
+  | 'minute-top-of-hour'
+  | 'minute-midnight-boundary'
   | 'weekday-plus-day'
   | 'week-plus-day'
   | 'week-view-contextual'
@@ -89,7 +93,6 @@ export type StructuralTickInstanceVariantId =
   | 'default'
   | 'five-second'
   | 'top-of-hour'
-  | 'midnight-boundary'
 
 export type StructuralTickInstanceVariant = {
   id: StructuralTickInstanceVariantId
@@ -146,6 +149,25 @@ const GREGORIAN_EXPRESSION_DECLARATION: StructuralCalendarExpressionDeclaration 
     [SCALE_DECADE]: 'year',
   },
   tickPolicyByScale: {
+    [SCALE_MINUTE]: {
+      second: {
+        tickState: 'visible-unlabeled',
+        showLabel: false,
+        tickRankClass: 'tick-rank-ordinary',
+      },
+      minute: {
+        tickState: 'visible-labeled',
+        showLabel: true,
+        labelStrategy: 'minute-top-of-minute',
+        tickRankClass: 'tick-rank-secondary',
+      },
+      day: {
+        tickState: 'visible-labeled',
+        showLabel: true,
+        labelStrategy: 'minute-midnight-boundary',
+        tickRankClass: 'tick-rank-primary',
+      },
+    },
     [SCALE_WEEK]: {
       day: {
         tickState: 'visible-labeled',
@@ -290,6 +312,7 @@ const GREGORIAN_SECOND_INSTANCE_VARIANTS: StructuralTickInstanceVariant[] = [
     decision: {
       tickState: 'visible-labeled',
       showLabel: true,
+      labelStrategy: 'minute-five-second',
       prominence: 0.6,
     },
   },
@@ -297,24 +320,11 @@ const GREGORIAN_SECOND_INSTANCE_VARIANTS: StructuralTickInstanceVariant[] = [
 
 const GREGORIAN_MINUTE_INSTANCE_VARIANTS: StructuralTickInstanceVariant[] = [
   {
-    id: 'midnight-boundary',
-    matches: (tickTimeMs) => {
-      const tickDate = new Date(tickTimeMs)
-
-      return tickDate.getHours() === 0 && tickDate.getMinutes() === 0
-    },
-    decision: {
-      tickState: 'emphasized',
-      showLabel: true,
-      prominence: 1,
-    },
-  },
-  {
     id: 'top-of-hour',
     matches: (tickTimeMs) => new Date(tickTimeMs).getMinutes() === 0,
     decision: {
-      tickState: 'emphasized',
       showLabel: true,
+      labelStrategy: 'minute-top-of-hour',
       prominence: 0.9,
     },
   },

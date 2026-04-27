@@ -134,6 +134,31 @@ describe('gregorian structural layer', () => {
 
     expect(points.some((point) => point.label === ':05')).toBe(true)
     expect(points.some((point) => point.label === ':06')).toBe(false)
+    expect(
+      points.some((point) =>
+        point.label === ':05'
+        && point.className?.includes('tick-rank-ordinary'),
+      ),
+    ).toBe(true)
+  })
+
+  it('uses policy-driven label intent for ordinary top-of-minute ticks in minute view', () => {
+    const focusTimeMs = new Date('2026-04-20T12:01:05-04:00').getTime()
+    const visibleDurationMs = 20 * 1000
+    const points = createGregorianTickPoints({
+      leadingCalendarSystemId: 'gregorian',
+      activeScaleLevel: -1,
+      focusTimeMs,
+      visibleDurationMs,
+    })
+
+    expect(points.some((point) => point.label === '12:01 PM')).toBe(true)
+    expect(
+      points.some((point) =>
+        point.label === '12:01 PM'
+        && point.className?.includes('tick-rank-secondary'),
+      ),
+    ).toBe(true)
   })
 
   it('uses instance variance to promote the minute-family top-of-hour tick in minute view', () => {
@@ -150,6 +175,25 @@ describe('gregorian structural layer', () => {
       points.some((point) =>
         point.label === '1 PM'
         && point.className?.includes('tick-rank-secondary'),
+      ),
+    ).toBe(true)
+  })
+
+  it('uses day-family minute-view policy for midnight boundary ticks', () => {
+    const focusTimeMs = new Date('2026-04-20T00:00:05-04:00').getTime()
+    const visibleDurationMs = 20 * 1000
+    const points = createGregorianTickPoints({
+      leadingCalendarSystemId: 'gregorian',
+      activeScaleLevel: -1,
+      focusTimeMs,
+      visibleDurationMs,
+    })
+
+    expect(
+      points.some((point) =>
+        typeof point.label === 'string'
+        && point.label.includes('12 AM')
+        && point.className?.includes('tick-rank-primary'),
       ),
     ).toBe(true)
   })

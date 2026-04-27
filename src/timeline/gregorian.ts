@@ -6,7 +6,6 @@ import { augmentLabelWithPersonalTime } from './personalTime'
 import {
   createStructuralExpressionDecision,
   getStructuralExpressionDecision,
-  getStructuralTickInstanceVariantId,
   getStructuralSpanOpacity,
   getStructuralTickInstanceDecision,
   getStructuralTickOpacity,
@@ -121,12 +120,7 @@ const getGregorianPolicyAwareTickRankClass = (
   decision: StructuralExpressionDecision,
   scaleLevel: ScaleLevel,
   tickTime: number,
-  family: ReturnType<typeof getStructuralPeriodFamilyById> | undefined,
 ) => {
-  if (family && scaleLevel === -1) {
-    return getGregorianMinuteViewTickRankClass(family, tickTime)
-  }
-
   if (decision.tickRankClass) {
     return decision.tickRankClass
   }
@@ -139,22 +133,6 @@ const createTickPoint = (tickTime: number): TimelinePoint => ({
   kind: 'tick',
   timeMs: tickTime,
 })
-
-const getGregorianMinuteViewTickRankClass = (
-  family: NonNullable<ReturnType<typeof getStructuralPeriodFamilyById>>,
-  tickTime: number,
-) => {
-  const variantId = getStructuralTickInstanceVariantId(family, tickTime)
-
-  switch (variantId) {
-    case 'midnight-boundary':
-      return 'tick-rank-primary'
-    case 'top-of-hour':
-      return 'tick-rank-secondary'
-    default:
-      return 'tick-rank-ordinary'
-  }
-}
 
 const getGregorianPointFamilyId = (scaleLevel: ScaleLevel, tickTime: number) => {
   const tickDate = new Date(tickTime)
@@ -404,7 +382,7 @@ const addPositionedTicksForScaleLevel = (
             leadingCalendarSystemId === 'gregorian'
               ? 'structural-tick-leading'
               : 'structural-tick-supporting',
-            getGregorianPolicyAwareTickRankClass(decision, scaleLevel, tickTime, family),
+            getGregorianPolicyAwareTickRankClass(decision, scaleLevel, tickTime),
           ].join(' '),
           labelClassName: leadingCalendarSystemId === 'gregorian'
             ? 'structural-label-leading'

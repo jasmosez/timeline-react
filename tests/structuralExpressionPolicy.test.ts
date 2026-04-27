@@ -179,6 +179,43 @@ describe('structural expression policy skeleton', () => {
     })
   })
 
+  it('computes real Gregorian minute-view family decisions and instance variance', () => {
+    const secondFamily = getStructuralPeriodFamilyById(GREGORIAN_PERIOD_FAMILY_IDS.second)
+    const minuteFamily = getStructuralPeriodFamilyById(GREGORIAN_PERIOD_FAMILY_IDS.minute)
+    const dayFamily = getStructuralPeriodFamilyById(GREGORIAN_PERIOD_FAMILY_IDS.day)
+
+    expect(secondFamily).toBeDefined()
+    expect(minuteFamily).toBeDefined()
+    expect(dayFamily).toBeDefined()
+
+    expect(getStructuralExpressionDecision(
+      secondFamily!,
+      { ...TEST_POLICY_INPUT, activeScaleLevel: -1 },
+    )).toMatchObject({
+      tickState: 'visible-unlabeled',
+      showLabel: false,
+      tickRankClass: 'tick-rank-ordinary',
+    })
+    expect(getStructuralExpressionDecision(
+      minuteFamily!,
+      { ...TEST_POLICY_INPUT, activeScaleLevel: -1 },
+    )).toMatchObject({
+      tickState: 'visible-labeled',
+      showLabel: true,
+      labelStrategy: 'minute-top-of-minute',
+      tickRankClass: 'tick-rank-secondary',
+    })
+    expect(getStructuralExpressionDecision(
+      dayFamily!,
+      { ...TEST_POLICY_INPUT, activeScaleLevel: -1 },
+    )).toMatchObject({
+      tickState: 'visible-labeled',
+      showLabel: true,
+      labelStrategy: 'minute-midnight-boundary',
+      tickRankClass: 'tick-rank-primary',
+    })
+  })
+
   it('computes real Hebrew span decisions from family and scale', () => {
     const activeFamily = getStructuralPeriodFamilyById(HEBREW_PERIOD_FAMILY_IDS.day)
     const inactiveFamily = getStructuralPeriodFamilyById(HEBREW_PERIOD_FAMILY_IDS.month)
@@ -257,12 +294,14 @@ describe('structural expression policy skeleton', () => {
     ).toBe(0)
   })
 
-  it('classifies and overrides Gregorian second-family instance variance declaratively', () => {
+  it('classifies and overrides Gregorian minute-view instance variance declaratively', () => {
     const secondFamily = getStructuralPeriodFamilyById(GREGORIAN_PERIOD_FAMILY_IDS.second)
     const minuteFamily = getStructuralPeriodFamilyById(GREGORIAN_PERIOD_FAMILY_IDS.minute)
+    const dayFamily = getStructuralPeriodFamilyById(GREGORIAN_PERIOD_FAMILY_IDS.day)
 
     expect(secondFamily).toBeDefined()
     expect(minuteFamily).toBeDefined()
+    expect(dayFamily).toBeDefined()
     expect(
       getStructuralTickInstanceVariantId(
         secondFamily!,
@@ -277,16 +316,16 @@ describe('structural expression policy skeleton', () => {
     ).toBe('default')
     expect(
       getStructuralTickInstanceVariantId(
+        dayFamily!,
+        new Date('2026-04-02T00:00:00-04:00').getTime(),
+      ),
+    ).toBe('default')
+    expect(
+      getStructuralTickInstanceVariantId(
         minuteFamily!,
         new Date('2026-04-01T13:00:00-04:00').getTime(),
       ),
     ).toBe('top-of-hour')
-    expect(
-      getStructuralTickInstanceVariantId(
-        minuteFamily!,
-        new Date('2026-04-02T00:00:00-04:00').getTime(),
-      ),
-    ).toBe('midnight-boundary')
 
     expect(
       getStructuralTickInstanceDecision(
@@ -301,22 +340,26 @@ describe('structural expression policy skeleton', () => {
     ).toMatchObject({
       tickState: 'visible-labeled',
       showLabel: true,
+      labelStrategy: 'minute-five-second',
       prominence: 0.6,
     })
     expect(
       getStructuralTickInstanceDecision(
         minuteFamily!,
-        new Date('2026-04-02T00:00:00-04:00').getTime(),
+        new Date('2026-04-01T13:00:00-04:00').getTime(),
         createStructuralExpressionDecision({
           tickState: 'visible-labeled',
           showLabel: true,
+          labelStrategy: 'minute-top-of-minute',
+          tickRankClass: 'tick-rank-secondary',
           prominence: 0.5,
         }),
       ),
     ).toMatchObject({
-      tickState: 'emphasized',
       showLabel: true,
-      prominence: 1,
+      labelStrategy: 'minute-top-of-hour',
+      tickRankClass: 'tick-rank-secondary',
+      prominence: 0.9,
     })
   })
 

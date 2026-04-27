@@ -302,6 +302,14 @@ export const renderGregorianStructuralLabelStrategy = (
   const tickDate = new Date(tickTime)
 
   switch (labelStrategy) {
+    case 'minute-five-second':
+      return `:${String(tickDate.getSeconds()).padStart(2, '0')}`
+    case 'minute-top-of-minute':
+      return tickDate.toLocaleTimeString(LOCALE, { ...HOUR, ...MINUTE })
+    case 'minute-top-of-hour':
+      return tickDate.toLocaleTimeString(LOCALE, HOUR)
+    case 'minute-midnight-boundary':
+      return tickDate.toLocaleDateString(LOCALE, { ...WEEKDAY, ...DAY, ...HOUR })
     case 'weekday-plus-day':
       return `${tickDate.toLocaleDateString(LOCALE, WEEKDAY)} ${tickDate.toLocaleDateString(LOCALE, DAY)}`
     case 'week-plus-day':
