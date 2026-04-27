@@ -2,6 +2,8 @@ import {
   createStructuralExpressionDecision,
   getStructuralExpressionDecision,
   getStructuralSpanOpacity,
+  getStructuralTickInstanceDecision,
+  getStructuralTickInstanceVariantId,
   type StructuralExpressionPolicyInput,
 } from '../src/timeline/structuralExpressionPolicy'
 import {
@@ -165,6 +167,52 @@ describe('structural expression policy skeleton', () => {
     expect(
       getStructuralSpanOpacity(createStructuralExpressionDecision({ spanState: 'hidden' })),
     ).toBe(0)
+  })
+
+  it('classifies and overrides Gregorian second-family instance variance declaratively', () => {
+    const secondFamily = getStructuralPeriodFamilyById(GREGORIAN_PERIOD_FAMILY_IDS.second)
+
+    expect(secondFamily).toBeDefined()
+    expect(
+      getStructuralTickInstanceVariantId(
+        secondFamily!,
+        new Date('2026-04-01T12:00:05-04:00').getTime(),
+      ),
+    ).toBe('five-second')
+    expect(
+      getStructuralTickInstanceVariantId(
+        secondFamily!,
+        new Date('2026-04-01T12:01:00-04:00').getTime(),
+      ),
+    ).toBe('top-of-minute')
+    expect(
+      getStructuralTickInstanceVariantId(
+        secondFamily!,
+        new Date('2026-04-01T13:00:00-04:00').getTime(),
+      ),
+    ).toBe('top-of-hour')
+    expect(
+      getStructuralTickInstanceVariantId(
+        secondFamily!,
+        new Date('2026-04-02T00:00:00-04:00').getTime(),
+      ),
+    ).toBe('midnight-boundary')
+
+    expect(
+      getStructuralTickInstanceDecision(
+        secondFamily!,
+        new Date('2026-04-01T12:00:05-04:00').getTime(),
+        createStructuralExpressionDecision({
+          tickState: 'visible-unlabeled',
+          showLabel: false,
+          prominence: 0.2,
+        }),
+      ),
+    ).toMatchObject({
+      tickState: 'visible-labeled',
+      showLabel: true,
+      prominence: 0.6,
+    })
   })
 
   it('exposes seed period families by calendar', () => {

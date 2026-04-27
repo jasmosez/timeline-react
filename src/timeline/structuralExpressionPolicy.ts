@@ -55,6 +55,18 @@ export type StructuralExpressionDecision = {
   showSpanLabel: boolean
 }
 
+export type StructuralTickInstanceVariantId =
+  | 'default'
+  | 'five-second'
+  | 'top-of-minute'
+  | 'top-of-hour'
+  | 'midnight-boundary'
+
+export type StructuralTickInstanceVariant = {
+  id: StructuralTickInstanceVariantId
+  decision: Partial<StructuralExpressionDecision>
+}
+
 export type StructuralExpressionMetadata = {
   structuralPeriodFamilyId?: string
   structuralCalendarSystemId?: StructuralCalendarSystemId
@@ -255,4 +267,93 @@ export const getStructuralSpanOpacity = (
     default:
       return undefined
   }
+}
+
+const GREGORIAN_SECOND_INSTANCE_VARIANTS: StructuralTickInstanceVariant[] = [
+  {
+    id: 'five-second',
+    decision: {
+      tickState: 'visible-labeled',
+      showLabel: true,
+      prominence: 0.6,
+    },
+  },
+  {
+    id: 'top-of-minute',
+    decision: {
+      tickState: 'visible-labeled',
+      showLabel: true,
+      prominence: 0.8,
+    },
+  },
+  {
+    id: 'top-of-hour',
+    decision: {
+      tickState: 'emphasized',
+      showLabel: true,
+      prominence: 0.9,
+    },
+  },
+  {
+    id: 'midnight-boundary',
+    decision: {
+      tickState: 'emphasized',
+      showLabel: true,
+      prominence: 1,
+    },
+  },
+]
+
+export const getStructuralTickInstanceVariantId = (
+  family: StructuralPeriodFamilyDefinition,
+  tickTimeMs: number,
+): StructuralTickInstanceVariantId => {
+  if (family.calendarSystemId === 'gregorian' && family.kind === 'second') {
+    const tickDate = new Date(tickTimeMs)
+
+    if (
+      tickDate.getHours() === 0
+      && tickDate.getMinutes() === 0
+      && tickDate.getSeconds() === 0
+    ) {
+      return 'midnight-boundary'
+    }
+
+    if (tickDate.getMinutes() === 0 && tickDate.getSeconds() === 0) {
+      return 'top-of-hour'
+    }
+
+    if (tickDate.getSeconds() === 0) {
+      return 'top-of-minute'
+    }
+
+    if (tickDate.getSeconds() % 5 === 0) {
+      return 'five-second'
+    }
+  }
+
+  return 'default'
+}
+
+export const getStructuralTickInstanceDecision = (
+  family: StructuralPeriodFamilyDefinition,
+  tickTimeMs: number,
+  baseDecision: StructuralExpressionDecision,
+): StructuralExpressionDecision => {
+  const variantId = getStructuralTickInstanceVariantId(family, tickTimeMs)
+
+  if (variantId === 'default') {
+    return baseDecision
+  }
+
+  const variant = GREGORIAN_SECOND_INSTANCE_VARIANTS.find(
+    (candidate) => candidate.id === variantId,
+  )
+
+  return variant
+    ? createStructuralExpressionDecision({
+        ...baseDecision,
+        ...variant.decision,
+      })
+    : baseDecision
 }
