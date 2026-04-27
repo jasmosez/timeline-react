@@ -142,6 +142,9 @@ const getGregorianPointFamilyId = (scaleLevel: ScaleLevel, tickTime: number) => 
       if (tickDate.getHours() === 0 && tickDate.getMinutes() === 0 && tickDate.getSeconds() === 0) {
         return GREGORIAN_PERIOD_FAMILY_IDS.day
       }
+      if (tickDate.getMinutes() === 0 && tickDate.getSeconds() === 0) {
+        return GREGORIAN_PERIOD_FAMILY_IDS.hour
+      }
       if (tickDate.getSeconds() === 0) {
         return GREGORIAN_PERIOD_FAMILY_IDS.minute
       }

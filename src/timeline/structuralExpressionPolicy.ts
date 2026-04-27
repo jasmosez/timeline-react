@@ -92,7 +92,6 @@ export type StructuralExpressionDecision = {
 export type StructuralTickInstanceVariantId =
   | 'default'
   | 'five-second'
-  | 'top-of-hour'
 
 export type StructuralTickInstanceVariant = {
   id: StructuralTickInstanceVariantId
@@ -159,6 +158,12 @@ const GREGORIAN_EXPRESSION_DECLARATION: StructuralCalendarExpressionDeclaration 
         tickState: 'visible-labeled',
         showLabel: true,
         labelStrategy: 'minute-top-of-minute',
+        tickRankClass: 'tick-rank-secondary',
+      },
+      hour: {
+        tickState: 'visible-labeled',
+        showLabel: true,
+        labelStrategy: 'minute-top-of-hour',
         tickRankClass: 'tick-rank-secondary',
       },
       day: {
@@ -318,21 +323,8 @@ const GREGORIAN_SECOND_INSTANCE_VARIANTS: StructuralTickInstanceVariant[] = [
   },
 ]
 
-const GREGORIAN_MINUTE_INSTANCE_VARIANTS: StructuralTickInstanceVariant[] = [
-  {
-    id: 'top-of-hour',
-    matches: (tickTimeMs) => new Date(tickTimeMs).getMinutes() === 0,
-    decision: {
-      showLabel: true,
-      labelStrategy: 'minute-top-of-hour',
-      prominence: 0.9,
-    },
-  },
-]
-
 const GREGORIAN_INSTANCE_VARIANCE_DECLARATION: StructuralFamilyInstanceVarianceDeclaration = {
   second: GREGORIAN_SECOND_INSTANCE_VARIANTS,
-  minute: GREGORIAN_MINUTE_INSTANCE_VARIANTS,
 }
 
 const getCalendarStructuralExpressionDecision = (
