@@ -1,6 +1,7 @@
 import type { HebrewDayInfo } from './hebrewTime'
 import { getHebrewDayInfo } from './hebrewTime'
 import type { TimelineEnvironment } from './layers'
+import type { HebrewStructuralLabelStrategy } from './structuralExpressionPolicy'
 
 const HEBREW_WEEKDAY_NAMES = [
   'Rishon',
@@ -149,6 +150,30 @@ export const getHebrewTickLabel = (
   }
 
   return dayInfo.hebrewDate.label
+}
+
+export const renderHebrewStructuralLabelStrategy = (
+  labelStrategy: HebrewStructuralLabelStrategy,
+  dayInfo: HebrewDayInfo,
+  boundaryTimeMs: number,
+  isPrimary: boolean,
+) => {
+  switch (labelStrategy) {
+    case 'hebrew-week-scale':
+      return getHebrewTickLabel(2, dayInfo, boundaryTimeMs, isPrimary) ?? ''
+    case 'hebrew-month-scale':
+      return getHebrewTickLabel(3, dayInfo, boundaryTimeMs, isPrimary) ?? ''
+    case 'hebrew-quarter-scale-primary':
+      return getHebrewTickLabel(4, dayInfo, boundaryTimeMs, true) ?? ''
+    case 'hebrew-quarter-scale-secondary':
+      return getHebrewTickLabel(4, dayInfo, boundaryTimeMs, false) ?? ''
+    case 'hebrew-year-scale':
+      return getHebrewTickLabel(5, dayInfo, boundaryTimeMs, isPrimary) ?? ''
+    case 'hebrew-decade-scale':
+      return getHebrewTickLabel(6, dayInfo, boundaryTimeMs, isPrimary) ?? ''
+    default:
+      return ''
+  }
 }
 
 export const getHebrewContextLabel = (

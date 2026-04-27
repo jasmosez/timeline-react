@@ -77,7 +77,25 @@ export type GregorianStructuralLabelStrategy =
   | 'year-boundary'
   | 'month-in-year'
 
-export type StructuralTickLabelStrategy = GregorianStructuralLabelStrategy
+export type HebrewStructuralLabelStrategy =
+  | 'hebrew-week-scale'
+  | 'hebrew-month-scale'
+  | 'hebrew-quarter-scale-primary'
+  | 'hebrew-quarter-scale-secondary'
+  | 'hebrew-year-scale'
+  | 'hebrew-decade-scale'
+
+export type StructuralTickLabelStrategy =
+  | GregorianStructuralLabelStrategy
+  | HebrewStructuralLabelStrategy
+
+export const isGregorianStructuralLabelStrategy = (
+  labelStrategy: StructuralTickLabelStrategy,
+): labelStrategy is GregorianStructuralLabelStrategy => !labelStrategy.startsWith('hebrew-')
+
+export const isHebrewStructuralLabelStrategy = (
+  labelStrategy: StructuralTickLabelStrategy,
+): labelStrategy is HebrewStructuralLabelStrategy => labelStrategy.startsWith('hebrew-')
 
 export type StructuralTickRankClass =
   | 'tick-rank-ordinary'
@@ -330,28 +348,103 @@ const HEBREW_EXPRESSION_DECLARATION: StructuralCalendarExpressionDeclaration = {
   },
   tickPolicyByScale: {
     [SCALE_WEEK]: {
-      day: { tickState: 'visible-labeled', showLabel: true },
-      week: { tickState: 'visible-labeled', showLabel: true },
-      month: { tickState: 'visible-labeled', showLabel: true },
+      day: {
+        tickState: 'visible-labeled',
+        showLabel: true,
+        labelStrategy: 'hebrew-week-scale',
+        tickRankClass: 'tick-rank-ordinary',
+      },
+      week: {
+        tickState: 'visible-labeled',
+        showLabel: true,
+        labelStrategy: 'hebrew-week-scale',
+        tickRankClass: 'tick-rank-secondary',
+      },
+      month: {
+        tickState: 'visible-labeled',
+        showLabel: true,
+        labelStrategy: 'hebrew-week-scale',
+        tickRankClass: 'tick-rank-primary',
+      },
     },
     [SCALE_MONTH]: {
-      day: { tickState: 'visible-labeled', showLabel: true },
-      week: { tickState: 'visible-labeled', showLabel: true },
-      month: { tickState: 'visible-labeled', showLabel: true },
-      quarter: { tickState: 'visible-labeled', showLabel: true },
+      day: {
+        tickState: 'visible-labeled',
+        showLabel: true,
+        labelStrategy: 'hebrew-month-scale',
+        tickRankClass: 'tick-rank-ordinary',
+      },
+      week: {
+        tickState: 'visible-labeled',
+        showLabel: true,
+        labelStrategy: 'hebrew-month-scale',
+        tickRankClass: 'tick-rank-secondary',
+      },
+      month: {
+        tickState: 'visible-labeled',
+        showLabel: true,
+        labelStrategy: 'hebrew-month-scale',
+        tickRankClass: 'tick-rank-primary',
+      },
+      quarter: {
+        tickState: 'visible-labeled',
+        showLabel: true,
+        labelStrategy: 'hebrew-month-scale',
+        tickRankClass: 'tick-rank-primary',
+      },
     },
     [SCALE_QUARTER]: {
-      month: { tickState: 'visible-labeled', showLabel: true },
-      quarter: { tickState: 'visible-labeled', showLabel: true },
+      month: {
+        tickState: 'visible-labeled',
+        showLabel: true,
+        labelStrategy: (input) =>
+          input.leadingCalendarSystemId === 'hebrew'
+            ? 'hebrew-quarter-scale-primary'
+            : 'hebrew-quarter-scale-secondary',
+        tickRankClass: 'tick-rank-secondary',
+      },
+      quarter: {
+        tickState: 'visible-labeled',
+        showLabel: true,
+        labelStrategy: (input) =>
+          input.leadingCalendarSystemId === 'hebrew'
+            ? 'hebrew-quarter-scale-primary'
+            : 'hebrew-quarter-scale-secondary',
+        tickRankClass: 'tick-rank-primary',
+      },
     },
     [SCALE_YEAR]: {
-      month: { tickState: 'visible-labeled', showLabel: true },
-      year: { tickState: 'visible-labeled', showLabel: true },
-      quarter: { tickState: 'visible-unlabeled', showLabel: false },
+      month: {
+        tickState: 'visible-labeled',
+        showLabel: true,
+        labelStrategy: 'hebrew-year-scale',
+        tickRankClass: 'tick-rank-ordinary',
+      },
+      year: {
+        tickState: 'visible-labeled',
+        showLabel: true,
+        labelStrategy: 'hebrew-year-scale',
+        tickRankClass: 'tick-rank-primary',
+      },
+      quarter: {
+        tickState: 'visible-unlabeled',
+        showLabel: false,
+        tickRankClass: 'tick-rank-secondary',
+      },
     },
     [SCALE_DECADE]: {
-      year: { tickState: 'visible-labeled', showLabel: true },
-      shmita: { tickState: 'visible-labeled', showLabel: true },
+      year: {
+        tickState: 'visible-labeled',
+        showLabel: true,
+        labelStrategy: 'hebrew-decade-scale',
+        tickRankClass: 'tick-rank-ordinary',
+      },
+      shmita: {
+        tickState: 'visible-labeled',
+        showLabel: true,
+        labelStrategy: 'hebrew-decade-scale',
+        tickRankClass: 'tick-rank-primary',
+      },
     },
   },
 }

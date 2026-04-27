@@ -299,6 +299,77 @@ describe('hebrew structural layer', () => {
     ).toBe(true)
   })
 
+  it('preserves hebrew week-scale labels and ranks under policy-driven label intent', () => {
+    const points = createHebrewStructuralPoints({
+      leadingCalendarSystemId: 'hebrew',
+      activeScaleLevel: 2,
+      focusTimeMs: new Date('2026-04-18T12:00:00-04:00').getTime(),
+      visibleDurationMs: 8 * 24 * 60 * 60 * 1000,
+      environment: TEST_ENVIRONMENT,
+    })
+
+    expect(points.some((point) => point.label === 'Iyyar, Shabbat 1')).toBe(true)
+    expect(points.some((point) => point.label === 'Shabbat 8')).toBe(true)
+    expect(points.some((point) => point.label === 'Rishon 9')).toBe(true)
+    expect(
+      points.some((point) =>
+        point.label === 'Iyyar, Shabbat 1'
+        && point.className?.includes('tick-rank-primary'),
+      ),
+    ).toBe(true)
+    expect(
+      points.some((point) =>
+        point.label === 'Rishon 9'
+        && point.className?.includes('tick-rank-secondary'),
+      ),
+    ).toBe(true)
+  })
+
+  it('preserves hebrew quarter-scale labels and ranks under policy-driven label intent', () => {
+    const points = createHebrewStructuralPoints({
+      leadingCalendarSystemId: 'hebrew',
+      activeScaleLevel: 4,
+      focusTimeMs: new Date('2026-04-01T12:00:00-04:00').getTime(),
+      visibleDurationMs: 120 * 24 * 60 * 60 * 1000,
+      environment: TEST_ENVIRONMENT,
+    })
+
+    expect(points.some((point) => point.label === 'Q3, Nisan')).toBe(true)
+    expect(points.some((point) => point.label === 'Iyyar')).toBe(true)
+    expect(
+      points.some((point) =>
+        point.label === 'Q3, Nisan'
+        && point.className?.includes('tick-rank-primary'),
+      ),
+    ).toBe(true)
+    expect(
+      points.some((point) =>
+        point.label === 'Iyyar'
+        && point.className?.includes('tick-rank-secondary'),
+      ),
+    ).toBe(true)
+  })
+
+  it('preserves hebrew year-scale labels and quarter helper ranks under policy-driven label intent', () => {
+    const points = createHebrewStructuralPoints({
+      leadingCalendarSystemId: 'hebrew',
+      activeScaleLevel: 5,
+      focusTimeMs: new Date('2026-04-01T12:00:00-04:00').getTime(),
+      visibleDurationMs: 366 * 24 * 60 * 60 * 1000,
+      environment: TEST_ENVIRONMENT,
+    })
+
+    expect(points.some((point) => point.label === '5786, Tishrei')).toBe(true)
+    expect(points.some((point) => point.label === 'Nisan')).toBe(true)
+    expect(points.some((point) => point.label === '' && point.className?.includes('tick-rank-secondary'))).toBe(true)
+    expect(
+      points.some((point) =>
+        point.label === '5786, Tishrei'
+        && point.className?.includes('tick-rank-primary'),
+      ),
+    ).toBe(true)
+  })
+
   it('attaches structural period family metadata to hebrew spans', () => {
     const intradaySpans = createHebrewStructuralSpans({
       leadingCalendarSystemId: 'hebrew',

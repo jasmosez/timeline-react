@@ -332,11 +332,17 @@ describe('structural expression policy skeleton', () => {
 
   it('computes real Hebrew tick decisions for calmer structural scales', () => {
     const dayFamily = getStructuralPeriodFamilyById(HEBREW_PERIOD_FAMILY_IDS.day)
+    const weekFamily = getStructuralPeriodFamilyById(HEBREW_PERIOD_FAMILY_IDS.week)
+    const monthFamily = getStructuralPeriodFamilyById(HEBREW_PERIOD_FAMILY_IDS.month)
     const quarterFamily = getStructuralPeriodFamilyById(HEBREW_PERIOD_FAMILY_IDS.quarter)
+    const yearFamily = getStructuralPeriodFamilyById(HEBREW_PERIOD_FAMILY_IDS.year)
     const shmitaFamily = getStructuralPeriodFamilyById(HEBREW_PERIOD_FAMILY_IDS.shmita)
 
     expect(dayFamily).toBeDefined()
+    expect(weekFamily).toBeDefined()
+    expect(monthFamily).toBeDefined()
     expect(quarterFamily).toBeDefined()
+    expect(yearFamily).toBeDefined()
     expect(shmitaFamily).toBeDefined()
 
     expect(getStructuralExpressionDecision(
@@ -345,6 +351,26 @@ describe('structural expression policy skeleton', () => {
     )).toMatchObject({
       tickState: 'visible-labeled',
       showLabel: true,
+      labelStrategy: 'hebrew-week-scale',
+      tickRankClass: 'tick-rank-ordinary',
+    })
+    expect(getStructuralExpressionDecision(
+      weekFamily!,
+      { ...TEST_POLICY_INPUT, activeScaleLevel: 2 },
+    )).toMatchObject({
+      tickState: 'visible-labeled',
+      showLabel: true,
+      labelStrategy: 'hebrew-week-scale',
+      tickRankClass: 'tick-rank-secondary',
+    })
+    expect(getStructuralExpressionDecision(
+      monthFamily!,
+      { ...TEST_POLICY_INPUT, activeScaleLevel: 2 },
+    )).toMatchObject({
+      tickState: 'visible-labeled',
+      showLabel: true,
+      labelStrategy: 'hebrew-week-scale',
+      tickRankClass: 'tick-rank-primary',
     })
     expect(getStructuralExpressionDecision(
       quarterFamily!,
@@ -354,11 +380,61 @@ describe('structural expression policy skeleton', () => {
       showLabel: false,
     })
     expect(getStructuralExpressionDecision(
+      dayFamily!,
+      { ...TEST_POLICY_INPUT, activeScaleLevel: 3 },
+    )).toMatchObject({
+      tickState: 'visible-labeled',
+      showLabel: true,
+      labelStrategy: 'hebrew-month-scale',
+      tickRankClass: 'tick-rank-ordinary',
+    })
+    expect(getStructuralExpressionDecision(
+      monthFamily!,
+      { ...TEST_POLICY_INPUT, activeScaleLevel: 4 },
+    )).toMatchObject({
+      tickState: 'visible-labeled',
+      showLabel: true,
+      labelStrategy: 'hebrew-quarter-scale-secondary',
+      tickRankClass: 'tick-rank-secondary',
+    })
+    expect(getStructuralExpressionDecision(
+      quarterFamily!,
+      { ...TEST_POLICY_INPUT, activeScaleLevel: 4 },
+    )).toMatchObject({
+      tickState: 'visible-labeled',
+      showLabel: true,
+      labelStrategy: 'hebrew-quarter-scale-secondary',
+      tickRankClass: 'tick-rank-primary',
+    })
+    expect(getStructuralExpressionDecision(
+      quarterFamily!,
+      {
+        ...TEST_POLICY_INPUT,
+        activeScaleLevel: 4,
+        leadingCalendarSystemId: 'hebrew',
+      },
+    )).toMatchObject({
+      tickState: 'visible-labeled',
+      showLabel: true,
+      labelStrategy: 'hebrew-quarter-scale-primary',
+      tickRankClass: 'tick-rank-primary',
+    })
+    expect(getStructuralExpressionDecision(
       quarterFamily!,
       { ...TEST_POLICY_INPUT, activeScaleLevel: 5 },
     )).toMatchObject({
       tickState: 'visible-unlabeled',
       showLabel: false,
+      tickRankClass: 'tick-rank-secondary',
+    })
+    expect(getStructuralExpressionDecision(
+      yearFamily!,
+      { ...TEST_POLICY_INPUT, activeScaleLevel: 5 },
+    )).toMatchObject({
+      tickState: 'visible-labeled',
+      showLabel: true,
+      labelStrategy: 'hebrew-year-scale',
+      tickRankClass: 'tick-rank-primary',
     })
     expect(getStructuralExpressionDecision(
       shmitaFamily!,
@@ -366,6 +442,8 @@ describe('structural expression policy skeleton', () => {
     )).toMatchObject({
       tickState: 'visible-labeled',
       showLabel: true,
+      labelStrategy: 'hebrew-decade-scale',
+      tickRankClass: 'tick-rank-primary',
     })
   })
 

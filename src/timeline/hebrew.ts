@@ -3,12 +3,14 @@ import { positionTimelinePoint, positionTimelineSpan } from './layout'
 import { getVisibleRangeStartTickDate, getVisibleTimeRange, type ScaleLevel } from './scales'
 import type { PositionedTimelinePoint, PositionedTimelineSpan, TimelinePoint, TimelineSpan } from './types'
 import { getCivilDateAtNoonUtc, getHebrewDayInfo, isHebrewQuarterStartMonth } from './hebrewTime'
-import { getHebrewTickLabel } from './hebrewLabels'
+import { getHebrewTickLabel, renderHebrewStructuralLabelStrategy } from './hebrewLabels'
 import { augmentLabelWithPersonalTime } from './personalTime'
 import {
   createStructuralExpressionDecision,
   getStructuralExpressionDecision,
   getStructuralSpanOpacity,
+  isHebrewStructuralLabelStrategy,
+  type StructuralExpressionDecision,
   type StructuralExpressionMetadata,
 } from './structuralExpressionPolicy'
 import {
@@ -174,45 +176,28 @@ const getLeapYearsBeforeHebrewYear = (year: number) => {
     + HEBREW_LEAP_POSITIONS.filter((position) => position <= cycleRemainder).length
 }
 
-const getHebrewTickRankClass = (
+const getHebrewPolicyAwareTickLabel = (
+  decision: StructuralExpressionDecision,
   activeScaleLevel: ScaleLevel,
   dayInfo: ReturnType<typeof getHebrewDayInfo>,
+  boundaryTimeMs: number,
+  isLeading: boolean,
 ) => {
-  switch (activeScaleLevel) {
-    case -1:
-    case 0:
-      return 'tick-rank-primary'
-    case 1:
-      return 'tick-rank-secondary'
-    case 2:
-    case 3:
-      if (dayInfo.hebrewDate.day === 1) {
-        return 'tick-rank-primary'
-      }
-      if (dayInfo.hdate.getDay() === 0) {
-        return 'tick-rank-secondary'
-      }
-      return 'tick-rank-ordinary'
-    case 4:
-      if (dayInfo.hebrewDate.day === 1) {
-        return isHebrewQuarterStartMonth(dayInfo.hebrewDate.month)
-          ? 'tick-rank-primary'
-          : 'tick-rank-secondary'
-      }
-      if (ENABLE_HEBREW_QUARTER_WEEK_TICKS && dayInfo.hdate.getDay() === 0) {
-        return 'tick-rank-ordinary'
-      }
-      return 'tick-rank-ordinary'
-    case 5:
-      return dayInfo.hebrewDate.month === 7 ? 'tick-rank-primary' : 'tick-rank-ordinary'
-    case 6:
-      if (dayInfo.hebrewDate.year % 7 === 1) {
-        return 'tick-rank-primary'
-      }
-      return 'tick-rank-ordinary'
-    default:
-      return 'tick-rank-ordinary'
+  if (decision.labelStrategy && isHebrewStructuralLabelStrategy(decision.labelStrategy)) {
+    return renderHebrewStructuralLabelStrategy(
+      decision.labelStrategy,
+      dayInfo,
+      boundaryTimeMs,
+      isLeading,
+    )
   }
+
+  return getHebrewTickLabel(
+    activeScaleLevel,
+    dayInfo,
+    boundaryTimeMs,
+    isLeading,
+  ) ?? ''
 }
 
 const collectHebrewBoundaries = (
@@ -278,13 +263,35 @@ const addHebrewYearQuarterBoundaryTicks = (
       return
     }
 
+    const family = getStructuralPeriodFamilyById(HEBREW_PERIOD_FAMILY_IDS.quarter)
+    const decision = family
+      ? getStructuralExpressionDecision(family, {
+          activeScaleLevel: 5,
+          visibleDurationMs,
+          leadingCalendarSystemId,
+          environment,
+        })
+      : createStructuralExpressionDecision()
+
+    if (decision.tickState === 'hidden') {
+      return
+    }
+
     points.push(
       positionTimelinePoint(
         {
           id: `hebrew-year-quarter-${timeMs}`,
           kind: 'tick',
           timeMs,
-          label: '',
+          label: decision.showLabel
+            ? getHebrewPolicyAwareTickLabel(
+                decision,
+                5,
+                dayInfo,
+                timeMs,
+                leadingCalendarSystemId === 'hebrew',
+              )
+            : '',
           structuralMetadata: getHebrewStructuralMetadata(HEBREW_PERIOD_FAMILY_IDS.quarter),
         },
         5,
@@ -297,7 +304,7 @@ const addHebrewYearQuarterBoundaryTicks = (
               ? 'structural-tick-leading'
               : 'structural-tick-supporting',
             'hebrew-tick',
-            'tick-rank-secondary',
+            decision.tickRankClass ?? 'tick-rank-ordinary',
           ].join(' '),
           labelClassName: leadingCalendarSystemId === 'hebrew'
             ? 'hebrew-label structural-label-leading'
@@ -339,12 +346,13 @@ export const createHebrewStructuralPoints = ({
       return
     }
 
-    const rawLabel = getHebrewTickLabel(
+    const rawLabel = getHebrewPolicyAwareTickLabel(
+      decision,
       activeScaleLevel,
       dayInfo,
       timeMs,
       isLeading,
-    ) ?? label
+    ) || label
     const point: TimelinePoint = {
       id: `hebrew-${timeMs}`,
       kind: 'tick',
@@ -377,7 +385,7 @@ export const createHebrewStructuralPoints = ({
               ? 'structural-tick-leading'
               : 'structural-tick-supporting',
             'hebrew-tick',
-            getHebrewTickRankClass(activeScaleLevel, dayInfo),
+            decision.tickRankClass ?? 'tick-rank-ordinary',
           ].join(' '),
           labelClassName: leadingCalendarSystemId === 'hebrew'
             ? 'hebrew-label structural-label-leading'
