@@ -1,4 +1,14 @@
-import type { ScaleLevel } from './scales'
+import {
+  SCALE_DAY,
+  SCALE_DECADE,
+  SCALE_HOUR,
+  SCALE_MINUTE,
+  SCALE_MONTH,
+  SCALE_QUARTER,
+  SCALE_WEEK,
+  SCALE_YEAR,
+  type ScaleLevel,
+} from './scales'
 import type { LeadingCalendarSystemId, TimelineEnvironment } from './layers'
 
 export type StructuralCalendarSystemId = 'gregorian' | 'hebrew' | 'life-relative'
@@ -72,6 +82,17 @@ export type StructuralExpressionMetadata = {
   structuralSignificance?: StructuralExpressionSignificance
 }
 
+type StructuralFamilyPolicyByKind = Partial<Record<string, Partial<StructuralExpressionDecision>>>
+
+type StructuralCalendarExpressionDeclaration = {
+  activeSpanKindByScale: Partial<Record<ScaleLevel, string>>
+  tickPolicyByScale: Partial<Record<ScaleLevel, StructuralFamilyPolicyByKind>>
+}
+
+type StructuralFamilyInstanceVarianceDeclaration = Partial<
+  Record<string, StructuralTickInstanceVariant[]>
+>
+
 export const createStructuralExpressionDecision = (
   overrides: Partial<StructuralExpressionDecision> = {},
 ): StructuralExpressionDecision => ({
@@ -84,201 +105,83 @@ export const createStructuralExpressionDecision = (
   ...overrides,
 })
 
-const GREGORIAN_TICK_POLICY_BY_SCALE: Partial<
-  Record<ScaleLevel, Partial<Record<string, Partial<StructuralExpressionDecision>>>>
-> = {
-  2: {
-    day: { tickState: 'visible-labeled', showLabel: true },
-    week: { tickState: 'visible-labeled', showLabel: true },
-    month: { tickState: 'visible-labeled', showLabel: true },
+const GREGORIAN_EXPRESSION_DECLARATION: StructuralCalendarExpressionDeclaration = {
+  activeSpanKindByScale: {
+    [SCALE_MINUTE]: 'second',
+    [SCALE_HOUR]: 'minute',
+    [SCALE_DAY]: 'hour',
+    [SCALE_WEEK]: 'day',
+    [SCALE_MONTH]: 'day',
+    [SCALE_QUARTER]: 'week',
+    [SCALE_YEAR]: 'month',
+    [SCALE_DECADE]: 'year',
   },
-  3: {
-    day: { tickState: 'visible-labeled', showLabel: true },
-    week: { tickState: 'visible-labeled', showLabel: true },
-    month: { tickState: 'visible-labeled', showLabel: true },
-    quarter: { tickState: 'visible-labeled', showLabel: true },
-  },
-  4: {
-    week: { tickState: 'visible-labeled', showLabel: true },
-    month: { tickState: 'visible-labeled', showLabel: true },
-    quarter: { tickState: 'visible-labeled', showLabel: true },
-  },
-  5: {
-    month: { tickState: 'visible-labeled', showLabel: true },
-    year: { tickState: 'visible-labeled', showLabel: true },
-    quarter: { tickState: 'visible-unlabeled', showLabel: false },
-  },
-  6: {
-    year: { tickState: 'visible-labeled', showLabel: true },
-    decade: { tickState: 'visible-labeled', showLabel: true },
-  },
-}
-
-const HEBREW_TICK_POLICY_BY_SCALE: Partial<
-  Record<ScaleLevel, Partial<Record<string, Partial<StructuralExpressionDecision>>>>
-> = {
-  2: {
-    day: { tickState: 'visible-labeled', showLabel: true },
-    week: { tickState: 'visible-labeled', showLabel: true },
-    month: { tickState: 'visible-labeled', showLabel: true },
-  },
-  3: {
-    day: { tickState: 'visible-labeled', showLabel: true },
-    week: { tickState: 'visible-labeled', showLabel: true },
-    month: { tickState: 'visible-labeled', showLabel: true },
-    quarter: { tickState: 'visible-labeled', showLabel: true },
-  },
-  4: {
-    month: { tickState: 'visible-labeled', showLabel: true },
-    quarter: { tickState: 'visible-labeled', showLabel: true },
-  },
-  5: {
-    month: { tickState: 'visible-labeled', showLabel: true },
-    year: { tickState: 'visible-labeled', showLabel: true },
-    quarter: { tickState: 'visible-unlabeled', showLabel: false },
-  },
-  6: {
-    year: { tickState: 'visible-labeled', showLabel: true },
-    shmita: { tickState: 'visible-labeled', showLabel: true },
+  tickPolicyByScale: {
+    [SCALE_WEEK]: {
+      day: { tickState: 'visible-labeled', showLabel: true },
+      week: { tickState: 'visible-labeled', showLabel: true },
+      month: { tickState: 'visible-labeled', showLabel: true },
+    },
+    [SCALE_MONTH]: {
+      day: { tickState: 'visible-labeled', showLabel: true },
+      week: { tickState: 'visible-labeled', showLabel: true },
+      month: { tickState: 'visible-labeled', showLabel: true },
+      quarter: { tickState: 'visible-labeled', showLabel: true },
+    },
+    [SCALE_QUARTER]: {
+      week: { tickState: 'visible-labeled', showLabel: true },
+      month: { tickState: 'visible-labeled', showLabel: true },
+      quarter: { tickState: 'visible-labeled', showLabel: true },
+    },
+    [SCALE_YEAR]: {
+      month: { tickState: 'visible-labeled', showLabel: true },
+      year: { tickState: 'visible-labeled', showLabel: true },
+      quarter: { tickState: 'visible-unlabeled', showLabel: false },
+    },
+    [SCALE_DECADE]: {
+      year: { tickState: 'visible-labeled', showLabel: true },
+      decade: { tickState: 'visible-labeled', showLabel: true },
+    },
   },
 }
 
-const getGregorianActiveSpanKind = (activeScaleLevel: ScaleLevel) => {
-  switch (activeScaleLevel) {
-    case -1:
-      return 'second'
-    case 0:
-      return 'minute'
-    case 1:
-      return 'hour'
-    case 2:
-    case 3:
-      return 'day'
-    case 4:
-      return 'week'
-    case 5:
-      return 'month'
-    case 6:
-      return 'year'
-    default:
-      return null
-  }
-}
-
-const getGregorianStructuralExpressionDecision = (
-  family: StructuralPeriodFamilyDefinition,
-  input: StructuralExpressionPolicyInput,
-): StructuralExpressionDecision => {
-  const activeSpanKind = getGregorianActiveSpanKind(input.activeScaleLevel)
-  const tickPolicyForScale = GREGORIAN_TICK_POLICY_BY_SCALE[input.activeScaleLevel]
-  const isActiveSpanFamily = family.supportsIntervalExpression && family.kind === activeSpanKind
-  const tickOverrides = tickPolicyForScale?.[family.kind]
-  const hasExplicitTickPolicy = tickOverrides !== undefined
-  const usesGovernedTickPolicy = tickPolicyForScale !== undefined
-  const isActiveTickFamily = hasExplicitTickPolicy
-    ? tickOverrides.tickState !== 'hidden'
-    : !usesGovernedTickPolicy
-
-  return createStructuralExpressionDecision({
-    tickState: hasExplicitTickPolicy
-      ? tickOverrides.tickState ?? 'visible-labeled'
-      : usesGovernedTickPolicy
-      ? 'hidden'
-      : 'visible-labeled',
-    spanState: isActiveSpanFamily ? 'visible' : 'hidden',
-    prominence: isActiveTickFamily || isActiveSpanFamily ? 1 : 0,
-    showLabel: hasExplicitTickPolicy
-      ? tickOverrides.showLabel ?? true
-      : !usesGovernedTickPolicy,
-  })
-}
-
-const getHebrewActiveSpanKind = (activeScaleLevel: ScaleLevel) => {
-  switch (activeScaleLevel) {
-    case -1:
-    case 0:
-    case 1:
-      return 'zmanim'
-    case 2:
-    case 3:
-      return 'day'
-    case 4:
-    case 5:
-      return 'month'
-    case 6:
-      return 'year'
-    default:
-      return null
-  }
-}
-
-const getHebrewStructuralExpressionDecision = (
-  family: StructuralPeriodFamilyDefinition,
-  input: StructuralExpressionPolicyInput,
-): StructuralExpressionDecision => {
-  const activeSpanKind = getHebrewActiveSpanKind(input.activeScaleLevel)
-  const tickPolicyForScale = HEBREW_TICK_POLICY_BY_SCALE[input.activeScaleLevel]
-  const isActiveSpanFamily = family.supportsIntervalExpression && family.kind === activeSpanKind
-  const tickOverrides = tickPolicyForScale?.[family.kind]
-  const hasExplicitTickPolicy = tickOverrides !== undefined
-  const usesGovernedTickPolicy = tickPolicyForScale !== undefined
-  const isActiveTickFamily = hasExplicitTickPolicy
-    ? tickOverrides.tickState !== 'hidden'
-    : !usesGovernedTickPolicy
-
-  return createStructuralExpressionDecision({
-    tickState: hasExplicitTickPolicy
-      ? tickOverrides.tickState ?? 'visible-labeled'
-      : usesGovernedTickPolicy
-      ? 'hidden'
-      : 'visible-labeled',
-    spanState: isActiveSpanFamily ? 'visible' : 'hidden',
-    prominence: isActiveTickFamily || isActiveSpanFamily ? 1 : 0,
-    showLabel: hasExplicitTickPolicy
-      ? tickOverrides.showLabel ?? true
-      : !usesGovernedTickPolicy,
-  })
-}
-
-export const getStructuralExpressionDecision = (
-  family: StructuralPeriodFamilyDefinition,
-  input: StructuralExpressionPolicyInput,
-): StructuralExpressionDecision => {
-  if (family.calendarSystemId === 'gregorian') {
-    return getGregorianStructuralExpressionDecision(family, input)
-  }
-
-  if (family.calendarSystemId === 'hebrew') {
-    return getHebrewStructuralExpressionDecision(family, input)
-  }
-
-  return createStructuralExpressionDecision()
-}
-
-export const getStructuralSpanOpacity = (
-  decision: StructuralExpressionDecision,
-): number | undefined => {
-  switch (decision.spanState) {
-    case 'hidden':
-      return 0
-    case 'visible-faint':
-      return 0.35
-    default:
-      return undefined
-  }
-}
-
-export const getStructuralTickOpacity = (
-  decision: StructuralExpressionDecision,
-): number | undefined => {
-  switch (decision.tickState) {
-    case 'hidden':
-      return 0
-    case 'visible-faint':
-      return 0.35
-    default:
-      return undefined
-  }
+const HEBREW_EXPRESSION_DECLARATION: StructuralCalendarExpressionDeclaration = {
+  activeSpanKindByScale: {
+    [SCALE_MINUTE]: 'zmanim',
+    [SCALE_HOUR]: 'zmanim',
+    [SCALE_DAY]: 'zmanim',
+    [SCALE_WEEK]: 'day',
+    [SCALE_MONTH]: 'day',
+    [SCALE_QUARTER]: 'month',
+    [SCALE_YEAR]: 'month',
+    [SCALE_DECADE]: 'year',
+  },
+  tickPolicyByScale: {
+    [SCALE_WEEK]: {
+      day: { tickState: 'visible-labeled', showLabel: true },
+      week: { tickState: 'visible-labeled', showLabel: true },
+      month: { tickState: 'visible-labeled', showLabel: true },
+    },
+    [SCALE_MONTH]: {
+      day: { tickState: 'visible-labeled', showLabel: true },
+      week: { tickState: 'visible-labeled', showLabel: true },
+      month: { tickState: 'visible-labeled', showLabel: true },
+      quarter: { tickState: 'visible-labeled', showLabel: true },
+    },
+    [SCALE_QUARTER]: {
+      month: { tickState: 'visible-labeled', showLabel: true },
+      quarter: { tickState: 'visible-labeled', showLabel: true },
+    },
+    [SCALE_YEAR]: {
+      month: { tickState: 'visible-labeled', showLabel: true },
+      year: { tickState: 'visible-labeled', showLabel: true },
+      quarter: { tickState: 'visible-unlabeled', showLabel: false },
+    },
+    [SCALE_DECADE]: {
+      year: { tickState: 'visible-labeled', showLabel: true },
+      shmita: { tickState: 'visible-labeled', showLabel: true },
+    },
+  },
 }
 
 const GREGORIAN_SECOND_INSTANCE_VARIANTS: StructuralTickInstanceVariant[] = [
@@ -310,6 +213,89 @@ const GREGORIAN_MINUTE_INSTANCE_VARIANTS: StructuralTickInstanceVariant[] = [
     },
   },
 ]
+
+const GREGORIAN_INSTANCE_VARIANCE_DECLARATION: StructuralFamilyInstanceVarianceDeclaration = {
+  second: GREGORIAN_SECOND_INSTANCE_VARIANTS,
+  minute: GREGORIAN_MINUTE_INSTANCE_VARIANTS,
+}
+
+const getCalendarStructuralExpressionDecision = (
+  declaration: StructuralCalendarExpressionDeclaration,
+  family: StructuralPeriodFamilyDefinition,
+  input: StructuralExpressionPolicyInput,
+): StructuralExpressionDecision => {
+  const activeSpanKind = declaration.activeSpanKindByScale[input.activeScaleLevel] ?? null
+  const tickPolicyForScale = declaration.tickPolicyByScale[input.activeScaleLevel]
+  const isActiveSpanFamily = family.supportsIntervalExpression && family.kind === activeSpanKind
+  const tickOverrides = tickPolicyForScale?.[family.kind]
+  const hasExplicitTickPolicy = tickOverrides !== undefined
+  const usesGovernedTickPolicy = tickPolicyForScale !== undefined
+  const isActiveTickFamily = hasExplicitTickPolicy
+    ? tickOverrides.tickState !== 'hidden'
+    : !usesGovernedTickPolicy
+
+  return createStructuralExpressionDecision({
+    tickState: hasExplicitTickPolicy
+      ? tickOverrides.tickState ?? 'visible-labeled'
+      : usesGovernedTickPolicy
+        ? 'hidden'
+        : 'visible-labeled',
+    spanState: isActiveSpanFamily ? 'visible' : 'hidden',
+    prominence: isActiveTickFamily || isActiveSpanFamily ? 1 : 0,
+    showLabel: hasExplicitTickPolicy
+      ? tickOverrides.showLabel ?? true
+      : !usesGovernedTickPolicy,
+  })
+}
+
+export const getStructuralExpressionDecision = (
+  family: StructuralPeriodFamilyDefinition,
+  input: StructuralExpressionPolicyInput,
+): StructuralExpressionDecision => {
+  if (family.calendarSystemId === 'gregorian') {
+    return getCalendarStructuralExpressionDecision(
+      GREGORIAN_EXPRESSION_DECLARATION,
+      family,
+      input,
+    )
+  }
+
+  if (family.calendarSystemId === 'hebrew') {
+    return getCalendarStructuralExpressionDecision(
+      HEBREW_EXPRESSION_DECLARATION,
+      family,
+      input,
+    )
+  }
+
+  return createStructuralExpressionDecision()
+}
+
+export const getStructuralSpanOpacity = (
+  decision: StructuralExpressionDecision,
+): number | undefined => {
+  switch (decision.spanState) {
+    case 'hidden':
+      return 0
+    case 'visible-faint':
+      return 0.35
+    default:
+      return undefined
+  }
+}
+
+export const getStructuralTickOpacity = (
+  decision: StructuralExpressionDecision,
+): number | undefined => {
+  switch (decision.tickState) {
+    case 'hidden':
+      return 0
+    case 'visible-faint':
+      return 0.35
+    default:
+      return undefined
+  }
+}
 
 export const getStructuralTickInstanceVariantId = (
   family: StructuralPeriodFamilyDefinition,
@@ -349,9 +335,7 @@ export const getStructuralTickInstanceDecision = (
     return baseDecision
   }
 
-  const variantSource = family.calendarSystemId === 'gregorian' && family.kind === 'minute'
-    ? GREGORIAN_MINUTE_INSTANCE_VARIANTS
-    : GREGORIAN_SECOND_INSTANCE_VARIANTS
+  const variantSource = GREGORIAN_INSTANCE_VARIANCE_DECLARATION[family.kind] ?? []
   const variant = variantSource.find((candidate) => candidate.id === variantId)
 
   return variant
