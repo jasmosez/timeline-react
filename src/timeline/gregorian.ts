@@ -9,6 +9,7 @@ import {
   getStructuralSpanOpacity,
   getStructuralTickInstanceDecision,
   getStructuralTickOpacity,
+  isGregorianStructuralLabelStrategy,
   type StructuralExpressionDecision,
   type StructuralExpressionMetadata,
 } from './structuralExpressionPolicy'
@@ -283,7 +284,7 @@ const getGregorianPolicyAwareTickLabel = (
   isFirstTick: boolean,
   isLeading: boolean,
 ) => {
-  if (decision.labelStrategy) {
+  if (decision.labelStrategy && isGregorianStructuralLabelStrategy(decision.labelStrategy)) {
     return renderGregorianStructuralLabelStrategy(decision.labelStrategy, tickTime, isLeading)
   }
 

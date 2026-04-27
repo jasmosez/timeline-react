@@ -162,6 +162,24 @@ export const createStructuralExpressionDecision = (
   ...overrides,
 })
 
+const labeledTickPolicy = (
+  labelStrategy: NonNullable<StructuralFamilyPolicy['labelStrategy']>,
+  tickRankClass: StructuralTickRankClass,
+): StructuralFamilyPolicy => ({
+  tickState: 'visible-labeled',
+  showLabel: true,
+  labelStrategy,
+  tickRankClass,
+})
+
+const unlabeledTickPolicy = (
+  tickRankClass: StructuralTickRankClass,
+): StructuralFamilyPolicy => ({
+  tickState: 'visible-unlabeled',
+  showLabel: false,
+  tickRankClass,
+})
+
 const GREGORIAN_EXPRESSION_DECLARATION: StructuralCalendarExpressionDeclaration = {
   activeSpanKindByScale: {
     [SCALE_MINUTE]: 'second',
@@ -175,158 +193,57 @@ const GREGORIAN_EXPRESSION_DECLARATION: StructuralCalendarExpressionDeclaration 
   },
   tickPolicyByScale: {
     [SCALE_MINUTE]: {
-      second: {
-        tickState: 'visible-unlabeled',
-        showLabel: false,
-        tickRankClass: 'tick-rank-ordinary',
-      },
-      minute: {
-        tickState: 'visible-labeled',
-        showLabel: true,
-        labelStrategy: 'minute-top-of-minute',
-        tickRankClass: 'tick-rank-secondary',
-      },
-      hour: {
-        tickState: 'visible-labeled',
-        showLabel: true,
-        labelStrategy: 'minute-top-of-hour',
-        tickRankClass: 'tick-rank-secondary',
-      },
-      day: {
-        tickState: 'visible-labeled',
-        showLabel: true,
-        labelStrategy: 'minute-midnight-boundary',
-        tickRankClass: 'tick-rank-primary',
-      },
+      second: unlabeledTickPolicy('tick-rank-ordinary'),
+      minute: labeledTickPolicy('minute-top-of-minute', 'tick-rank-secondary'),
+      hour: labeledTickPolicy('minute-top-of-hour', 'tick-rank-secondary'),
+      day: labeledTickPolicy('minute-midnight-boundary', 'tick-rank-primary'),
     },
     [SCALE_HOUR]: {
-      minute: {
-        tickState: 'visible-unlabeled',
-        showLabel: false,
-        tickRankClass: 'tick-rank-ordinary',
-      },
-      hour: {
-        tickState: 'visible-labeled',
-        showLabel: true,
-        labelStrategy: 'hour-top-of-hour',
-        tickRankClass: 'tick-rank-secondary',
-      },
-      day: {
-        tickState: 'visible-labeled',
-        showLabel: true,
-        labelStrategy: 'hour-midnight-boundary',
-        tickRankClass: 'tick-rank-primary',
-      },
+      minute: unlabeledTickPolicy('tick-rank-ordinary'),
+      hour: labeledTickPolicy('hour-top-of-hour', 'tick-rank-secondary'),
+      day: labeledTickPolicy('hour-midnight-boundary', 'tick-rank-primary'),
     },
     [SCALE_DAY]: {
-      hour: {
-        tickState: 'visible-unlabeled',
-        showLabel: false,
-        tickRankClass: 'tick-rank-ordinary',
-      },
-      day: {
-        tickState: 'visible-labeled',
-        showLabel: true,
-        labelStrategy: 'day-midnight-boundary',
-        tickRankClass: 'tick-rank-secondary',
-      },
-      week: {
-        tickState: 'visible-labeled',
-        showLabel: true,
-        labelStrategy: 'day-week-boundary',
-        tickRankClass: 'tick-rank-primary',
-      },
+      hour: unlabeledTickPolicy('tick-rank-ordinary'),
+      day: labeledTickPolicy('day-midnight-boundary', 'tick-rank-secondary'),
+      week: labeledTickPolicy('day-week-boundary', 'tick-rank-primary'),
     },
     [SCALE_WEEK]: {
-      day: {
-        tickState: 'visible-labeled',
-        showLabel: true,
-        labelStrategy: 'weekday-plus-day',
-        tickRankClass: 'tick-rank-ordinary',
-      },
-      week: {
-        tickState: 'visible-labeled',
-        showLabel: true,
-        labelStrategy: 'week-plus-day',
-        tickRankClass: 'tick-rank-secondary',
-      },
-      month: {
-        tickState: 'visible-labeled',
-        showLabel: true,
-        labelStrategy: 'week-view-contextual',
-        tickRankClass: 'tick-rank-primary',
-      },
+      day: labeledTickPolicy('weekday-plus-day', 'tick-rank-ordinary'),
+      week: labeledTickPolicy('week-plus-day', 'tick-rank-secondary'),
+      month: labeledTickPolicy('week-view-contextual', 'tick-rank-primary'),
     },
     [SCALE_MONTH]: {
-      day: {
-        tickState: 'visible-labeled',
-        showLabel: true,
-        labelStrategy: 'month-contextual',
-        tickRankClass: 'tick-rank-ordinary',
-      },
-      week: {
-        tickState: 'visible-labeled',
-        showLabel: true,
-        labelStrategy: 'month-contextual',
-        tickRankClass: 'tick-rank-secondary',
-      },
-      month: {
-        tickState: 'visible-labeled',
-        showLabel: true,
-        labelStrategy: 'month-contextual',
-        tickRankClass: 'tick-rank-primary',
-      },
-      quarter: {
-        tickState: 'visible-labeled',
-        showLabel: true,
-        labelStrategy: 'month-contextual',
-        tickRankClass: 'tick-rank-primary',
-      },
+      day: labeledTickPolicy('month-contextual', 'tick-rank-ordinary'),
+      week: labeledTickPolicy('month-contextual', 'tick-rank-secondary'),
+      month: labeledTickPolicy('month-contextual', 'tick-rank-primary'),
+      quarter: labeledTickPolicy('month-contextual', 'tick-rank-primary'),
     },
     [SCALE_QUARTER]: {
-      week: {
-        tickState: 'visible-labeled',
-        showLabel: true,
-        labelStrategy: 'week-number',
-        tickRankClass: 'tick-rank-ordinary',
-      },
+      week: labeledTickPolicy('week-number', 'tick-rank-ordinary'),
       month: {
-        tickState: 'visible-labeled',
-        showLabel: true,
         labelStrategy: (input) =>
           input.leadingCalendarSystemId === 'gregorian'
             ? 'quarter-boundary-primary'
             : 'quarter-boundary-secondary',
+        tickState: 'visible-labeled',
+        showLabel: true,
         tickRankClass: 'tick-rank-secondary',
       },
       quarter: {
-        tickState: 'visible-labeled',
-        showLabel: true,
         labelStrategy: (input) =>
           input.leadingCalendarSystemId === 'gregorian'
             ? 'quarter-boundary-primary'
             : 'quarter-boundary-secondary',
+        tickState: 'visible-labeled',
+        showLabel: true,
         tickRankClass: 'tick-rank-primary',
       },
     },
     [SCALE_YEAR]: {
-      month: {
-        tickState: 'visible-labeled',
-        showLabel: true,
-        labelStrategy: 'month-in-year',
-        tickRankClass: 'tick-rank-ordinary',
-      },
-      year: {
-        tickState: 'visible-labeled',
-        showLabel: true,
-        labelStrategy: 'year-boundary',
-        tickRankClass: 'tick-rank-primary',
-      },
-      quarter: {
-        tickState: 'visible-unlabeled',
-        showLabel: false,
-        tickRankClass: 'tick-rank-secondary',
-      },
+      month: labeledTickPolicy('month-in-year', 'tick-rank-ordinary'),
+      year: labeledTickPolicy('year-boundary', 'tick-rank-primary'),
+      quarter: unlabeledTickPolicy('tick-rank-secondary'),
     },
     [SCALE_DECADE]: {
       year: { tickState: 'visible-labeled', showLabel: true },
@@ -348,103 +265,44 @@ const HEBREW_EXPRESSION_DECLARATION: StructuralCalendarExpressionDeclaration = {
   },
   tickPolicyByScale: {
     [SCALE_WEEK]: {
-      day: {
-        tickState: 'visible-labeled',
-        showLabel: true,
-        labelStrategy: 'hebrew-week-scale',
-        tickRankClass: 'tick-rank-ordinary',
-      },
-      week: {
-        tickState: 'visible-labeled',
-        showLabel: true,
-        labelStrategy: 'hebrew-week-scale',
-        tickRankClass: 'tick-rank-secondary',
-      },
-      month: {
-        tickState: 'visible-labeled',
-        showLabel: true,
-        labelStrategy: 'hebrew-week-scale',
-        tickRankClass: 'tick-rank-primary',
-      },
+      day: labeledTickPolicy('hebrew-week-scale', 'tick-rank-ordinary'),
+      week: labeledTickPolicy('hebrew-week-scale', 'tick-rank-secondary'),
+      month: labeledTickPolicy('hebrew-week-scale', 'tick-rank-primary'),
     },
     [SCALE_MONTH]: {
-      day: {
-        tickState: 'visible-labeled',
-        showLabel: true,
-        labelStrategy: 'hebrew-month-scale',
-        tickRankClass: 'tick-rank-ordinary',
-      },
-      week: {
-        tickState: 'visible-labeled',
-        showLabel: true,
-        labelStrategy: 'hebrew-month-scale',
-        tickRankClass: 'tick-rank-secondary',
-      },
-      month: {
-        tickState: 'visible-labeled',
-        showLabel: true,
-        labelStrategy: 'hebrew-month-scale',
-        tickRankClass: 'tick-rank-primary',
-      },
-      quarter: {
-        tickState: 'visible-labeled',
-        showLabel: true,
-        labelStrategy: 'hebrew-month-scale',
-        tickRankClass: 'tick-rank-primary',
-      },
+      day: labeledTickPolicy('hebrew-month-scale', 'tick-rank-ordinary'),
+      week: labeledTickPolicy('hebrew-month-scale', 'tick-rank-secondary'),
+      month: labeledTickPolicy('hebrew-month-scale', 'tick-rank-primary'),
+      quarter: labeledTickPolicy('hebrew-month-scale', 'tick-rank-primary'),
     },
     [SCALE_QUARTER]: {
       month: {
-        tickState: 'visible-labeled',
-        showLabel: true,
         labelStrategy: (input) =>
           input.leadingCalendarSystemId === 'hebrew'
             ? 'hebrew-quarter-scale-primary'
             : 'hebrew-quarter-scale-secondary',
+        tickState: 'visible-labeled',
+        showLabel: true,
         tickRankClass: 'tick-rank-secondary',
       },
       quarter: {
-        tickState: 'visible-labeled',
-        showLabel: true,
         labelStrategy: (input) =>
           input.leadingCalendarSystemId === 'hebrew'
             ? 'hebrew-quarter-scale-primary'
             : 'hebrew-quarter-scale-secondary',
+        tickState: 'visible-labeled',
+        showLabel: true,
         tickRankClass: 'tick-rank-primary',
       },
     },
     [SCALE_YEAR]: {
-      month: {
-        tickState: 'visible-labeled',
-        showLabel: true,
-        labelStrategy: 'hebrew-year-scale',
-        tickRankClass: 'tick-rank-ordinary',
-      },
-      year: {
-        tickState: 'visible-labeled',
-        showLabel: true,
-        labelStrategy: 'hebrew-year-scale',
-        tickRankClass: 'tick-rank-primary',
-      },
-      quarter: {
-        tickState: 'visible-unlabeled',
-        showLabel: false,
-        tickRankClass: 'tick-rank-secondary',
-      },
+      month: labeledTickPolicy('hebrew-year-scale', 'tick-rank-ordinary'),
+      year: labeledTickPolicy('hebrew-year-scale', 'tick-rank-primary'),
+      quarter: unlabeledTickPolicy('tick-rank-secondary'),
     },
     [SCALE_DECADE]: {
-      year: {
-        tickState: 'visible-labeled',
-        showLabel: true,
-        labelStrategy: 'hebrew-decade-scale',
-        tickRankClass: 'tick-rank-ordinary',
-      },
-      shmita: {
-        tickState: 'visible-labeled',
-        showLabel: true,
-        labelStrategy: 'hebrew-decade-scale',
-        tickRankClass: 'tick-rank-primary',
-      },
+      year: labeledTickPolicy('hebrew-decade-scale', 'tick-rank-ordinary'),
+      shmita: labeledTickPolicy('hebrew-decade-scale', 'tick-rank-primary'),
     },
   },
 }
@@ -494,6 +352,34 @@ const GREGORIAN_INSTANCE_VARIANCE_DECLARATION: StructuralFamilyInstanceVarianceD
   hour: GREGORIAN_HOUR_INSTANCE_VARIANTS,
 }
 
+const STRUCTURAL_EXPRESSION_DECLARATIONS: Partial<
+  Record<StructuralCalendarSystemId, StructuralCalendarExpressionDeclaration>
+> = {
+  gregorian: GREGORIAN_EXPRESSION_DECLARATION,
+  hebrew: HEBREW_EXPRESSION_DECLARATION,
+}
+
+const STRUCTURAL_INSTANCE_VARIANCE_DECLARATIONS: Partial<
+  Record<StructuralCalendarSystemId, StructuralFamilyInstanceVarianceDeclaration>
+> = {
+  gregorian: GREGORIAN_INSTANCE_VARIANCE_DECLARATION,
+}
+
+const getStructuralExpressionDeclaration = (
+  calendarSystemId: StructuralCalendarSystemId,
+) => STRUCTURAL_EXPRESSION_DECLARATIONS[calendarSystemId]
+
+const getStructuralInstanceVariants = (
+  family: StructuralPeriodFamilyDefinition,
+) => STRUCTURAL_INSTANCE_VARIANCE_DECLARATIONS[family.calendarSystemId]?.[family.kind] ?? []
+
+const resolveStructuralLabelStrategy = (
+  tickOverrides: StructuralFamilyPolicy | undefined,
+  input: StructuralExpressionPolicyInput,
+) => typeof tickOverrides?.labelStrategy === 'function'
+  ? tickOverrides.labelStrategy(input)
+  : tickOverrides?.labelStrategy
+
 const getCalendarStructuralExpressionDecision = (
   declaration: StructuralCalendarExpressionDeclaration,
   family: StructuralPeriodFamilyDefinition,
@@ -509,10 +395,6 @@ const getCalendarStructuralExpressionDecision = (
     ? tickOverrides.tickState !== 'hidden'
     : !usesGovernedTickPolicy
 
-  const labelStrategy = typeof tickOverrides?.labelStrategy === 'function'
-    ? tickOverrides.labelStrategy(input)
-    : tickOverrides?.labelStrategy
-
   return createStructuralExpressionDecision({
     tickState: hasExplicitTickPolicy
       ? tickOverrides.tickState ?? 'visible-labeled'
@@ -524,7 +406,7 @@ const getCalendarStructuralExpressionDecision = (
     showLabel: hasExplicitTickPolicy
       ? tickOverrides.showLabel ?? true
       : !usesGovernedTickPolicy,
-    labelStrategy,
+    labelStrategy: resolveStructuralLabelStrategy(tickOverrides, input),
     tickRankClass: tickOverrides?.tickRankClass,
   })
 }
@@ -533,20 +415,10 @@ export const getStructuralExpressionDecision = (
   family: StructuralPeriodFamilyDefinition,
   input: StructuralExpressionPolicyInput,
 ): StructuralExpressionDecision => {
-  if (family.calendarSystemId === 'gregorian') {
-    return getCalendarStructuralExpressionDecision(
-      GREGORIAN_EXPRESSION_DECLARATION,
-      family,
-      input,
-    )
-  }
+  const declaration = getStructuralExpressionDeclaration(family.calendarSystemId)
 
-  if (family.calendarSystemId === 'hebrew') {
-    return getCalendarStructuralExpressionDecision(
-      HEBREW_EXPRESSION_DECLARATION,
-      family,
-      input,
-    )
+  if (declaration) {
+    return getCalendarStructuralExpressionDecision(declaration, family, input)
   }
 
   return createStructuralExpressionDecision()
@@ -582,12 +454,8 @@ export const getStructuralTickInstanceVariantId = (
   family: StructuralPeriodFamilyDefinition,
   tickTimeMs: number,
 ): StructuralTickInstanceVariantId => {
-  const variantSource =
-    family.calendarSystemId === 'gregorian'
-      ? GREGORIAN_INSTANCE_VARIANCE_DECLARATION[family.kind] ?? []
-      : []
-
-  const variant = variantSource.find((candidate) => candidate.matches(tickTimeMs))
+  const variant = getStructuralInstanceVariants(family)
+    .find((candidate) => candidate.matches(tickTimeMs))
 
   return variant?.id ?? 'default'
 }
@@ -603,11 +471,8 @@ export const getStructuralTickInstanceDecision = (
     return baseDecision
   }
 
-  const variantSource =
-    family.calendarSystemId === 'gregorian'
-      ? GREGORIAN_INSTANCE_VARIANCE_DECLARATION[family.kind] ?? []
-      : []
-  const variant = variantSource.find((candidate) => candidate.id === variantId)
+  const variant = getStructuralInstanceVariants(family)
+    .find((candidate) => candidate.id === variantId)
 
   return variant
     ? createStructuralExpressionDecision({
