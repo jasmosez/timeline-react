@@ -60,7 +60,23 @@ describe('structural expression policy skeleton', () => {
     })
     expect(getStructuralExpressionDecision(inactiveFamily!, TEST_POLICY_INPUT)).toMatchObject({
       spanState: 'hidden',
-      prominence: 0,
+    })
+  })
+
+  it('computes real Gregorian tick decisions for calmer structural scales', () => {
+    const dayFamily = getStructuralPeriodFamilyById(GREGORIAN_PERIOD_FAMILY_IDS.day)
+    const quarterFamily = getStructuralPeriodFamilyById(GREGORIAN_PERIOD_FAMILY_IDS.quarter)
+
+    expect(dayFamily).toBeDefined()
+    expect(quarterFamily).toBeDefined()
+
+    expect(getStructuralExpressionDecision(dayFamily!, TEST_POLICY_INPUT)).toMatchObject({
+      tickState: 'visible-labeled',
+      showLabel: true,
+    })
+    expect(getStructuralExpressionDecision(quarterFamily!, TEST_POLICY_INPUT)).toMatchObject({
+      tickState: 'hidden',
+      showLabel: false,
     })
   })
 

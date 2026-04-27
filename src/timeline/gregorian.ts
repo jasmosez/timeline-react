@@ -306,6 +306,21 @@ const addPositionedTicksForScaleLevel = (
   while (tickTime <= bufferedEndMs) {
     const isLeading = leadingCalendarSystemId === 'gregorian'
     const familyId = getGregorianPointFamilyId(scaleLevel, tickTime)
+    const family = getStructuralPeriodFamilyById(familyId)
+    const decision = family
+      ? getStructuralExpressionDecision(family, {
+          activeScaleLevel: scaleLevel,
+          visibleDurationMs,
+          leadingCalendarSystemId,
+          environment,
+        })
+      : createStructuralExpressionDecision()
+
+    if (decision.tickState === 'hidden') {
+      tickTime = calculateTickTimeFunc(new Date(tickTime), 1)
+      continue
+    }
+
     const rawLabel = getGregorianStructuralTickLabel(
       scaleLevel,
       tickTime,
@@ -315,7 +330,9 @@ const addPositionedTicksForScaleLevel = (
     const point = {
       ...createTickPoint(tickTime),
       structuralMetadata: getGregorianStructuralMetadata(familyId),
-      label: activeLayerIds?.includes(PERSONAL_LAYER_ID)
+      label: !decision.showLabel
+        ? ''
+        : activeLayerIds?.includes(PERSONAL_LAYER_ID)
         ? augmentLabelWithPersonalTime({
             label: rawLabel,
             timeMs: tickTime,

@@ -95,16 +95,37 @@ const getGregorianActiveSpanKind = (activeScaleLevel: ScaleLevel) => {
   }
 }
 
+const getGregorianActiveTickKinds = (activeScaleLevel: ScaleLevel): string[] | null => {
+  switch (activeScaleLevel) {
+    case 2:
+      return ['day', 'week', 'month']
+    case 3:
+      return ['day', 'week', 'month', 'quarter']
+    case 4:
+      return ['week', 'month', 'quarter']
+    case 5:
+      return ['month', 'year']
+    case 6:
+      return ['year', 'decade']
+    default:
+      return null
+  }
+}
+
 const getGregorianStructuralExpressionDecision = (
   family: StructuralPeriodFamilyDefinition,
   input: StructuralExpressionPolicyInput,
 ): StructuralExpressionDecision => {
   const activeSpanKind = getGregorianActiveSpanKind(input.activeScaleLevel)
+  const activeTickKinds = getGregorianActiveTickKinds(input.activeScaleLevel)
   const isActiveSpanFamily = family.supportsIntervalExpression && family.kind === activeSpanKind
+  const isActiveTickFamily = activeTickKinds?.includes(family.kind) ?? true
 
   return createStructuralExpressionDecision({
+    tickState: isActiveTickFamily ? 'visible-labeled' : 'hidden',
     spanState: isActiveSpanFamily ? 'visible' : 'hidden',
-    prominence: isActiveSpanFamily ? 1 : 0,
+    prominence: isActiveTickFamily || isActiveSpanFamily ? 1 : 0,
+    showLabel: isActiveTickFamily,
   })
 }
 
