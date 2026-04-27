@@ -58,6 +58,24 @@ describe('gregorian structural layer', () => {
     expect(points.some((point) => point.label === ':06')).toBe(false)
   })
 
+  it('uses instance variance to promote the minute-family top-of-hour tick in minute view', () => {
+    const focusTimeMs = new Date('2026-04-20T13:00:05-04:00').getTime()
+    const visibleDurationMs = 20 * 1000
+    const points = createGregorianTickPoints({
+      leadingCalendarSystemId: 'gregorian',
+      activeScaleLevel: -1,
+      focusTimeMs,
+      visibleDurationMs,
+    })
+
+    expect(
+      points.some((point) =>
+        point.label === '1 PM'
+        && point.className?.includes('tick-rank-secondary'),
+      ),
+    ).toBe(true)
+  })
+
   it('adds unlabeled quarter ticks in year view', () => {
     const focusTimeMs = new Date('2026-04-20T12:00:00-04:00').getTime()
     const visibleDurationMs = 400 * 24 * 60 * 60 * 1000
