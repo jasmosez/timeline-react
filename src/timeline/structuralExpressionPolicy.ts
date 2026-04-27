@@ -73,6 +73,7 @@ export type StructuralTickInstanceVariantId =
 
 export type StructuralTickInstanceVariant = {
   id: StructuralTickInstanceVariantId
+  matches: (tickTimeMs: number) => boolean
   decision: Partial<StructuralExpressionDecision>
 }
 
@@ -187,6 +188,7 @@ const HEBREW_EXPRESSION_DECLARATION: StructuralCalendarExpressionDeclaration = {
 const GREGORIAN_SECOND_INSTANCE_VARIANTS: StructuralTickInstanceVariant[] = [
   {
     id: 'five-second',
+    matches: (tickTimeMs) => new Date(tickTimeMs).getSeconds() % 5 === 0,
     decision: {
       tickState: 'visible-labeled',
       showLabel: true,
@@ -197,19 +199,25 @@ const GREGORIAN_SECOND_INSTANCE_VARIANTS: StructuralTickInstanceVariant[] = [
 
 const GREGORIAN_MINUTE_INSTANCE_VARIANTS: StructuralTickInstanceVariant[] = [
   {
-    id: 'top-of-hour',
-    decision: {
-      tickState: 'emphasized',
-      showLabel: true,
-      prominence: 0.9,
-    },
-  },
-  {
     id: 'midnight-boundary',
+    matches: (tickTimeMs) => {
+      const tickDate = new Date(tickTimeMs)
+
+      return tickDate.getHours() === 0 && tickDate.getMinutes() === 0
+    },
     decision: {
       tickState: 'emphasized',
       showLabel: true,
       prominence: 1,
+    },
+  },
+  {
+    id: 'top-of-hour',
+    matches: (tickTimeMs) => new Date(tickTimeMs).getMinutes() === 0,
+    decision: {
+      tickState: 'emphasized',
+      showLabel: true,
+      prominence: 0.9,
     },
   },
 ]
@@ -301,27 +309,14 @@ export const getStructuralTickInstanceVariantId = (
   family: StructuralPeriodFamilyDefinition,
   tickTimeMs: number,
 ): StructuralTickInstanceVariantId => {
-  if (family.calendarSystemId === 'gregorian' && family.kind === 'second') {
-    const tickDate = new Date(tickTimeMs)
+  const variantSource =
+    family.calendarSystemId === 'gregorian'
+      ? GREGORIAN_INSTANCE_VARIANCE_DECLARATION[family.kind] ?? []
+      : []
 
-    if (tickDate.getSeconds() % 5 === 0) {
-      return 'five-second'
-    }
-  }
+  const variant = variantSource.find((candidate) => candidate.matches(tickTimeMs))
 
-  if (family.calendarSystemId === 'gregorian' && family.kind === 'minute') {
-    const tickDate = new Date(tickTimeMs)
-
-    if (tickDate.getHours() === 0 && tickDate.getMinutes() === 0) {
-      return 'midnight-boundary'
-    }
-
-    if (tickDate.getMinutes() === 0) {
-      return 'top-of-hour'
-    }
-  }
-
-  return 'default'
+  return variant?.id ?? 'default'
 }
 
 export const getStructuralTickInstanceDecision = (
@@ -335,7 +330,10 @@ export const getStructuralTickInstanceDecision = (
     return baseDecision
   }
 
-  const variantSource = GREGORIAN_INSTANCE_VARIANCE_DECLARATION[family.kind] ?? []
+  const variantSource =
+    family.calendarSystemId === 'gregorian'
+      ? GREGORIAN_INSTANCE_VARIANCE_DECLARATION[family.kind] ?? []
+      : []
   const variant = variantSource.find((candidate) => candidate.id === variantId)
 
   return variant
