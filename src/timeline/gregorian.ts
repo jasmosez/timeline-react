@@ -87,14 +87,6 @@ const getGregorianTickRankClass = (scaleLevel: ScaleLevel, tickTime: number) => 
         return 'tick-rank-secondary'
       }
       return 'tick-rank-ordinary'
-    case 0:
-      if (tickDate.getHours() === 0 && tickDate.getMinutes() === 0) {
-        return 'tick-rank-primary'
-      }
-      if (tickDate.getMinutes() === 0) {
-        return 'tick-rank-secondary'
-      }
-      return 'tick-rank-ordinary'
     case 1:
       if (tickDate.getHours() === 0 && tickDate.getDay() === 0) {
         return 'tick-rank-primary'
@@ -339,7 +331,7 @@ const addPositionedTicksForScaleLevel = (
           environment,
         })
       : createStructuralExpressionDecision()
-    const decision = family && scaleLevel === -1
+    const decision = family && (scaleLevel === -1 || (scaleLevel === 0 && family.kind === 'minute'))
       ? getStructuralTickInstanceDecision(family, tickTime, baseDecision)
       : baseDecision
 

@@ -198,6 +198,64 @@ describe('gregorian structural layer', () => {
     ).toBe(true)
   })
 
+  it('uses instance variance to label only selected minute-family ticks in hour view', () => {
+    const focusTimeMs = new Date('2026-04-20T12:07:00-04:00').getTime()
+    const visibleDurationMs = 20 * 60 * 1000
+    const points = createGregorianTickPoints({
+      leadingCalendarSystemId: 'gregorian',
+      activeScaleLevel: 0,
+      focusTimeMs,
+      visibleDurationMs,
+    })
+
+    expect(points.some((point) => point.label === ':05')).toBe(true)
+    expect(points.some((point) => point.label === ':06')).toBe(false)
+    expect(
+      points.some((point) =>
+        point.label === ':05'
+        && point.className?.includes('tick-rank-ordinary'),
+      ),
+    ).toBe(true)
+  })
+
+  it('uses hour-family policy for top-of-hour ticks in hour view', () => {
+    const focusTimeMs = new Date('2026-04-20T13:02:00-04:00').getTime()
+    const visibleDurationMs = 20 * 60 * 1000
+    const points = createGregorianTickPoints({
+      leadingCalendarSystemId: 'gregorian',
+      activeScaleLevel: 0,
+      focusTimeMs,
+      visibleDurationMs,
+    })
+
+    expect(points.some((point) => point.label === '1:00 PM')).toBe(true)
+    expect(
+      points.some((point) =>
+        point.label === '1:00 PM'
+        && point.className?.includes('tick-rank-secondary'),
+      ),
+    ).toBe(true)
+  })
+
+  it('uses day-family hour-view policy for midnight boundary ticks', () => {
+    const focusTimeMs = new Date('2026-04-20T00:02:00-04:00').getTime()
+    const visibleDurationMs = 20 * 60 * 1000
+    const points = createGregorianTickPoints({
+      leadingCalendarSystemId: 'gregorian',
+      activeScaleLevel: 0,
+      focusTimeMs,
+      visibleDurationMs,
+    })
+
+    expect(
+      points.some((point) =>
+        typeof point.label === 'string'
+        && point.label.includes('12:00 AM')
+        && point.className?.includes('tick-rank-primary'),
+      ),
+    ).toBe(true)
+  })
+
   it('adds unlabeled quarter ticks in year view', () => {
     const focusTimeMs = new Date('2026-04-20T12:00:00-04:00').getTime()
     const visibleDurationMs = 400 * 24 * 60 * 60 * 1000

@@ -61,6 +61,9 @@ export type GregorianStructuralLabelStrategy =
   | 'minute-top-of-minute'
   | 'minute-top-of-hour'
   | 'minute-midnight-boundary'
+  | 'hour-five-minute'
+  | 'hour-top-of-hour'
+  | 'hour-midnight-boundary'
   | 'weekday-plus-day'
   | 'week-plus-day'
   | 'week-view-contextual'
@@ -92,6 +95,7 @@ export type StructuralExpressionDecision = {
 export type StructuralTickInstanceVariantId =
   | 'default'
   | 'five-second'
+  | 'five-minute'
 
 export type StructuralTickInstanceVariant = {
   id: StructuralTickInstanceVariantId
@@ -170,6 +174,25 @@ const GREGORIAN_EXPRESSION_DECLARATION: StructuralCalendarExpressionDeclaration 
         tickState: 'visible-labeled',
         showLabel: true,
         labelStrategy: 'minute-midnight-boundary',
+        tickRankClass: 'tick-rank-primary',
+      },
+    },
+    [SCALE_HOUR]: {
+      minute: {
+        tickState: 'visible-unlabeled',
+        showLabel: false,
+        tickRankClass: 'tick-rank-ordinary',
+      },
+      hour: {
+        tickState: 'visible-labeled',
+        showLabel: true,
+        labelStrategy: 'hour-top-of-hour',
+        tickRankClass: 'tick-rank-secondary',
+      },
+      day: {
+        tickState: 'visible-labeled',
+        showLabel: true,
+        labelStrategy: 'hour-midnight-boundary',
         tickRankClass: 'tick-rank-primary',
       },
     },
@@ -323,8 +346,22 @@ const GREGORIAN_SECOND_INSTANCE_VARIANTS: StructuralTickInstanceVariant[] = [
   },
 ]
 
+const GREGORIAN_MINUTE_INSTANCE_VARIANTS: StructuralTickInstanceVariant[] = [
+  {
+    id: 'five-minute',
+    matches: (tickTimeMs) => new Date(tickTimeMs).getMinutes() % 5 === 0,
+    decision: {
+      tickState: 'visible-labeled',
+      showLabel: true,
+      labelStrategy: 'hour-five-minute',
+      prominence: 0.6,
+    },
+  },
+]
+
 const GREGORIAN_INSTANCE_VARIANCE_DECLARATION: StructuralFamilyInstanceVarianceDeclaration = {
   second: GREGORIAN_SECOND_INSTANCE_VARIANTS,
+  minute: GREGORIAN_MINUTE_INSTANCE_VARIANTS,
 }
 
 const getCalendarStructuralExpressionDecision = (

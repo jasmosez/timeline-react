@@ -227,6 +227,43 @@ describe('structural expression policy skeleton', () => {
     })
   })
 
+  it('computes real Gregorian hour-view family decisions and instance variance', () => {
+    const minuteFamily = getStructuralPeriodFamilyById(GREGORIAN_PERIOD_FAMILY_IDS.minute)
+    const hourFamily = getStructuralPeriodFamilyById(GREGORIAN_PERIOD_FAMILY_IDS.hour)
+    const dayFamily = getStructuralPeriodFamilyById(GREGORIAN_PERIOD_FAMILY_IDS.day)
+
+    expect(minuteFamily).toBeDefined()
+    expect(hourFamily).toBeDefined()
+    expect(dayFamily).toBeDefined()
+
+    expect(getStructuralExpressionDecision(
+      minuteFamily!,
+      { ...TEST_POLICY_INPUT, activeScaleLevel: 0 },
+    )).toMatchObject({
+      tickState: 'visible-unlabeled',
+      showLabel: false,
+      tickRankClass: 'tick-rank-ordinary',
+    })
+    expect(getStructuralExpressionDecision(
+      hourFamily!,
+      { ...TEST_POLICY_INPUT, activeScaleLevel: 0 },
+    )).toMatchObject({
+      tickState: 'visible-labeled',
+      showLabel: true,
+      labelStrategy: 'hour-top-of-hour',
+      tickRankClass: 'tick-rank-secondary',
+    })
+    expect(getStructuralExpressionDecision(
+      dayFamily!,
+      { ...TEST_POLICY_INPUT, activeScaleLevel: 0 },
+    )).toMatchObject({
+      tickState: 'visible-labeled',
+      showLabel: true,
+      labelStrategy: 'hour-midnight-boundary',
+      tickRankClass: 'tick-rank-primary',
+    })
+  })
+
   it('computes real Hebrew span decisions from family and scale', () => {
     const activeFamily = getStructuralPeriodFamilyById(HEBREW_PERIOD_FAMILY_IDS.day)
     const inactiveFamily = getStructuralPeriodFamilyById(HEBREW_PERIOD_FAMILY_IDS.month)
@@ -354,6 +391,53 @@ describe('structural expression policy skeleton', () => {
       tickState: 'visible-labeled',
       showLabel: true,
       labelStrategy: 'minute-five-second',
+      prominence: 0.6,
+    })
+  })
+
+  it('classifies and overrides Gregorian hour-view instance variance declaratively', () => {
+    const minuteFamily = getStructuralPeriodFamilyById(GREGORIAN_PERIOD_FAMILY_IDS.minute)
+    const hourFamily = getStructuralPeriodFamilyById(GREGORIAN_PERIOD_FAMILY_IDS.hour)
+    const dayFamily = getStructuralPeriodFamilyById(GREGORIAN_PERIOD_FAMILY_IDS.day)
+
+    expect(minuteFamily).toBeDefined()
+    expect(hourFamily).toBeDefined()
+    expect(dayFamily).toBeDefined()
+    expect(
+      getStructuralTickInstanceVariantId(
+        minuteFamily!,
+        new Date('2026-04-01T12:05:00-04:00').getTime(),
+      ),
+    ).toBe('five-minute')
+    expect(
+      getStructuralTickInstanceVariantId(
+        hourFamily!,
+        new Date('2026-04-01T13:00:00-04:00').getTime(),
+      ),
+    ).toBe('default')
+    expect(
+      getStructuralTickInstanceVariantId(
+        dayFamily!,
+        new Date('2026-04-02T00:00:00-04:00').getTime(),
+      ),
+    ).toBe('default')
+
+    expect(
+      getStructuralTickInstanceDecision(
+        minuteFamily!,
+        new Date('2026-04-01T12:05:00-04:00').getTime(),
+        createStructuralExpressionDecision({
+          tickState: 'visible-unlabeled',
+          showLabel: false,
+          tickRankClass: 'tick-rank-ordinary',
+          prominence: 0.2,
+        }),
+      ),
+    ).toMatchObject({
+      tickState: 'visible-labeled',
+      showLabel: true,
+      labelStrategy: 'hour-five-minute',
+      tickRankClass: 'tick-rank-ordinary',
       prominence: 0.6,
     })
   })
