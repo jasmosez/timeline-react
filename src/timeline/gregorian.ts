@@ -4,7 +4,6 @@ import type { LeadingCalendarSystemId, TimelineEnvironment, TimelineLayer } from
 import { renderGregorianStructuralLabelStrategy } from './gregorianLabels'
 import { augmentLabelWithPersonalTime } from './personalTime'
 import {
-  createStructuralExpressionDecision,
   getStructuralExpressionDecision,
   getStructuralSpanOpacity,
   getStructuralTickInstanceDecision,
@@ -158,42 +157,8 @@ const getGregorianSpanStripeClass = (scaleLevel: ScaleLevel, startTimeMs: number
   return stripeIndex % 2 === 0 ? 'structural-span-stripe-a' : 'structural-span-stripe-b'
 }
 
-const getGregorianTickRankClass = (scaleLevel: ScaleLevel, tickTime: number) => {
-  const tickDate = new Date(tickTime)
-
-  switch (scaleLevel) {
-    case -1:
-      if (tickDate.getHours() === 0 && tickDate.getMinutes() === 0 && tickDate.getSeconds() === 0) {
-        return 'tick-rank-primary'
-      }
-      if (tickDate.getSeconds() === 0) {
-        return 'tick-rank-secondary'
-      }
-      return 'tick-rank-ordinary'
-    case 6:
-      if (tickDate.getFullYear() % 10 === 0) {
-        return 'tick-rank-primary'
-      }
-      if (tickDate.getFullYear() % 5 === 0) {
-        return 'tick-rank-secondary'
-      }
-      return 'tick-rank-ordinary'
-    default:
-      return 'tick-rank-ordinary'
-  }
-}
-
-const getGregorianPolicyAwareTickRankClass = (
-  decision: StructuralExpressionDecision,
-  scaleLevel: ScaleLevel,
-  tickTime: number,
-) => {
-  if (decision.tickRankClass) {
-    return decision.tickRankClass
-  }
-
-  return getGregorianTickRankClass(scaleLevel, tickTime)
-}
+const getGregorianPolicyAwareTickRankClass = (decision: StructuralExpressionDecision) =>
+  decision.tickRankClass ?? 'tick-rank-ordinary'
 
 const DEFAULT_GREGORIAN_POLICY_ENVIRONMENT: TimelineEnvironment = {
   now: new Date('2026-01-01T12:00:00-05:00'),
@@ -315,10 +280,20 @@ const getGregorianSpanFamilyId = (scaleLevel: ScaleLevel) => {
   }
 }
 
+const getGregorianPeriodFamily = (familyId: string) => {
+  const family = getStructuralPeriodFamilyById(familyId)
+
+  if (!family) {
+    throw new Error(`Missing Gregorian structural family definition for "${familyId}"`)
+  }
+
+  return family
+}
+
 const getGregorianStructuralMetadata = (
   familyId: string,
 ): StructuralExpressionMetadata => {
-  const family = getStructuralPeriodFamilyById(familyId)
+  const family = getGregorianPeriodFamily(familyId)
 
   return {
     structuralPeriodFamilyId: familyId,
@@ -472,15 +447,13 @@ const getGregorianTickPolicyEvaluationForFamily = (
   leadingCalendarSystemId: LeadingCalendarSystemId,
   environment: TickCollectionParams['environment'],
 ): GregorianTickPolicyEvaluation => {
-  const family = getStructuralPeriodFamilyById(familyId)
-  const baseDecision = family
-    ? getStructuralExpressionDecision(family, {
-        activeScaleLevel: scaleLevel,
-        visibleDurationMs,
-        leadingCalendarSystemId,
-        environment,
-      })
-    : createStructuralExpressionDecision()
+  const family = getGregorianPeriodFamily(familyId)
+  const baseDecision = getStructuralExpressionDecision(family, {
+    activeScaleLevel: scaleLevel,
+    visibleDurationMs,
+    leadingCalendarSystemId,
+    environment,
+  })
 
   const decision = family && (
     scaleLevel === -1
@@ -567,7 +540,7 @@ const createGregorianPositionedTickPoint = (
         leadingCalendarSystemId === 'gregorian'
           ? 'structural-tick-leading'
           : 'structural-tick-supporting',
-        getGregorianPolicyAwareTickRankClass(decision, scaleLevel, tickTime),
+        getGregorianPolicyAwareTickRankClass(decision),
       ].join(' '),
       labelClassName: leadingCalendarSystemId === 'gregorian'
         ? 'structural-label-leading'
@@ -669,15 +642,13 @@ export const createGregorianStructuralSpans = (
   const bufferedStartMs = bufferedRange.startTimeMs - visibleDurationMs * 0.5
   const bufferedEndMs = bufferedRange.endTimeMs + visibleDurationMs * 0.5
   const familyId = getGregorianSpanFamilyId(activeScaleLevel)
-  const family = getStructuralPeriodFamilyById(familyId)
-  const decision = family
-    ? getStructuralExpressionDecision(family, {
-        activeScaleLevel,
-        visibleDurationMs,
-        leadingCalendarSystemId,
-        environment,
-      })
-    : createStructuralExpressionDecision()
+  const family = getGregorianPeriodFamily(familyId)
+  const decision = getStructuralExpressionDecision(family, {
+    activeScaleLevel,
+    visibleDurationMs,
+    leadingCalendarSystemId,
+    environment,
+  })
 
   if (decision.spanState === 'hidden') {
     return []
