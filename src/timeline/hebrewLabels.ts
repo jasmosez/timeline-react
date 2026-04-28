@@ -180,6 +180,10 @@ export const renderHebrewStructuralLabelStrategy = (
       return getHebrewTickLabel(4, dayInfo, boundaryTimeMs, true) ?? ''
     case 'hebrew-quarter-view-boundary-supporting':
       return getHebrewTickLabel(4, dayInfo, boundaryTimeMs, false) ?? ''
+    case 'hebrew-year-view-quarter-boundary-leading':
+      return getHebrewTickLabel(4, dayInfo, boundaryTimeMs, true) ?? ''
+    case 'hebrew-year-view-quarter-boundary-supporting':
+      return getHebrewTickLabel(4, dayInfo, boundaryTimeMs, false) ?? ''
     case 'hebrew-year-view-boundary':
       return getHebrewTickLabel(5, dayInfo, boundaryTimeMs, isPrimary) ?? ''
     case 'hebrew-decade-view-boundary':

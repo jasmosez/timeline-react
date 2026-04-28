@@ -325,7 +325,7 @@ describe('hebrew structural layer', () => {
 
     expect(
       yearPoints.some((point) =>
-        point.label === ''
+        point.label === 'Q3, Nisan'
         && point.structuralMetadata?.structuralPeriodFamilyId === HEBREW_PERIOD_FAMILY_IDS.quarter,
       ),
     ).toBe(true)
@@ -382,7 +382,7 @@ describe('hebrew structural layer', () => {
     ).toBe(true)
   })
 
-  it('preserves hebrew year-scale labels and quarter helper ranks under policy-driven label intent', () => {
+  it('preserves hebrew year-scale labels and quarter ownership under policy-driven label intent', () => {
     const points = createHebrewStructuralPoints({
       leadingCalendarSystemId: 'hebrew',
       activeScaleLevel: 5,
@@ -392,8 +392,15 @@ describe('hebrew structural layer', () => {
     })
 
     expect(points.some((point) => point.label === '5786, Tishrei')).toBe(true)
-    expect(points.some((point) => point.label === 'Nisan')).toBe(true)
-    expect(points.some((point) => point.label === '' && point.className?.includes('tick-rank-secondary'))).toBe(true)
+    expect(points.some((point) => point.label === 'Nisan')).toBe(false)
+    expect(points.some((point) => point.label === 'Q3, Nisan')).toBe(true)
+    expect(
+      points.some((point) =>
+        point.label === 'Q3, Nisan'
+        && point.className?.includes('tick-rank-secondary')
+        && point.structuralMetadata?.structuralPeriodFamilyId === HEBREW_PERIOD_FAMILY_IDS.quarter,
+      ),
+    ).toBe(true)
     expect(
       points.some((point) =>
         point.label === '5786, Tishrei'
@@ -540,7 +547,7 @@ describe('hebrew structural layer', () => {
     expect(decadePoints.some((point) => point.label === '5783' && point.className?.includes('tick-rank-primary'))).toBe(true)
   })
 
-  it('adds unlabeled hebrew quarter ticks in year view', () => {
+  it('adds quarter-owned hebrew labels in year view', () => {
     const points = createHebrewStructuralPoints({
       leadingCalendarSystemId: 'hebrew',
       activeScaleLevel: 5,
@@ -549,6 +556,11 @@ describe('hebrew structural layer', () => {
       environment: TEST_ENVIRONMENT,
     })
 
-    expect(points.some((point) => point.label === '' && point.className?.includes('tick-rank-secondary'))).toBe(true)
+    expect(
+      points.some((point) =>
+        point.label === 'Q3, Nisan'
+        && point.className?.includes('tick-rank-secondary'),
+      ),
+    ).toBe(true)
   })
 })

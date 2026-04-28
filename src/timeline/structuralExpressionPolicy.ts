@@ -95,6 +95,8 @@ export type HebrewStructuralLabelStrategy =
   | 'hebrew-month-view-boundary'
   | 'hebrew-quarter-view-boundary-leading'
   | 'hebrew-quarter-view-boundary-supporting'
+  | 'hebrew-year-view-quarter-boundary-leading'
+  | 'hebrew-year-view-quarter-boundary-supporting'
   | 'hebrew-year-view-boundary'
   | 'hebrew-decade-view-boundary'
 
@@ -334,7 +336,15 @@ const HEBREW_EXPRESSION_DECLARATION: StructuralCalendarExpressionDeclaration = {
     [SCALE_YEAR]: {
       month: labeledTickPolicy('hebrew-year-view-boundary', 'tick-rank-ordinary'),
       year: labeledTickPolicy('hebrew-year-view-boundary', 'tick-rank-primary'),
-      quarter: unlabeledTickPolicy('tick-rank-secondary'),
+      quarter: {
+        labelStrategy: (input) =>
+          input.leadingCalendarSystemId === 'hebrew'
+            ? 'hebrew-year-view-quarter-boundary-leading'
+            : 'hebrew-year-view-quarter-boundary-supporting',
+        tickState: 'visible-labeled',
+        showLabel: true,
+        tickRankClass: 'tick-rank-secondary',
+      },
     },
     [SCALE_DECADE]: {
       year: labeledTickPolicy('hebrew-decade-view-boundary', 'tick-rank-ordinary'),

@@ -1,12 +1,11 @@
 import type { LeadingCalendarSystemId, TimelineLayer } from './layers'
 import { positionTimelinePoint, positionTimelineSpan } from './layout'
-import { getVisibleRangeStartTickDate, getVisibleTimeRange, type ScaleLevel } from './scales'
+import { getVisibleTimeRange, type ScaleLevel } from './scales'
 import type { PositionedTimelinePoint, PositionedTimelineSpan, TimelinePoint, TimelineSpan } from './types'
 import { getCivilDateAtNoonUtc, getHebrewDayInfo, isHebrewQuarterStartMonth } from './hebrewTime'
 import { getHebrewTickLabel, renderHebrewStructuralLabelStrategy } from './hebrewLabels'
 import { augmentLabelWithPersonalTime } from './personalTime'
 import {
-  createStructuralExpressionDecision,
   getStructuralExpressionDecision,
   getStructuralSpanOpacity,
   getStructuralTickOpacity,
@@ -71,13 +70,23 @@ type HebrewBoundary = {
 const getHebrewStructuralMetadata = (
   familyId: string,
 ): StructuralExpressionMetadata => {
-  const family = getStructuralPeriodFamilyById(familyId)
+  const family = getHebrewPeriodFamily(familyId)
 
   return {
     structuralPeriodFamilyId: familyId,
     structuralCalendarSystemId: 'hebrew',
     structuralSignificance: family?.significance,
   }
+}
+
+const getHebrewPeriodFamily = (familyId: string) => {
+  const family = getStructuralPeriodFamilyById(familyId)
+
+  if (!family) {
+    throw new Error(`Missing Hebrew structural family definition for "${familyId}"`)
+  }
+
+  return family
 }
 
 const getHebrewBoundaryFamilyId = (
@@ -102,6 +111,9 @@ const getHebrewBoundaryFamilyId = (
     case 5:
       if (dayInfo.hebrewDate.month === 7) {
         return HEBREW_PERIOD_FAMILY_IDS.year
+      }
+      if (isHebrewQuarterStartMonth(dayInfo.hebrewDate.month)) {
+        return HEBREW_PERIOD_FAMILY_IDS.quarter
       }
       return HEBREW_PERIOD_FAMILY_IDS.month
     case 6:
@@ -259,76 +271,6 @@ const collectHebrewBoundaries = (
   return boundaries
 }
 
-const addHebrewYearQuarterBoundaryTicks = (
-  points: PositionedTimelinePoint[],
-  leadingCalendarSystemId: LeadingCalendarSystemId,
-  focusTimeMs: number,
-  visibleDurationMs: number,
-  environment: HebrewLayerParams['environment'],
-) => {
-  const boundaries = collectHebrewBoundaries(5, focusTimeMs, visibleDurationMs, environment)
-
-  boundaries.forEach(({ timeMs }) => {
-    const dayInfo = getHebrewDayInfo(new Date(timeMs), environment)
-    const isYearStart = dayInfo.hebrewDate.month === 7
-    const isQuarterStart = isHebrewQuarterStartMonth(dayInfo.hebrewDate.month)
-
-    if (!isQuarterStart || isYearStart) {
-      return
-    }
-
-    const family = getStructuralPeriodFamilyById(HEBREW_PERIOD_FAMILY_IDS.quarter)
-    const decision = family
-      ? getStructuralExpressionDecision(family, {
-          activeScaleLevel: 5,
-          visibleDurationMs,
-          leadingCalendarSystemId,
-          environment,
-        })
-      : createStructuralExpressionDecision()
-
-    if (decision.tickState === 'hidden') {
-      return
-    }
-
-    points.push(
-      positionTimelinePoint(
-        {
-          id: `hebrew-year-quarter-${timeMs}`,
-          kind: 'tick',
-          timeMs,
-          label: decision.showLabel
-            ? getHebrewPolicyAwareTickLabel(
-                decision,
-                5,
-                dayInfo,
-                timeMs,
-                leadingCalendarSystemId === 'hebrew',
-              )
-            : '',
-          structuralMetadata: getHebrewStructuralMetadata(HEBREW_PERIOD_FAMILY_IDS.quarter),
-        },
-        5,
-        focusTimeMs,
-        visibleDurationMs,
-        getVisibleRangeStartTickDate(5, focusTimeMs, visibleDurationMs),
-        {
-          className: [
-            leadingCalendarSystemId === 'hebrew'
-              ? 'structural-tick-leading'
-              : 'structural-tick-supporting',
-            'hebrew-tick',
-            decision.tickRankClass ?? 'tick-rank-ordinary',
-          ].join(' '),
-          labelClassName: leadingCalendarSystemId === 'hebrew'
-            ? 'hebrew-label structural-label-leading'
-            : 'hebrew-label structural-label-supporting',
-        },
-      ),
-    )
-  })
-}
-
 export const createHebrewStructuralPoints = ({
   activeLayerIds,
   leadingCalendarSystemId,
@@ -346,15 +288,13 @@ export const createHebrewStructuralPoints = ({
     const dayInfo = getHebrewDayInfo(new Date(timeMs), environment)
     const isLeading = leadingCalendarSystemId === 'hebrew'
     const familyId = getHebrewBoundaryFamilyId(activeScaleLevel, dayInfo)
-    const family = getStructuralPeriodFamilyById(familyId)
-    const decision = family
-      ? getStructuralExpressionDecision(family, {
-          activeScaleLevel,
-          visibleDurationMs,
-          leadingCalendarSystemId,
-          environment,
-        })
-      : createStructuralExpressionDecision()
+    const family = getHebrewPeriodFamily(familyId)
+    const decision = getStructuralExpressionDecision(family, {
+      activeScaleLevel,
+      visibleDurationMs,
+      leadingCalendarSystemId,
+      environment,
+    })
 
     if (decision.tickState === 'hidden') {
       return
@@ -415,15 +355,13 @@ export const createHebrewStructuralPoints = ({
       .forEach((point) => {
       const isLeading = leadingCalendarSystemId === 'hebrew'
       const familyId = getHebrewIntradayFamilyId(point)
-      const family = getStructuralPeriodFamilyById(familyId)
-      const decision = family
-        ? getStructuralExpressionDecision(family, {
-            activeScaleLevel,
-            visibleDurationMs,
-            leadingCalendarSystemId,
-            environment,
-          })
-        : createStructuralExpressionDecision()
+      const family = getHebrewPeriodFamily(familyId)
+      const decision = getStructuralExpressionDecision(family, {
+        activeScaleLevel,
+        visibleDurationMs,
+        leadingCalendarSystemId,
+        environment,
+      })
 
       if (decision.tickState === 'hidden') {
         return
@@ -487,16 +425,6 @@ export const createHebrewStructuralPoints = ({
       })
   }
 
-  if (activeScaleLevel === 5) {
-    addHebrewYearQuarterBoundaryTicks(
-      points,
-      leadingCalendarSystemId,
-      focusTimeMs,
-      visibleDurationMs,
-      environment,
-    )
-  }
-
   return points
 }
 
@@ -512,15 +440,13 @@ export const createHebrewStructuralSpans = ({
   }
 
   const familyId = getHebrewSpanFamilyId(activeScaleLevel)
-  const family = getStructuralPeriodFamilyById(familyId)
-  const decision = family
-    ? getStructuralExpressionDecision(family, {
-        activeScaleLevel,
-        visibleDurationMs,
-        leadingCalendarSystemId,
-        environment,
-      })
-    : createStructuralExpressionDecision()
+  const family = getHebrewPeriodFamily(familyId)
+  const decision = getStructuralExpressionDecision(family, {
+    activeScaleLevel,
+    visibleDurationMs,
+    leadingCalendarSystemId,
+    environment,
+  })
 
   if (decision.spanState === 'hidden') {
     return []
