@@ -156,6 +156,39 @@ export const getGregorianMonthTickLabel = (tickTime: number, _isFirstTick: boole
   return quarterLabel && showMonth ? `${quarterLabel}, ${label}` : label
 }
 
+export const getGregorianSupportingMonthTickLabel = (
+  tickTime: number,
+  isFirstTick: boolean,
+) => {
+  const tickDate = new Date(tickTime)
+  const showMonth = is1stOfMonth(tickDate)
+  const isSunday = tickDate.getDay() === 0
+  const quarterLabel = isStartOfQuarter(tickDate) ? formatQuarterNumber(tickDate) : undefined
+
+  if (isFirstTick && !showMonth && !isSunday) {
+    return tickDate.toLocaleDateString(LOCALE, DAY)
+  }
+
+  if (isSunday && showMonth) {
+    const label = `${tickDate.toLocaleDateString(LOCALE, {
+      ...DAY,
+      ...MONTH,
+    })}, ${formatWeekNumber(tickDate)}`
+    return quarterLabel ? `${label}, ${quarterLabel}` : label
+  }
+
+  if (isSunday) {
+    return `${tickDate.toLocaleDateString(LOCALE, DAY)}, ${formatWeekNumber(tickDate)}`
+  }
+
+  if (showMonth) {
+    const label = `${tickDate.toLocaleDateString(LOCALE, DAY)} ${tickDate.toLocaleDateString(LOCALE, MONTH)}`
+    return quarterLabel ? `${label}, ${quarterLabel}` : label
+  }
+
+  return tickDate.toLocaleDateString(LOCALE, DAY)
+}
+
 export const getGregorianQuarterWeekTickLabel = (tickTime: number) => {
   return formatWeekNumber(new Date(tickTime))
 }
@@ -178,6 +211,21 @@ export const getGregorianQuarterBoundaryLabel = (tickTime: number, isPrimary = t
 
   if (weekLabel) {
     return isPrimary ? `${monthLabel}, ${weekLabel}` : `${weekLabel}, ${monthLabel}`
+  }
+
+  return monthLabel
+}
+
+export const getGregorianYearBoundaryLabel = (
+  tickTime: number,
+  isPrimary = true,
+) => {
+  const tickDate = new Date(tickTime)
+  const monthLabel = tickDate.toLocaleDateString(LOCALE, MONTH)
+
+  if (is1stOfYear(tickDate)) {
+    const yearLabel = tickDate.toLocaleDateString(LOCALE, YEAR)
+    return isPrimary ? `${yearLabel}, ${monthLabel}` : `${monthLabel} ${yearLabel}`
   }
 
   return monthLabel
@@ -239,25 +287,8 @@ export const getGregorianStructuralTickLabel = (
   }
 
   if (scaleLevel === 3) {
-    const showMonth = is1stOfMonth(tickDate)
-    const isSunday = tickDate.getDay() === 0
-    const quarterLabel = isStartOfQuarter(tickDate) ? formatQuarterNumber(tickDate) : undefined
-
-    if (!isPrimary && isSunday && showMonth) {
-      const label = `${tickDate.toLocaleDateString(LOCALE, {
-        ...DAY,
-        ...MONTH,
-      })}, ${formatWeekNumber(tickDate)}`
-      return quarterLabel ? `${label}, ${quarterLabel}` : label
-    }
-
-    if (!isPrimary && isSunday) {
-      return `${tickDate.toLocaleDateString(LOCALE, DAY)}, ${formatWeekNumber(tickDate)}`
-    }
-
-    if (!isPrimary && showMonth) {
-      const label = `${tickDate.toLocaleDateString(LOCALE, DAY)} ${tickDate.toLocaleDateString(LOCALE, MONTH)}`
-      return quarterLabel ? `${label}, ${quarterLabel}` : label
+    if (!isPrimary) {
+      return getGregorianSupportingMonthTickLabel(tickTime, isFirstTick)
     }
 
     return getGregorianMonthTickLabel(tickTime, isFirstTick)
@@ -268,13 +299,7 @@ export const getGregorianStructuralTickLabel = (
   }
 
   if (scaleLevel === 5) {
-    const monthLabel = tickDate.toLocaleDateString(LOCALE, MONTH)
-    if (is1stOfYear(tickDate)) {
-      const yearLabel = tickDate.toLocaleDateString(LOCALE, YEAR)
-      return isPrimary ? `${yearLabel}, ${monthLabel}` : `${monthLabel} ${yearLabel}`
-    }
-
-    return monthLabel
+    return getGregorianYearBoundaryLabel(tickTime, isPrimary)
   }
 
   if (scaleLevel === 6) {
@@ -339,7 +364,9 @@ export const renderGregorianStructuralLabelStrategy = (
         ? `${formatWeekNumber(tickDate)}, ${tickDate.toLocaleDateString(LOCALE, WEEKDAY)} ${tickDate.toLocaleDateString(LOCALE, DAY)}`
         : `${tickDate.toLocaleDateString(LOCALE, WEEKDAY)} ${tickDate.toLocaleDateString(LOCALE, DAY)}`
     case 'month-view-context-boundary':
-      return getGregorianStructuralTickLabel(3, tickTime, false, isPrimary) ?? ''
+      return isPrimary
+        ? getGregorianMonthTickLabel(tickTime, false) ?? ''
+        : getGregorianSupportingMonthTickLabel(tickTime, false) ?? ''
     case 'quarter-view-week-boundary':
       return getGregorianQuarterWeekTickLabel(tickTime)
     case 'quarter-view-month-boundary-leading':
@@ -347,7 +374,7 @@ export const renderGregorianStructuralLabelStrategy = (
     case 'quarter-view-month-boundary-supporting':
       return getGregorianQuarterBoundaryLabel(tickTime, false)
     case 'year-view-year-boundary':
-      return getGregorianStructuralTickLabel(5, tickTime, false, isPrimary) ?? ''
+      return getGregorianYearBoundaryLabel(tickTime, isPrimary)
     case 'year-view-month-boundary':
       return new Date(tickTime).toLocaleDateString(LOCALE, MONTH)
     default:

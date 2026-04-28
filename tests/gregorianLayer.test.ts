@@ -344,9 +344,15 @@ describe('gregorian structural layer', () => {
 
     expect(quarterPoints.some((point) => point.label === 'W15')).toBe(true)
     expect(quarterPoints.some((point) => point.label === 'Q2, Apr')).toBe(true)
-    expect(yearPoints.some((point) => point.label === 'Apr')).toBe(true)
+    expect(yearPoints.some((point) => point.label === 'Apr')).toBe(false)
     expect(yearPoints.some((point) => point.label === '2026, Jan')).toBe(true)
-    expect(yearPoints.some((point) => point.label === '' && point.className?.includes('tick-rank-secondary'))).toBe(true)
+    expect(
+      yearPoints.some((point) =>
+        point.label === ''
+        && point.className?.includes('tick-rank-secondary')
+        && point.structuralMetadata?.structuralPeriodFamilyId === GREGORIAN_PERIOD_FAMILY_IDS.quarter,
+      ),
+    ).toBe(true)
     expect(
       quarterPoints.some((point) =>
         point.label === 'W15'
@@ -364,7 +370,7 @@ describe('gregorian structural layer', () => {
         point.label === 'Apr'
         && point.className?.includes('tick-rank-ordinary'),
       ),
-    ).toBe(true)
+    ).toBe(false)
     expect(
       yearPoints.some((point) =>
         point.label === '2026, Jan'
