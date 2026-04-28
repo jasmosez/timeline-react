@@ -72,12 +72,14 @@ describe('structural expression policy skeleton', () => {
     const monthFamily = getStructuralPeriodFamilyById(GREGORIAN_PERIOD_FAMILY_IDS.month)
     const quarterFamily = getStructuralPeriodFamilyById(GREGORIAN_PERIOD_FAMILY_IDS.quarter)
     const yearFamily = getStructuralPeriodFamilyById(GREGORIAN_PERIOD_FAMILY_IDS.year)
+    const decadeFamily = getStructuralPeriodFamilyById(GREGORIAN_PERIOD_FAMILY_IDS.decade)
 
     expect(dayFamily).toBeDefined()
     expect(weekFamily).toBeDefined()
     expect(monthFamily).toBeDefined()
     expect(quarterFamily).toBeDefined()
     expect(yearFamily).toBeDefined()
+    expect(decadeFamily).toBeDefined()
 
     expect(getStructuralExpressionDecision(dayFamily!, TEST_POLICY_INPUT)).toMatchObject({
       tickState: 'visible-labeled',
@@ -189,6 +191,24 @@ describe('structural expression policy skeleton', () => {
       tickState: 'visible-labeled',
       showLabel: true,
       labelStrategy: 'year-view-year-boundary',
+      tickRankClass: 'tick-rank-primary',
+    })
+    expect(getStructuralExpressionDecision(
+      yearFamily!,
+      { ...TEST_POLICY_INPUT, activeScaleLevel: 6 },
+    )).toMatchObject({
+      tickState: 'visible-labeled',
+      showLabel: true,
+      labelStrategy: 'decade-view-year-boundary',
+      tickRankClass: 'tick-rank-ordinary',
+    })
+    expect(getStructuralExpressionDecision(
+      decadeFamily!,
+      { ...TEST_POLICY_INPUT, activeScaleLevel: 6 },
+    )).toMatchObject({
+      tickState: 'visible-labeled',
+      showLabel: true,
+      labelStrategy: 'decade-view-decade-boundary',
       tickRankClass: 'tick-rank-primary',
     })
   })

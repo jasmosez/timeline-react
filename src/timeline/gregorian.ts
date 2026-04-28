@@ -1,7 +1,7 @@
 import { SCALE_LEVEL_CONFIG, getVisibleRangeStartTickDate, getVisibleTimeRange, type ScaleLevel } from './scales'
 import { createStructuralSpansForRange, positionTimelinePoint, positionTimelineSpan } from './layout'
-import type { LeadingCalendarSystemId, TimelineLayer } from './layers'
-import { getGregorianStructuralTickLabel, renderGregorianStructuralLabelStrategy } from './gregorianLabels'
+import type { LeadingCalendarSystemId, TimelineEnvironment, TimelineLayer } from './layers'
+import { renderGregorianStructuralLabelStrategy } from './gregorianLabels'
 import { augmentLabelWithPersonalTime } from './personalTime'
 import {
   createStructuralExpressionDecision,
@@ -30,6 +30,19 @@ type TickCollectionParams = {
   activeScaleLevel: ScaleLevel
   focusTimeMs: number
   visibleDurationMs: number
+}
+
+type GregorianTickPolicyEvaluation = {
+  familyId: string
+  decision: StructuralExpressionDecision
+}
+
+type GregorianStructuralTickLabelParams = {
+  activeScaleLevel: ScaleLevel
+  tickTime: number
+  leadingCalendarSystemId?: LeadingCalendarSystemId
+  visibleDurationMs?: number
+  environment?: TimelineEnvironment
 }
 
 const DAY_IN_MS = 24 * 60 * 60 * 1000
@@ -113,6 +126,19 @@ const getGregorianPolicyAwareTickRankClass = (
   return getGregorianTickRankClass(scaleLevel, tickTime)
 }
 
+const DEFAULT_GREGORIAN_POLICY_ENVIRONMENT: TimelineEnvironment = {
+  now: new Date('2026-01-01T12:00:00-05:00'),
+  birthDate: new Date('1982-04-19T02:25:00-05:00'),
+  timezone: 'America/New_York',
+  location: {
+    city: 'Northampton',
+    region: 'MA',
+    postalCode: '01060',
+    latitude: 42.3251,
+    longitude: -72.6412,
+  },
+}
+
 const createTickPoint = (tickTime: number): TimelinePoint => ({
   id: `tick-${tickTime}`,
   kind: 'tick',
@@ -170,10 +196,19 @@ const getGregorianPointFamilyId = (scaleLevel: ScaleLevel, tickTime: number) => 
       }
       return GREGORIAN_PERIOD_FAMILY_IDS.day
     case 4:
+      if (tickDate.getDate() === 1 && tickDate.getMonth() % 3 === 0) {
+        return GREGORIAN_PERIOD_FAMILY_IDS.quarter
+      }
+      if (tickDate.getDate() === 1) {
+        return GREGORIAN_PERIOD_FAMILY_IDS.month
+      }
       return GREGORIAN_PERIOD_FAMILY_IDS.week
     case 5:
       if (tickDate.getMonth() === 0) {
         return GREGORIAN_PERIOD_FAMILY_IDS.year
+      }
+      if (tickDate.getMonth() % 3 === 0) {
+        return GREGORIAN_PERIOD_FAMILY_IDS.quarter
       }
       return GREGORIAN_PERIOD_FAMILY_IDS.month
     case 6:
@@ -320,21 +355,69 @@ const getBufferedVisibleRange = (focusTimeMs: number, visibleDurationMs: number)
 }
 
 const getGregorianPolicyAwareTickLabel = (
-  decision: ReturnType<typeof createStructuralExpressionDecision>,
-  scaleLevel: ScaleLevel,
+  decision: StructuralExpressionDecision,
   tickTime: number,
-  isFirstTick: boolean,
   isLeading: boolean,
 ) => {
   if (decision.labelStrategy && isGregorianStructuralLabelStrategy(decision.labelStrategy)) {
     return renderGregorianStructuralLabelStrategy(decision.labelStrategy, tickTime, isLeading)
   }
 
-  return getGregorianStructuralTickLabel(
-    scaleLevel,
+  return ''
+}
+
+const getGregorianTickPolicyEvaluation = (
+  scaleLevel: ScaleLevel,
+  tickTime: number,
+  visibleDurationMs: number,
+  leadingCalendarSystemId: LeadingCalendarSystemId,
+  environment: TickCollectionParams['environment'],
+): GregorianTickPolicyEvaluation => {
+  const familyId = getGregorianPointFamilyId(scaleLevel, tickTime)
+  const family = getStructuralPeriodFamilyById(familyId)
+  const baseDecision = family
+    ? getStructuralExpressionDecision(family, {
+        activeScaleLevel: scaleLevel,
+        visibleDurationMs,
+        leadingCalendarSystemId,
+        environment,
+      })
+    : createStructuralExpressionDecision()
+
+  const decision = family && (
+    scaleLevel === -1
+    || (scaleLevel === 0 && family.kind === 'minute')
+    || (scaleLevel === 1 && family.kind === 'hour')
+  )
+    ? getStructuralTickInstanceDecision(family, tickTime, baseDecision)
+    : baseDecision
+
+  return { familyId, decision }
+}
+
+export const getGregorianStructuralTickLabelFromPolicy = ({
+  activeScaleLevel,
+  tickTime,
+  leadingCalendarSystemId = 'gregorian',
+  visibleDurationMs = SCALE_LEVEL_CONFIG[activeScaleLevel].screenSpan,
+  environment = DEFAULT_GREGORIAN_POLICY_ENVIRONMENT,
+}: GregorianStructuralTickLabelParams) => {
+  const { decision } = getGregorianTickPolicyEvaluation(
+    activeScaleLevel,
     tickTime,
-    isFirstTick,
-    isLeading,
+    visibleDurationMs,
+    leadingCalendarSystemId,
+    environment,
+  )
+
+  if (!decision.showLabel) {
+    return ''
+  }
+
+  return getGregorianPolicyAwareTickLabel(
+    decision,
+    tickTime,
+    leadingCalendarSystemId === 'gregorian',
   )
 }
 
@@ -348,14 +431,11 @@ const createGregorianPositionedTickPoint = (
   leadingCalendarSystemId: LeadingCalendarSystemId,
   focusTimeMs: number,
   visibleDurationMs: number,
-  isFirstTick: boolean,
 ) => {
   const isLeading = leadingCalendarSystemId === 'gregorian'
   const rawLabel = getGregorianPolicyAwareTickLabel(
     decision,
-    scaleLevel,
     tickTime,
-    isFirstTick,
     isLeading,
   )
 
@@ -416,23 +496,13 @@ const addPositionedTicksForScaleLevel = (
 
   while (tickTime <= bufferedEndMs) {
     const isLeading = leadingCalendarSystemId === 'gregorian'
-    const familyId = getGregorianPointFamilyId(scaleLevel, tickTime)
-    const family = getStructuralPeriodFamilyById(familyId)
-    const baseDecision = family
-      ? getStructuralExpressionDecision(family, {
-          activeScaleLevel: scaleLevel,
-          visibleDurationMs,
-          leadingCalendarSystemId,
-          environment,
-        })
-      : createStructuralExpressionDecision()
-    const decision = family && (
-      scaleLevel === -1
-      || (scaleLevel === 0 && family.kind === 'minute')
-      || (scaleLevel === 1 && family.kind === 'hour')
+    const { familyId, decision } = getGregorianTickPolicyEvaluation(
+      scaleLevel,
+      tickTime,
+      visibleDurationMs,
+      leadingCalendarSystemId,
+      environment,
     )
-      ? getStructuralTickInstanceDecision(family, tickTime, baseDecision)
-      : baseDecision
 
     if (decision.tickState === 'hidden') {
       tickTime = calculateTickTimeFunc(new Date(tickTime), 1)
@@ -441,9 +511,7 @@ const addPositionedTicksForScaleLevel = (
 
     const rawLabel = getGregorianPolicyAwareTickLabel(
       decision,
-      scaleLevel,
       tickTime,
-      tickTime === visibleRangeStartTickDate.getTime(),
       isLeading,
     )
     const point = {
@@ -583,7 +651,6 @@ const addGregorianMultiFamilyTicksForScale = (
         leadingCalendarSystemId,
         focusTimeMs,
         visibleDurationMs,
-        tickTime === getVisibleRangeStartTickDate(scaleLevel, focusTimeMs, visibleDurationMs).getTime(),
       ),
     )
   })

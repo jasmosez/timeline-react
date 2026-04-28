@@ -78,6 +78,8 @@ export type GregorianStructuralLabelStrategy =
   | 'year-view-quarter-boundary-supporting'
   | 'year-view-year-boundary'
   | 'year-view-month-boundary'
+  | 'decade-view-year-boundary'
+  | 'decade-view-decade-boundary'
 
 export type HebrewStructuralLabelStrategy =
   | 'hebrew-minute-view-zman'
@@ -265,8 +267,8 @@ const GREGORIAN_EXPRESSION_DECLARATION: StructuralCalendarExpressionDeclaration 
       },
     },
     [SCALE_DECADE]: {
-      year: { tickState: 'visible-labeled', showLabel: true },
-      decade: { tickState: 'visible-labeled', showLabel: true },
+      year: labeledTickPolicy('decade-view-year-boundary', 'tick-rank-ordinary'),
+      decade: labeledTickPolicy('decade-view-decade-boundary', 'tick-rank-primary'),
     },
   },
 }
