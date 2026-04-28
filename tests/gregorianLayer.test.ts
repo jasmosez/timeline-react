@@ -314,7 +314,7 @@ describe('gregorian structural layer', () => {
     ).toBe(true)
   })
 
-  it('adds unlabeled quarter ticks in year view', () => {
+  it('adds quarter-owned labels in year view', () => {
     const focusTimeMs = new Date('2026-04-20T12:00:00-04:00').getTime()
     const visibleDurationMs = 400 * 24 * 60 * 60 * 1000
     const points = createGregorianTickPoints({
@@ -324,7 +324,13 @@ describe('gregorian structural layer', () => {
       visibleDurationMs,
     })
 
-    expect(points.some((point) => point.label === '' && point.className?.includes('tick-rank-secondary'))).toBe(true)
+    expect(
+      points.some((point) =>
+        point.label === 'Q2, Apr'
+        && point.className?.includes('tick-rank-secondary')
+        && point.structuralMetadata?.structuralPeriodFamilyId === GREGORIAN_PERIOD_FAMILY_IDS.quarter,
+      ),
+    ).toBe(true)
     expect(points.some((point) => point.label === '2026, Jan')).toBe(true)
   })
 
@@ -345,10 +351,11 @@ describe('gregorian structural layer', () => {
     expect(quarterPoints.some((point) => point.label === 'W15')).toBe(true)
     expect(quarterPoints.some((point) => point.label === 'Q2, Apr')).toBe(true)
     expect(yearPoints.some((point) => point.label === 'Apr')).toBe(false)
+    expect(yearPoints.some((point) => point.label === 'Q2, Apr')).toBe(true)
     expect(yearPoints.some((point) => point.label === '2026, Jan')).toBe(true)
     expect(
       yearPoints.some((point) =>
-        point.label === ''
+        point.label === 'Q2, Apr'
         && point.className?.includes('tick-rank-secondary')
         && point.structuralMetadata?.structuralPeriodFamilyId === GREGORIAN_PERIOD_FAMILY_IDS.quarter,
       ),
@@ -363,6 +370,12 @@ describe('gregorian structural layer', () => {
       quarterPoints.some((point) =>
         point.label === 'Q2, Apr'
         && point.className?.includes('tick-rank-primary'),
+      ),
+    ).toBe(true)
+    expect(
+      yearPoints.some((point) =>
+        point.label === 'Q2, Apr'
+        && point.className?.includes('tick-rank-secondary'),
       ),
     ).toBe(true)
     expect(

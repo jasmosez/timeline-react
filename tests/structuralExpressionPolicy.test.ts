@@ -155,8 +155,22 @@ describe('structural expression policy skeleton', () => {
       quarterFamily!,
       { ...TEST_POLICY_INPUT, activeScaleLevel: 5 },
     )).toMatchObject({
-      tickState: 'visible-unlabeled',
-      showLabel: false,
+      tickState: 'visible-labeled',
+      showLabel: true,
+      labelStrategy: 'year-view-quarter-boundary-leading',
+      tickRankClass: 'tick-rank-secondary',
+    })
+    expect(getStructuralExpressionDecision(
+      quarterFamily!,
+      {
+        ...TEST_POLICY_INPUT,
+        activeScaleLevel: 5,
+        leadingCalendarSystemId: 'hebrew',
+      },
+    )).toMatchObject({
+      tickState: 'visible-labeled',
+      showLabel: true,
+      labelStrategy: 'year-view-quarter-boundary-supporting',
       tickRankClass: 'tick-rank-secondary',
     })
     expect(getStructuralExpressionDecision(

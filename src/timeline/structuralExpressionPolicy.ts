@@ -74,6 +74,8 @@ export type GregorianStructuralLabelStrategy =
   | 'quarter-view-week-boundary'
   | 'quarter-view-month-boundary-leading'
   | 'quarter-view-month-boundary-supporting'
+  | 'year-view-quarter-boundary-leading'
+  | 'year-view-quarter-boundary-supporting'
   | 'year-view-year-boundary'
   | 'year-view-month-boundary'
 
@@ -252,7 +254,15 @@ const GREGORIAN_EXPRESSION_DECLARATION: StructuralCalendarExpressionDeclaration 
     [SCALE_YEAR]: {
       month: labeledTickPolicy('year-view-month-boundary', 'tick-rank-ordinary'),
       year: labeledTickPolicy('year-view-year-boundary', 'tick-rank-primary'),
-      quarter: unlabeledTickPolicy('tick-rank-secondary'),
+      quarter: {
+        labelStrategy: (input) =>
+          input.leadingCalendarSystemId === 'gregorian'
+            ? 'year-view-quarter-boundary-leading'
+            : 'year-view-quarter-boundary-supporting',
+        tickState: 'visible-labeled',
+        showLabel: true,
+        tickRankClass: 'tick-rank-secondary',
+      },
     },
     [SCALE_DECADE]: {
       year: { tickState: 'visible-labeled', showLabel: true },
