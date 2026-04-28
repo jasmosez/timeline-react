@@ -173,7 +173,6 @@ The policy-aware bridge is:
 Its logic is:
 
 - if policy provides a Gregorian `labelStrategy`, use `renderGregorianStructuralLabelStrategy(...)`
-- otherwise fall back to `getGregorianStructuralTickLabel(...)`
 
 ### Policy-Driven Label Path
 
@@ -194,7 +193,6 @@ This function now directly renders almost all migrated Gregorian label roles.
 ### Remaining Fallback Hub
 
 The main remaining legacy seam is:
-- `getGregorianStructuralTickLabel(...)`
 
 This is no longer the main source of truth, but it still acts as:
 
@@ -284,7 +282,7 @@ It is useful now because:
 
 But long-term it likely wants to give way to a more explicit prominence/expression model.
 
-### 2. `getGregorianStructuralTickLabel(...)`
+### 2. Legacy Compatibility Note
 
 This is still the main Gregorian compatibility hub.
 
@@ -324,7 +322,7 @@ This is not necessarily wrong, but it is still more visible than ideal in the co
 
 ### Worth Doing Soon
 
-1. **Keep shrinking `getGregorianStructuralTickLabel(...)`**
+1. **Keep shrinking legacy compatibility seams**
    - especially any branches whose behavior is already fully represented by policy strategies
 
 2. **Clarify role semantics**
@@ -367,4 +365,4 @@ It is:
 
 If we keep simplifying, I think the next best question is:
 
-- how small can `getGregorianStructuralTickLabel(...)` become before it stops being worth preserving as a public compatibility helper?
+- when is a separate compatibility seam no longer worth preserving at all?
