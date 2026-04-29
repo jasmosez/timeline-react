@@ -47,6 +47,11 @@ type HebrewBoundaryFamilyEmitter = {
   matches: (dayInfo: ReturnType<typeof getHebrewDayInfo>) => boolean
 }
 
+type HebrewSpanSeed = {
+  span: TimelineSpan
+  stripeClass: string
+}
+
 type HebrewTickPolicyEvaluation = {
   familyId: string
   decision: StructuralExpressionDecision
@@ -84,25 +89,6 @@ const getHebrewIntradayFamilyId = (point: HebrewIntradayPointData) => {
   }
 
   return HEBREW_PERIOD_FAMILY_IDS.zmanim
-}
-
-const getHebrewSpanFamilyId = (activeScaleLevel: ScaleLevel) => {
-  switch (activeScaleLevel) {
-    case -1:
-    case 0:
-    case 1:
-      return HEBREW_PERIOD_FAMILY_IDS.zmanim
-    case 2:
-    case 3:
-      return HEBREW_PERIOD_FAMILY_IDS.day
-    case 4:
-    case 5:
-      return HEBREW_PERIOD_FAMILY_IDS.month
-    case 6:
-      return HEBREW_PERIOD_FAMILY_IDS.year
-    default:
-      return HEBREW_PERIOD_FAMILY_IDS.day
-  }
 }
 
 const getHebrewSpanStripeClass = (
@@ -182,6 +168,15 @@ const HEBREW_BOUNDARY_EMISSION_PLAN: Partial<Record<ScaleLevel, HebrewBoundaryFa
   ],
 }
 
+type HebrewSpanEmissionPlan = {
+  familyId: string
+  collectSpanSeeds: (
+    focusTimeMs: number,
+    visibleDurationMs: number,
+    environment: HebrewLayerParams['environment'],
+  ) => HebrewSpanSeed[]
+}
+
 const getLeapYearsBeforeHebrewYear = (year: number) => {
   const priorYears = year - 1
   const fullCycles = Math.floor(priorYears / 19)
@@ -189,6 +184,115 @@ const getLeapYearsBeforeHebrewYear = (year: number) => {
 
   return fullCycles * HEBREW_LEAP_POSITIONS.length
     + HEBREW_LEAP_POSITIONS.filter((position) => position <= cycleRemainder).length
+}
+
+const createHebrewBoundarySpansForFamily = (
+  activeScaleLevel: ScaleLevel,
+  familyId: string,
+  focusTimeMs: number,
+  visibleDurationMs: number,
+  environment: HebrewLayerParams['environment'],
+): HebrewSpanSeed[] => {
+  const spanEmitters = (HEBREW_BOUNDARY_EMISSION_PLAN[activeScaleLevel] ?? [])
+    .filter((emitter) => emitter.familyId === familyId)
+
+  if (spanEmitters.length === 0) {
+    return []
+  }
+
+  const boundaries = collectHebrewBoundaryEvents(focusTimeMs, visibleDurationMs, environment)
+    .filter(({ dayInfo }) => spanEmitters.some((emitter) => emitter.matches(dayInfo)))
+
+  const spans: HebrewSpanSeed[] = []
+
+  for (let i = 0; i < boundaries.length - 1; i++) {
+    const start = boundaries[i]
+    const end = boundaries[i + 1]
+
+    if (end.timeMs <= start.timeMs) {
+      continue
+    }
+
+    spans.push({
+      span: {
+        id: `hebrew-span-${familyId}-${start.timeMs}`,
+        kind: 'structural-period',
+        startTimeMs: start.timeMs,
+        endTimeMs: end.timeMs,
+        label: getHebrewTickLabel(
+          activeScaleLevel,
+          start.dayInfo,
+          start.timeMs,
+          true,
+        ) ?? '',
+        structuralMetadata: getHebrewStructuralMetadata(familyId),
+      },
+      stripeClass: getHebrewSpanStripeClass(activeScaleLevel, start.timeMs, environment),
+    })
+  }
+
+  return spans
+}
+
+const HEBREW_SPAN_EMISSION_PLAN: Record<ScaleLevel, HebrewSpanEmissionPlan> = {
+  [-1]: {
+    familyId: HEBREW_PERIOD_FAMILY_IDS.zmanim,
+    collectSpanSeeds: (focusTimeMs, visibleDurationMs, environment) =>
+      getDayViewIntradaySpans(focusTimeMs, visibleDurationMs, environment).map(({ span, stripeClass }) => ({
+        span: {
+          ...span,
+          structuralMetadata: getHebrewStructuralMetadata(HEBREW_PERIOD_FAMILY_IDS.zmanim),
+        },
+        stripeClass,
+      })),
+  },
+  0: {
+    familyId: HEBREW_PERIOD_FAMILY_IDS.zmanim,
+    collectSpanSeeds: (focusTimeMs, visibleDurationMs, environment) =>
+      getDayViewIntradaySpans(focusTimeMs, visibleDurationMs, environment).map(({ span, stripeClass }) => ({
+        span: {
+          ...span,
+          structuralMetadata: getHebrewStructuralMetadata(HEBREW_PERIOD_FAMILY_IDS.zmanim),
+        },
+        stripeClass,
+      })),
+  },
+  1: {
+    familyId: HEBREW_PERIOD_FAMILY_IDS.zmanim,
+    collectSpanSeeds: (focusTimeMs, visibleDurationMs, environment) =>
+      getDayViewIntradaySpans(focusTimeMs, visibleDurationMs, environment).map(({ span, stripeClass }) => ({
+        span: {
+          ...span,
+          structuralMetadata: getHebrewStructuralMetadata(HEBREW_PERIOD_FAMILY_IDS.zmanim),
+        },
+        stripeClass,
+      })),
+  },
+  2: {
+    familyId: HEBREW_PERIOD_FAMILY_IDS.day,
+    collectSpanSeeds: (focusTimeMs, visibleDurationMs, environment) =>
+      createHebrewBoundarySpansForFamily(2, HEBREW_PERIOD_FAMILY_IDS.day, focusTimeMs, visibleDurationMs, environment),
+  },
+  3: {
+    familyId: HEBREW_PERIOD_FAMILY_IDS.day,
+    collectSpanSeeds: (focusTimeMs, visibleDurationMs, environment) =>
+      createHebrewBoundarySpansForFamily(3, HEBREW_PERIOD_FAMILY_IDS.day, focusTimeMs, visibleDurationMs, environment),
+  },
+  4: {
+    familyId: HEBREW_PERIOD_FAMILY_IDS.month,
+    collectSpanSeeds: (focusTimeMs, visibleDurationMs, environment) =>
+      createHebrewBoundarySpansForFamily(4, HEBREW_PERIOD_FAMILY_IDS.month, focusTimeMs, visibleDurationMs, environment),
+  },
+  5: {
+    familyId: HEBREW_PERIOD_FAMILY_IDS.month,
+    collectSpanSeeds: (focusTimeMs, visibleDurationMs, environment) =>
+      createHebrewBoundarySpansForFamily(5, HEBREW_PERIOD_FAMILY_IDS.month, focusTimeMs, visibleDurationMs, environment),
+  },
+  6: {
+    familyId: HEBREW_PERIOD_FAMILY_IDS.year,
+    collectSpanSeeds: (focusTimeMs, visibleDurationMs, environment) =>
+      createHebrewBoundarySpansForFamily(6, HEBREW_PERIOD_FAMILY_IDS.year, focusTimeMs, visibleDurationMs, environment),
+  },
 }
 
 const getHebrewPolicyAwareTickLabel = (
@@ -319,29 +423,6 @@ const collectHebrewBoundaryEvents = (
   }
 
   return boundaries
-}
-
-const getHebrewSpanBoundaryEvents = (
-  activeScaleLevel: ScaleLevel,
-  focusTimeMs: number,
-  visibleDurationMs: number,
-  environment: HebrewLayerParams['environment'],
-) => {
-  const spanFamilyId = getHebrewSpanFamilyId(activeScaleLevel)
-
-  if (spanFamilyId === HEBREW_PERIOD_FAMILY_IDS.day) {
-    return collectHebrewBoundaryEvents(focusTimeMs, visibleDurationMs, environment)
-  }
-
-  const spanEmitters = (HEBREW_BOUNDARY_EMISSION_PLAN[activeScaleLevel] ?? [])
-    .filter((emitter) => emitter.familyId === spanFamilyId)
-
-  if (spanEmitters.length === 0) {
-    return []
-  }
-
-  return collectHebrewBoundaryEvents(focusTimeMs, visibleDurationMs, environment)
-    .filter(({ dayInfo }) => spanEmitters.some((emitter) => emitter.matches(dayInfo)))
 }
 
 const resolveHebrewBoundaryFamilyId = (
@@ -496,8 +577,8 @@ export const createHebrewStructuralSpans = ({
     return []
   }
 
-  const familyId = getHebrewSpanFamilyId(activeScaleLevel)
-  const family = getHebrewPeriodFamily(familyId)
+  const spanPlan = HEBREW_SPAN_EMISSION_PLAN[activeScaleLevel]
+  const family = getHebrewPeriodFamily(spanPlan.familyId)
   const decision = getStructuralExpressionDecision(family, {
     activeScaleLevel,
     visibleDurationMs,
@@ -509,69 +590,18 @@ export const createHebrewStructuralSpans = ({
     return []
   }
 
-  if (activeScaleLevel === -1 || activeScaleLevel === 0 || activeScaleLevel === 1) {
-    return getDayViewIntradaySpans(focusTimeMs, visibleDurationMs, environment).map(({ span, stripeClass }) =>
-      positionTimelineSpan(
-        {
-          ...span,
-          structuralMetadata: getHebrewStructuralMetadata(familyId),
-        },
-        focusTimeMs,
-        visibleDurationMs,
-        {
-          opacity: getStructuralSpanOpacity(decision),
-          className: [
-            leadingCalendarSystemId === 'hebrew'
-              ? 'hebrew-structural-span structural-span structural-span-leading'
-              : 'hebrew-structural-span structural-span structural-span-supporting',
-            stripeClass,
-          ].join(' '),
-          side: leadingCalendarSystemId === 'hebrew' ? 'leading' : 'supporting',
-          labelTheme: 'hebrew',
-        },
-      ),
-    )
-  }
-
-  const boundaries = getHebrewSpanBoundaryEvents(
-    activeScaleLevel,
+  return spanPlan.collectSpanSeeds(
     focusTimeMs,
     visibleDurationMs,
     environment,
-  )
-  const spans: TimelineSpan[] = []
-
-  for (let i = 0; i < boundaries.length - 1; i++) {
-    const start = boundaries[i]
-    const end = boundaries[i + 1]
-
-    if (end.timeMs <= start.timeMs) {
-      continue
-    }
-
-    spans.push({
-      id: `hebrew-span-${start.timeMs}`,
-      kind: 'structural-period',
-      startTimeMs: start.timeMs,
-      endTimeMs: end.timeMs,
-      label: getHebrewTickLabel(
-        activeScaleLevel,
-        start.dayInfo,
-        start.timeMs,
-        true,
-      ) ?? '',
-      structuralMetadata: getHebrewStructuralMetadata(familyId),
-    })
-  }
-
-  return spans.map((span) =>
+  ).map(({ span, stripeClass }) =>
     positionTimelineSpan(span, focusTimeMs, visibleDurationMs, {
       opacity: getStructuralSpanOpacity(decision),
       className: [
         leadingCalendarSystemId === 'hebrew'
           ? 'hebrew-structural-span structural-span structural-span-leading'
           : 'hebrew-structural-span structural-span structural-span-supporting',
-        getHebrewSpanStripeClass(activeScaleLevel, span.startTimeMs, environment),
+        stripeClass,
       ].join(' '),
       side: leadingCalendarSystemId === 'hebrew' ? 'leading' : 'supporting',
       labelTheme: 'hebrew',
