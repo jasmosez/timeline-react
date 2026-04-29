@@ -1,9 +1,34 @@
 import { getGregorianStickyContextLabel, GREGORIAN_SCALE_LEVEL_CONFIG } from '../src/timeline/gregorianScaleConfig'
+import { getGregorianStructuralTickLabelFromPolicy } from '../src/timeline/gregorian'
 import {
   getGregorianQuarterBoundaryLabel,
-  getGregorianStructuralTickLabel,
   getSundayStartWeekInfo,
 } from '../src/timeline/gregorianLabels'
+
+const TEST_ENVIRONMENT = {
+  now: new Date('2026-04-01T12:00:00-04:00'),
+  birthDate: new Date('1982-04-19T02:25:00-05:00'),
+  timezone: 'America/New_York',
+  location: {
+    city: 'Northampton',
+    region: 'MA',
+    postalCode: '01060',
+    latitude: 42.3251,
+    longitude: -72.6412,
+  },
+} as const
+
+const getPolicyDrivenGregorianLabel = (
+  activeScaleLevel: -1 | 0 | 1 | 2 | 3 | 4 | 5 | 6,
+  tickTime: number,
+  leadingCalendarSystemId: 'gregorian' | 'hebrew' = 'gregorian',
+) => getGregorianStructuralTickLabelFromPolicy({
+  activeScaleLevel,
+  tickTime,
+  leadingCalendarSystemId,
+  visibleDurationMs: GREGORIAN_SCALE_LEVEL_CONFIG[activeScaleLevel].screenSpan,
+  environment: TEST_ENVIRONMENT,
+})
 
 describe('gregorian scale label helpers', () => {
   it('provides sticky context labels for non-decade scales', () => {
@@ -47,11 +72,10 @@ describe('gregorian scale label helpers', () => {
       new Date('2027-01-01T00:00:00-05:00').getTime(),
       false,
     )
-    const supportingLabel = getGregorianStructuralTickLabel(
+    const supportingLabel = getPolicyDrivenGregorianLabel(
       3,
       new Date('2027-01-01T00:00:00-05:00').getTime(),
-      false,
-      false,
+      'hebrew',
     )
 
     expect(leadingLabel).toBe('Q1, Jan 1')
@@ -63,11 +87,10 @@ describe('gregorian scale label helpers', () => {
       new Date('2026-04-01T00:00:00-04:00').getTime(),
       false,
     )
-    const supportingLabel = getGregorianStructuralTickLabel(
+    const supportingLabel = getPolicyDrivenGregorianLabel(
       3,
       new Date('2026-04-01T00:00:00-04:00').getTime(),
-      false,
-      false,
+      'hebrew',
     )
 
     expect(leadingLabel).toBe('Q2, Apr 1')
@@ -79,11 +102,10 @@ describe('gregorian scale label helpers', () => {
       new Date('2028-10-01T00:00:00-04:00').getTime(),
       false,
     )
-    const supportingLabel = getGregorianStructuralTickLabel(
+    const supportingLabel = getPolicyDrivenGregorianLabel(
       3,
       new Date('2028-10-01T00:00:00-04:00').getTime(),
-      false,
-      false,
+      'hebrew',
     )
 
     expect(leadingLabel).toBe('Q4, W40, Oct 1')
@@ -100,11 +122,10 @@ describe('gregorian scale label helpers', () => {
   })
 
   it('does not add month context just because a day is the first visible supporting tick in month view', () => {
-    const label = getGregorianStructuralTickLabel(
+    const label = getPolicyDrivenGregorianLabel(
       3,
       new Date('2026-03-17T00:00:00-04:00').getTime(),
-      true,
-      false,
+      'hebrew',
     )
 
     expect(label).toBe('17')
@@ -129,22 +150,20 @@ describe('gregorian scale label helpers', () => {
   })
 
   it('reorders week-view sunday labels when gregorian is secondary', () => {
-    const label = getGregorianStructuralTickLabel(
+    const label = getPolicyDrivenGregorianLabel(
       2,
       new Date('2026-03-29T00:00:00-04:00').getTime(),
-      false,
-      false,
+      'hebrew',
     )
 
     expect(label).toBe('29 Sun, W14')
   })
 
   it('puts day before weekday for ordinary gregorian supporting week labels', () => {
-    const label = getGregorianStructuralTickLabel(
+    const label = getPolicyDrivenGregorianLabel(
       2,
       new Date('2026-04-01T00:00:00-04:00').getTime(),
-      false,
-      false,
+      'hebrew',
     )
 
     expect(label).toBe('1 Wed')
@@ -160,28 +179,25 @@ describe('gregorian scale label helpers', () => {
   })
 
   it('reorders day boundaries when gregorian is secondary', () => {
-    const label = getGregorianStructuralTickLabel(
+    const label = getPolicyDrivenGregorianLabel(
       1,
       new Date('2026-04-01T00:00:00-04:00').getTime(),
-      false,
-      false,
+      'hebrew',
     )
 
     expect(label).toBe('12 AM, 1 Wed')
   })
 
   it('uses week-boundary composition for sunday midnight labels in day view', () => {
-    const leadingLabel = getGregorianStructuralTickLabel(
+    const leadingLabel = getPolicyDrivenGregorianLabel(
       1,
       new Date('2026-03-29T00:00:00-04:00').getTime(),
-      false,
-      true,
+      'gregorian',
     )
-    const supportingLabel = getGregorianStructuralTickLabel(
+    const supportingLabel = getPolicyDrivenGregorianLabel(
       1,
       new Date('2026-03-29T00:00:00-04:00').getTime(),
-      false,
-      false,
+      'hebrew',
     )
 
     expect(leadingLabel).toBe('W14, Sun 29, 12 AM')
@@ -198,17 +214,15 @@ describe('gregorian scale label helpers', () => {
   })
 
   it('reorders hour and minute day boundaries when gregorian is secondary', () => {
-    const hourLabel = getGregorianStructuralTickLabel(
+    const hourLabel = getPolicyDrivenGregorianLabel(
       0,
       new Date('2026-04-01T00:00:00-04:00').getTime(),
-      false,
-      false,
+      'hebrew',
     )
-    const minuteLabel = getGregorianStructuralTickLabel(
+    const minuteLabel = getPolicyDrivenGregorianLabel(
       -1,
       new Date('2026-04-01T00:00:00-04:00').getTime(),
-      false,
-      false,
+      'hebrew',
     )
 
     expect(hourLabel).toBe('12:00 AM, 1 Wed')
@@ -276,17 +290,15 @@ describe('gregorian scale label helpers', () => {
   })
 
   it('reorders month-view sunday labels when gregorian is secondary', () => {
-    const ordinarySunday = getGregorianStructuralTickLabel(
+    const ordinarySunday = getPolicyDrivenGregorianLabel(
       3,
       new Date('2026-03-22T00:00:00-04:00').getTime(),
-      false,
-      false,
+      'hebrew',
     )
-    const monthBoundarySunday = getGregorianStructuralTickLabel(
+    const monthBoundarySunday = getPolicyDrivenGregorianLabel(
       3,
       new Date('2027-08-01T00:00:00-04:00').getTime(),
-      false,
-      false,
+      'hebrew',
     )
 
     expect(ordinarySunday).toBe('22, W13')
@@ -317,35 +329,31 @@ describe('gregorian scale label helpers', () => {
   })
 
   it('only includes the year on january labels in year view', () => {
-    const primaryLabel = getGregorianStructuralTickLabel(
+    const primaryLabel = getPolicyDrivenGregorianLabel(
       5,
       new Date('2026-01-01T00:00:00-05:00').getTime(),
-      false,
-      true,
+      'gregorian',
     )
-    const secondaryLabel = getGregorianStructuralTickLabel(
+    const secondaryLabel = getPolicyDrivenGregorianLabel(
       5,
       new Date('2026-01-01T00:00:00-05:00').getTime(),
-      false,
-      false,
+      'hebrew',
     )
-    const primaryAprilLabel = getGregorianStructuralTickLabel(
+    const primaryAprilLabel = getPolicyDrivenGregorianLabel(
       5,
       new Date('2026-04-01T00:00:00-04:00').getTime(),
-      false,
-      true,
+      'gregorian',
     )
-    const secondaryAprilLabel = getGregorianStructuralTickLabel(
+    const secondaryAprilLabel = getPolicyDrivenGregorianLabel(
       5,
       new Date('2026-04-01T00:00:00-04:00').getTime(),
-      false,
-      false,
+      'hebrew',
     )
 
     expect(primaryLabel).toBe('2026, Jan')
     expect(secondaryLabel).toBe('Jan 2026')
-    expect(primaryAprilLabel).toBe('Apr')
-    expect(secondaryAprilLabel).toBe('Apr')
+    expect(primaryAprilLabel).toBe('Q2, Apr')
+    expect(secondaryAprilLabel).toBe('Apr, Q2')
   })
 
   it('computes custom sunday-start week numbers by shifting iso week boundaries one day earlier', () => {

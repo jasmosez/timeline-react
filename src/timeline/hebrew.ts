@@ -1,16 +1,40 @@
 import type { LeadingCalendarSystemId, TimelineLayer } from './layers'
 import { positionTimelinePoint, positionTimelineSpan } from './layout'
-import { getVisibleRangeStartTickDate, getVisibleTimeRange, type ScaleLevel } from './scales'
-import type { PositionedTimelinePoint, PositionedTimelineSpan, TimelinePoint, TimelineSpan } from './types'
+import {
+  SCALE_DAY,
+  SCALE_DECADE,
+  SCALE_HOUR,
+  SCALE_MINUTE,
+  SCALE_MONTH,
+  SCALE_QUARTER,
+  SCALE_WEEK,
+  SCALE_YEAR,
+  getVisibleTimeRange,
+  type ScaleLevel,
+} from './scales'
+import type { PositionedTimelinePoint, PositionedTimelineSpan, TimelineSpan } from './types'
 import { getCivilDateAtNoonUtc, getHebrewDayInfo, isHebrewQuarterStartMonth } from './hebrewTime'
-import { getHebrewTickLabel } from './hebrewLabels'
+import { getHebrewTickLabel, renderHebrewStructuralLabelStrategy } from './hebrewLabels'
 import { augmentLabelWithPersonalTime } from './personalTime'
+import {
+  getStructuralExpressionDecision,
+  getStructuralSpanOpacity,
+  getStructuralTickOpacity,
+  isHebrewStructuralLabelStrategy,
+  type StructuralExpressionDecision,
+  type StructuralExpressionMetadata,
+} from './structuralExpressionPolicy'
 import {
   formatHebrewIntradayPointLabel,
   getDayViewIntradaySpans,
   getHebrewIntradayDayPoints,
+  type HebrewIntradayPointData,
   isNamedHebrewIntradayPoint,
 } from './hebrewIntraday'
+import {
+  HEBREW_PERIOD_FAMILY_IDS,
+  getStructuralPeriodFamilyById,
+} from './structuralPeriodFamilies'
 
 type HebrewLayerParams = {
   activeLayerIds?: string[]
@@ -21,37 +45,70 @@ type HebrewLayerParams = {
   environment: Parameters<TimelineLayer['getPoints']>[0]['environment']
 }
 
-const HEBREW_ENABLED_SCALES: ScaleLevel[] = [-1, 0, 1, 2, 3, 4, 5, 6]
-const ENABLE_HEBREW_QUARTER_WEEK_TICKS = false
+const HEBREW_ENABLED_SCALES: ScaleLevel[] = [
+  SCALE_MINUTE,
+  SCALE_HOUR,
+  SCALE_DAY,
+  SCALE_WEEK,
+  SCALE_MONTH,
+  SCALE_QUARTER,
+  SCALE_YEAR,
+  SCALE_DECADE,
+]
 const PERSONAL_LAYER_ID = 'birthday'
 
-const shouldEmitHebrewBoundary = (
-  activeScaleLevel: ScaleLevel,
-  dayInfo: ReturnType<typeof getHebrewDayInfo>,
-) => {
-  if (activeScaleLevel === 5) {
-    return dayInfo.hebrewDate.day === 1
-  }
-
-  if (activeScaleLevel === 4) {
-    return dayInfo.hebrewDate.day === 1
-      || (ENABLE_HEBREW_QUARTER_WEEK_TICKS && dayInfo.hdate.getDay() === 0)
-  }
-
-  if (activeScaleLevel === 6) {
-    return dayInfo.hebrewDate.day === 1 && dayInfo.hebrewDate.month === 7
-  }
-
-  if (activeScaleLevel === -1 || activeScaleLevel === 0 || activeScaleLevel === 1) {
-    return false
-  }
-
-  return true
+type HebrewBoundaryEvent = {
+  timeMs: number
+  dayInfo: ReturnType<typeof getHebrewDayInfo>
 }
 
-type HebrewBoundary = {
-  timeMs: number
-  label: string
+type HebrewBoundaryFamilyEmitter = {
+  familyId: string
+  matches: (dayInfo: ReturnType<typeof getHebrewDayInfo>) => boolean
+}
+
+type HebrewSpanSeed = {
+  span: TimelineSpan
+  stripeClass: string
+}
+
+type HebrewTickPolicyEvaluation = {
+  familyId: string
+  decision: StructuralExpressionDecision
+}
+
+const getHebrewStructuralMetadata = (
+  familyId: string,
+): StructuralExpressionMetadata => {
+  const family = getHebrewPeriodFamily(familyId)
+
+  return {
+    structuralPeriodFamilyId: familyId,
+    structuralCalendarSystemId: 'hebrew',
+    structuralSignificance: family?.significance,
+  }
+}
+
+const getHebrewPeriodFamily = (familyId: string) => {
+  const family = getStructuralPeriodFamilyById(familyId)
+
+  if (!family) {
+    throw new Error(`Missing Hebrew structural family definition for "${familyId}"`)
+  }
+
+  return family
+}
+
+const getHebrewIntradayFamilyId = (point: HebrewIntradayPointData) => {
+  if (point.source === 'shabbat-ends') {
+    return HEBREW_PERIOD_FAMILY_IDS.week
+  }
+
+  if (point.source === 'shkiah') {
+    return HEBREW_PERIOD_FAMILY_IDS.day
+  }
+
+  return HEBREW_PERIOD_FAMILY_IDS.zmanim
 }
 
 const getHebrewSpanStripeClass = (
@@ -61,7 +118,7 @@ const getHebrewSpanStripeClass = (
 ) => {
   const startDate = new Date(startTimeMs)
 
-  if (activeScaleLevel === 1) {
+  if (activeScaleLevel === SCALE_DAY) {
     const stripeIndex = startDate.getHours()
     return stripeIndex % 2 === 0 ? 'structural-span-stripe-a' : 'structural-span-stripe-b'
   }
@@ -74,11 +131,11 @@ const getHebrewSpanStripeClass = (
     : monthsInYear - 7 + dayInfo.hebrewDate.month
   const absoluteHebrewMonthIndex = getLeapYearsBeforeHebrewYear(year) + (year - 1) * 12 + monthOrdinal
 
-  if (activeScaleLevel === 2 || activeScaleLevel === 3) {
+  if (activeScaleLevel === SCALE_WEEK || activeScaleLevel === SCALE_MONTH) {
     return dayInfo.hebrewDate.day % 2 === 0 ? 'structural-span-stripe-a' : 'structural-span-stripe-b'
   }
 
-  if (activeScaleLevel === 4 || activeScaleLevel === 5) {
+  if (activeScaleLevel === SCALE_QUARTER || activeScaleLevel === SCALE_YEAR) {
     return absoluteHebrewMonthIndex % 2 === 0 ? 'structural-span-stripe-a' : 'structural-span-stripe-b'
   }
 
@@ -86,6 +143,59 @@ const getHebrewSpanStripeClass = (
 }
 
 const HEBREW_LEAP_POSITIONS = [3, 6, 8, 11, 14, 17, 19]
+
+const HEBREW_BOUNDARY_TICK_EMISSION_PLAN: Partial<Record<ScaleLevel, HebrewBoundaryFamilyEmitter[]>> = {
+  [SCALE_WEEK]: [
+    { familyId: HEBREW_PERIOD_FAMILY_IDS.day, matches: () => true },
+    { familyId: HEBREW_PERIOD_FAMILY_IDS.week, matches: (dayInfo) => dayInfo.hdate.getDay() === 0 },
+    { familyId: HEBREW_PERIOD_FAMILY_IDS.month, matches: (dayInfo) => dayInfo.hebrewDate.day === 1 },
+  ],
+  [SCALE_MONTH]: [
+    { familyId: HEBREW_PERIOD_FAMILY_IDS.day, matches: () => true },
+    { familyId: HEBREW_PERIOD_FAMILY_IDS.week, matches: (dayInfo) => dayInfo.hdate.getDay() === 0 },
+    { familyId: HEBREW_PERIOD_FAMILY_IDS.month, matches: (dayInfo) => dayInfo.hebrewDate.day === 1 },
+  ],
+  [SCALE_QUARTER]: [
+    { familyId: HEBREW_PERIOD_FAMILY_IDS.month, matches: (dayInfo) => dayInfo.hebrewDate.day === 1 },
+    {
+      familyId: HEBREW_PERIOD_FAMILY_IDS.quarter,
+      matches: (dayInfo) => dayInfo.hebrewDate.day === 1 && isHebrewQuarterStartMonth(dayInfo.hebrewDate.month),
+    },
+  ],
+  [SCALE_YEAR]: [
+    { familyId: HEBREW_PERIOD_FAMILY_IDS.month, matches: (dayInfo) => dayInfo.hebrewDate.day === 1 },
+    {
+      familyId: HEBREW_PERIOD_FAMILY_IDS.quarter,
+      matches: (dayInfo) => dayInfo.hebrewDate.day === 1 && isHebrewQuarterStartMonth(dayInfo.hebrewDate.month),
+    },
+    {
+      familyId: HEBREW_PERIOD_FAMILY_IDS.year,
+      matches: (dayInfo) => dayInfo.hebrewDate.day === 1 && dayInfo.hebrewDate.month === 7,
+    },
+  ],
+  [SCALE_DECADE]: [
+    {
+      familyId: HEBREW_PERIOD_FAMILY_IDS.year,
+      matches: (dayInfo) => dayInfo.hebrewDate.day === 1 && dayInfo.hebrewDate.month === 7,
+    },
+    {
+      familyId: HEBREW_PERIOD_FAMILY_IDS.shmita,
+      matches: (dayInfo) =>
+        dayInfo.hebrewDate.day === 1
+        && dayInfo.hebrewDate.month === 7
+        && dayInfo.hebrewDate.year % 7 === 1,
+    },
+  ],
+}
+
+type HebrewSpanEmissionPlan = {
+  familyId: string
+  collectSpanSeeds: (
+    focusTimeMs: number,
+    visibleDurationMs: number,
+    environment: HebrewLayerParams['environment'],
+  ) => HebrewSpanSeed[]
+}
 
 const getLeapYearsBeforeHebrewYear = (year: number) => {
   const priorYears = year - 1
@@ -96,61 +206,220 @@ const getLeapYearsBeforeHebrewYear = (year: number) => {
     + HEBREW_LEAP_POSITIONS.filter((position) => position <= cycleRemainder).length
 }
 
-const getHebrewTickRankClass = (
+const createHebrewBoundarySpansForFamily = (
   activeScaleLevel: ScaleLevel,
-  dayInfo: ReturnType<typeof getHebrewDayInfo>,
-) => {
-  switch (activeScaleLevel) {
-    case -1:
-    case 0:
-      return 'tick-rank-primary'
-    case 1:
-      return 'tick-rank-secondary'
-    case 2:
-    case 3:
-      if (dayInfo.hebrewDate.day === 1) {
-        return 'tick-rank-primary'
-      }
-      if (dayInfo.hdate.getDay() === 0) {
-        return 'tick-rank-secondary'
-      }
-      return 'tick-rank-ordinary'
-    case 4:
-      if (dayInfo.hebrewDate.day === 1) {
-        return isHebrewQuarterStartMonth(dayInfo.hebrewDate.month)
-          ? 'tick-rank-primary'
-          : 'tick-rank-secondary'
-      }
-      if (ENABLE_HEBREW_QUARTER_WEEK_TICKS && dayInfo.hdate.getDay() === 0) {
-        return 'tick-rank-ordinary'
-      }
-      return 'tick-rank-ordinary'
-    case 5:
-      return dayInfo.hebrewDate.month === 7 ? 'tick-rank-primary' : 'tick-rank-ordinary'
-    case 6:
-      if (dayInfo.hebrewDate.year % 7 === 1) {
-        return 'tick-rank-primary'
-      }
-      return 'tick-rank-ordinary'
-    default:
-      return 'tick-rank-ordinary'
-  }
-}
-
-const collectHebrewBoundaries = (
-  activeScaleLevel: ScaleLevel,
+  familyId: string,
   focusTimeMs: number,
   visibleDurationMs: number,
   environment: HebrewLayerParams['environment'],
-): HebrewBoundary[] => {
-  if (!HEBREW_ENABLED_SCALES.includes(activeScaleLevel)) {
+): HebrewSpanSeed[] => {
+  const spanEmitters = (HEBREW_BOUNDARY_TICK_EMISSION_PLAN[activeScaleLevel] ?? [])
+    .filter((emitter) => emitter.familyId === familyId)
+
+  if (spanEmitters.length === 0) {
     return []
   }
 
+  const boundaries = collectHebrewBoundaryEvents(focusTimeMs, visibleDurationMs, environment)
+    .filter(({ dayInfo }) => spanEmitters.some((emitter) => emitter.matches(dayInfo)))
+
+  const spans: HebrewSpanSeed[] = []
+
+  for (let i = 0; i < boundaries.length - 1; i++) {
+    const start = boundaries[i]
+    const end = boundaries[i + 1]
+
+    if (end.timeMs <= start.timeMs) {
+      continue
+    }
+
+    spans.push({
+      span: {
+        id: `hebrew-span-${familyId}-${start.timeMs}`,
+        kind: 'structural-period',
+        startTimeMs: start.timeMs,
+        endTimeMs: end.timeMs,
+        label: getHebrewTickLabel(
+          activeScaleLevel,
+          start.dayInfo,
+          start.timeMs,
+          true,
+        ) ?? '',
+        structuralMetadata: getHebrewStructuralMetadata(familyId),
+      },
+      stripeClass: getHebrewSpanStripeClass(activeScaleLevel, start.timeMs, environment),
+    })
+  }
+
+  return spans
+}
+
+const HEBREW_SPAN_EMISSION_PLAN: Record<ScaleLevel, HebrewSpanEmissionPlan> = {
+  [SCALE_MINUTE]: {
+    familyId: HEBREW_PERIOD_FAMILY_IDS.zmanim,
+    collectSpanSeeds: (focusTimeMs, visibleDurationMs, environment) =>
+      getDayViewIntradaySpans(focusTimeMs, visibleDurationMs, environment).map(({ span, stripeClass }) => ({
+        span: {
+          ...span,
+          structuralMetadata: getHebrewStructuralMetadata(HEBREW_PERIOD_FAMILY_IDS.zmanim),
+        },
+        stripeClass,
+      })),
+  },
+  [SCALE_HOUR]: {
+    familyId: HEBREW_PERIOD_FAMILY_IDS.zmanim,
+    collectSpanSeeds: (focusTimeMs, visibleDurationMs, environment) =>
+      getDayViewIntradaySpans(focusTimeMs, visibleDurationMs, environment).map(({ span, stripeClass }) => ({
+        span: {
+          ...span,
+          structuralMetadata: getHebrewStructuralMetadata(HEBREW_PERIOD_FAMILY_IDS.zmanim),
+        },
+        stripeClass,
+      })),
+  },
+  [SCALE_DAY]: {
+    familyId: HEBREW_PERIOD_FAMILY_IDS.zmanim,
+    collectSpanSeeds: (focusTimeMs, visibleDurationMs, environment) =>
+      getDayViewIntradaySpans(focusTimeMs, visibleDurationMs, environment).map(({ span, stripeClass }) => ({
+        span: {
+          ...span,
+          structuralMetadata: getHebrewStructuralMetadata(HEBREW_PERIOD_FAMILY_IDS.zmanim),
+        },
+        stripeClass,
+      })),
+  },
+  [SCALE_WEEK]: {
+    familyId: HEBREW_PERIOD_FAMILY_IDS.day,
+    collectSpanSeeds: (focusTimeMs, visibleDurationMs, environment) =>
+      createHebrewBoundarySpansForFamily(SCALE_WEEK, HEBREW_PERIOD_FAMILY_IDS.day, focusTimeMs, visibleDurationMs, environment),
+  },
+  [SCALE_MONTH]: {
+    familyId: HEBREW_PERIOD_FAMILY_IDS.day,
+    collectSpanSeeds: (focusTimeMs, visibleDurationMs, environment) =>
+      createHebrewBoundarySpansForFamily(SCALE_MONTH, HEBREW_PERIOD_FAMILY_IDS.day, focusTimeMs, visibleDurationMs, environment),
+  },
+  [SCALE_QUARTER]: {
+    familyId: HEBREW_PERIOD_FAMILY_IDS.month,
+    collectSpanSeeds: (focusTimeMs, visibleDurationMs, environment) =>
+      createHebrewBoundarySpansForFamily(SCALE_QUARTER, HEBREW_PERIOD_FAMILY_IDS.month, focusTimeMs, visibleDurationMs, environment),
+  },
+  [SCALE_YEAR]: {
+    familyId: HEBREW_PERIOD_FAMILY_IDS.month,
+    collectSpanSeeds: (focusTimeMs, visibleDurationMs, environment) =>
+      createHebrewBoundarySpansForFamily(SCALE_YEAR, HEBREW_PERIOD_FAMILY_IDS.month, focusTimeMs, visibleDurationMs, environment),
+  },
+  [SCALE_DECADE]: {
+    familyId: HEBREW_PERIOD_FAMILY_IDS.year,
+    collectSpanSeeds: (focusTimeMs, visibleDurationMs, environment) =>
+      createHebrewBoundarySpansForFamily(SCALE_DECADE, HEBREW_PERIOD_FAMILY_IDS.year, focusTimeMs, visibleDurationMs, environment),
+  },
+}
+
+const getHebrewPolicyAwareTickLabel = (
+  decision: StructuralExpressionDecision,
+  activeScaleLevel: ScaleLevel,
+  dayInfo: ReturnType<typeof getHebrewDayInfo>,
+  boundaryTimeMs: number,
+  isLeading: boolean,
+  intradayPoint?: HebrewIntradayPointData,
+  intradayLabel?: string,
+) => {
+  if (decision.labelStrategy && isHebrewStructuralLabelStrategy(decision.labelStrategy)) {
+    return renderHebrewStructuralLabelStrategy(
+      decision.labelStrategy,
+      dayInfo,
+      boundaryTimeMs,
+      isLeading,
+      intradayPoint,
+      intradayLabel,
+    )
+  }
+
+  return getHebrewTickLabel(
+    activeScaleLevel,
+    dayInfo,
+    boundaryTimeMs,
+    isLeading,
+  ) ?? ''
+}
+
+const getHebrewPolicyAwareTickRankClass = (
+  decision: StructuralExpressionDecision,
+) => decision.tickRankClass ?? 'tick-rank-ordinary'
+
+const getHebrewTickPolicyEvaluationForFamily = (
+  familyId: string,
+  activeScaleLevel: ScaleLevel,
+  visibleDurationMs: number,
+  leadingCalendarSystemId: LeadingCalendarSystemId,
+  environment: HebrewLayerParams['environment'],
+): HebrewTickPolicyEvaluation => {
+  const family = getHebrewPeriodFamily(familyId)
+  return {
+    familyId,
+    decision: getStructuralExpressionDecision(family, {
+      activeScaleLevel,
+      visibleDurationMs,
+      leadingCalendarSystemId,
+      environment,
+    }),
+  }
+}
+
+const createHebrewPositionedTickPoint = ({
+  activeScaleLevel,
+  decision,
+  familyId,
+  focusTimeMs,
+  label,
+  leadingCalendarSystemId,
+  timeMs,
+  visibleDurationMs,
+}: {
+  activeScaleLevel: ScaleLevel
+  decision: StructuralExpressionDecision
+  familyId: string
+  focusTimeMs: number
+  label: string | undefined
+  leadingCalendarSystemId: LeadingCalendarSystemId
+  timeMs: number
+  visibleDurationMs: number
+}): PositionedTimelinePoint => positionTimelinePoint(
+  {
+    id: `hebrew-${familyId}-${timeMs}`,
+    kind: 'tick',
+    timeMs,
+    structuralMetadata: getHebrewStructuralMetadata(familyId),
+    label: label ?? '',
+  },
+  activeScaleLevel,
+  focusTimeMs,
+  visibleDurationMs,
+  new Date(timeMs),
+  {
+    opacity: getStructuralTickOpacity(decision),
+    className: [
+      leadingCalendarSystemId === 'hebrew'
+        ? 'structural-tick-leading'
+        : 'structural-tick-supporting',
+      'hebrew-tick',
+      getHebrewPolicyAwareTickRankClass(decision),
+    ].join(' '),
+    labelClassName: leadingCalendarSystemId === 'hebrew'
+      ? 'hebrew-label structural-label-leading'
+      : 'hebrew-label structural-label-supporting',
+  },
+)
+
+const collectHebrewBoundaryEvents = (
+  focusTimeMs: number,
+  visibleDurationMs: number,
+  environment: HebrewLayerParams['environment'],
+): HebrewBoundaryEvent[] => {
   const { startTimeMs, endTimeMs } = getVisibleTimeRange(focusTimeMs, visibleDurationMs)
   const bufferedStart = startTimeMs - visibleDurationMs * 0.5
   const bufferedEnd = endTimeMs + visibleDurationMs * 0.5
-  const boundaries: HebrewBoundary[] = []
+  const boundaries: HebrewBoundaryEvent[] = []
 
   let civilDate = getCivilDateAtNoonUtc(new Date(bufferedStart))
   civilDate.setUTCDate(civilDate.getUTCDate() - 1)
@@ -162,17 +431,11 @@ const collectHebrewBoundaries = (
 
     if (
       boundaryTimeMs >= bufferedStart &&
-      boundaryTimeMs <= bufferedEnd &&
-      shouldEmitHebrewBoundary(activeScaleLevel, hebrewDayInfo)
+      boundaryTimeMs <= bufferedEnd
     ) {
       boundaries.push({
         timeMs: boundaryTimeMs,
-        label: getHebrewTickLabel(
-          activeScaleLevel,
-          hebrewDayInfo,
-          boundaryTimeMs,
-          true,
-        ) ?? '',
+        dayInfo: hebrewDayInfo,
       })
     }
 
@@ -182,51 +445,19 @@ const collectHebrewBoundaries = (
   return boundaries
 }
 
-const addHebrewYearQuarterBoundaryTicks = (
-  points: PositionedTimelinePoint[],
-  leadingCalendarSystemId: LeadingCalendarSystemId,
-  focusTimeMs: number,
-  visibleDurationMs: number,
-  environment: HebrewLayerParams['environment'],
+const resolveHebrewBoundaryFamilyId = (
+  activeScaleLevel: ScaleLevel,
+  dayInfo: ReturnType<typeof getHebrewDayInfo>,
 ) => {
-  const boundaries = collectHebrewBoundaries(5, focusTimeMs, visibleDurationMs, environment)
+  const emitters = HEBREW_BOUNDARY_TICK_EMISSION_PLAN[activeScaleLevel] ?? []
 
-  boundaries.forEach(({ timeMs }) => {
-    const dayInfo = getHebrewDayInfo(new Date(timeMs), environment)
-    const isYearStart = dayInfo.hebrewDate.month === 7
-    const isQuarterStart = isHebrewQuarterStartMonth(dayInfo.hebrewDate.month)
-
-    if (!isQuarterStart || isYearStart) {
-      return
+  for (let i = emitters.length - 1; i >= 0; i -= 1) {
+    if (emitters[i].matches(dayInfo)) {
+      return emitters[i].familyId
     }
+  }
 
-    points.push(
-      positionTimelinePoint(
-        {
-          id: `hebrew-year-quarter-${timeMs}`,
-          kind: 'tick',
-          timeMs,
-          label: '',
-        },
-        5,
-        focusTimeMs,
-        visibleDurationMs,
-        getVisibleRangeStartTickDate(5, focusTimeMs, visibleDurationMs),
-        {
-          className: [
-            leadingCalendarSystemId === 'hebrew'
-              ? 'structural-tick-leading'
-              : 'structural-tick-supporting',
-            'hebrew-tick',
-            'tick-rank-secondary',
-          ].join(' '),
-          labelClassName: leadingCalendarSystemId === 'hebrew'
-            ? 'hebrew-label structural-label-leading'
-            : 'hebrew-label structural-label-supporting',
-        },
-      ),
-    )
-  })
+  return null
 }
 
 export const createHebrewStructuralPoints = ({
@@ -238,114 +469,118 @@ export const createHebrewStructuralPoints = ({
   environment,
 }: HebrewLayerParams): PositionedTimelinePoint[] => {
   const points: PositionedTimelinePoint[] = []
-  const boundaries = activeScaleLevel === -1 || activeScaleLevel === 0 || activeScaleLevel === 1
+  const boundaries = activeScaleLevel === SCALE_MINUTE || activeScaleLevel === SCALE_HOUR || activeScaleLevel === SCALE_DAY
     ? []
-    : collectHebrewBoundaries(activeScaleLevel, focusTimeMs, visibleDurationMs, environment)
+    : collectHebrewBoundaryEvents(focusTimeMs, visibleDurationMs, environment)
 
-  boundaries.forEach(({ timeMs, label }) => {
-    const dayInfo = getHebrewDayInfo(new Date(timeMs), environment)
+  boundaries.forEach(({ timeMs, dayInfo }) => {
     const isLeading = leadingCalendarSystemId === 'hebrew'
-    const rawLabel = getHebrewTickLabel(
+    const familyId = resolveHebrewBoundaryFamilyId(activeScaleLevel, dayInfo)
+
+    if (!familyId) {
+      return
+    }
+
+    const { decision } = getHebrewTickPolicyEvaluationForFamily(
+      familyId,
+      activeScaleLevel,
+      visibleDurationMs,
+      leadingCalendarSystemId,
+      environment,
+    )
+
+    if (decision.tickState === 'hidden') {
+      return
+    }
+
+    const rawLabel = getHebrewPolicyAwareTickLabel(
+      decision,
       activeScaleLevel,
       dayInfo,
       timeMs,
       isLeading,
-    ) ?? label
-    const point: TimelinePoint = {
-      id: `hebrew-${timeMs}`,
-      kind: 'tick',
-      timeMs,
-      label: activeLayerIds?.includes(PERSONAL_LAYER_ID) && activeScaleLevel <= 3
-        ? augmentLabelWithPersonalTime({
-            label: rawLabel,
-            timeMs,
-            environment,
-            isLeading,
-            includeDayOfLife: true,
-            includeWeekOfLife: false,
-          })
-        : rawLabel,
-    }
-
+    )
     points.push(
-      positionTimelinePoint(
-        point,
+      createHebrewPositionedTickPoint({
         activeScaleLevel,
+        decision,
+        familyId,
         focusTimeMs,
+        label: !decision.showLabel
+          ? ''
+          : activeLayerIds?.includes(PERSONAL_LAYER_ID) && activeScaleLevel <= SCALE_MONTH
+          ? augmentLabelWithPersonalTime({
+              label: rawLabel,
+              timeMs,
+              environment,
+              isLeading,
+              includeDayOfLife: true,
+              includeWeekOfLife: false,
+            })
+          : rawLabel,
+        leadingCalendarSystemId,
+        timeMs,
         visibleDurationMs,
-        new Date(timeMs),
-        {
-          className: [
-            leadingCalendarSystemId === 'hebrew'
-              ? 'structural-tick-leading'
-              : 'structural-tick-supporting',
-            'hebrew-tick',
-            getHebrewTickRankClass(activeScaleLevel, dayInfo),
-          ].join(' '),
-          labelClassName: leadingCalendarSystemId === 'hebrew'
-            ? 'hebrew-label structural-label-leading'
-            : 'hebrew-label structural-label-supporting',
-        },
-      ),
+        }),
     )
   })
 
-  if (activeScaleLevel === -1 || activeScaleLevel === 0 || activeScaleLevel === 1) {
+  if (activeScaleLevel === SCALE_MINUTE || activeScaleLevel === SCALE_HOUR || activeScaleLevel === SCALE_DAY) {
     getHebrewIntradayDayPoints(focusTimeMs, visibleDurationMs, environment)
       .filter(isNamedHebrewIntradayPoint)
       .forEach((point) => {
       const isLeading = leadingCalendarSystemId === 'hebrew'
+      const familyId = getHebrewIntradayFamilyId(point)
+      const { decision } = getHebrewTickPolicyEvaluationForFamily(
+        familyId,
+        activeScaleLevel,
+        visibleDurationMs,
+        leadingCalendarSystemId,
+        environment,
+      )
+
+      if (decision.tickState === 'hidden') {
+        return
+      }
+
       const rawLabel = formatHebrewIntradayPointLabel(
         point,
         isLeading,
         environment,
       )
+      const label = !decision.showLabel
+        ? ''
+        : getHebrewPolicyAwareTickLabel(
+            decision,
+            activeScaleLevel,
+            getHebrewDayInfo(new Date(point.timeMs), environment),
+            point.timeMs,
+            isLeading,
+            point,
+            rawLabel,
+          )
       points.push(
-        positionTimelinePoint(
-          {
-            id: point.id,
-            kind: 'tick',
-            timeMs: point.timeMs,
-            label: activeLayerIds?.includes(PERSONAL_LAYER_ID) && point.source === 'shkiah'
-              ? augmentLabelWithPersonalTime({
-                  label: rawLabel,
-                  timeMs: point.timeMs,
-                  environment,
-                  isLeading,
-                  includeDayOfLife: true,
-                  includeWeekOfLife: false,
-                })
-              : rawLabel,
-          },
+        createHebrewPositionedTickPoint({
           activeScaleLevel,
+          decision,
+          familyId,
           focusTimeMs,
+          label: activeLayerIds?.includes(PERSONAL_LAYER_ID) && point.source === 'shkiah'
+            ? augmentLabelWithPersonalTime({
+                label,
+                timeMs: point.timeMs,
+                environment,
+                isLeading,
+                includeDayOfLife: true,
+                includeWeekOfLife: false,
+              })
+            : label,
+          leadingCalendarSystemId,
+          timeMs: point.timeMs,
           visibleDurationMs,
-          new Date(point.timeMs),
-          {
-            className: [
-              leadingCalendarSystemId === 'hebrew'
-                ? 'structural-tick-leading'
-                : 'structural-tick-supporting',
-              'hebrew-tick',
-              point.rankClass,
-            ].join(' '),
-            labelClassName: leadingCalendarSystemId === 'hebrew'
-              ? 'hebrew-label structural-label-leading'
-              : 'hebrew-label structural-label-supporting',
-          },
-        ),
+        }),
       )
       })
-  }
-
-  if (activeScaleLevel === 5) {
-    addHebrewYearQuarterBoundaryTicks(
-      points,
-      leadingCalendarSystemId,
-      focusTimeMs,
-      visibleDurationMs,
-      environment,
-    )
   }
 
   return points
@@ -362,48 +597,31 @@ export const createHebrewStructuralSpans = ({
     return []
   }
 
-  if (activeScaleLevel === -1 || activeScaleLevel === 0 || activeScaleLevel === 1) {
-    return getDayViewIntradaySpans(focusTimeMs, visibleDurationMs, environment).map(({ span, stripeClass }) =>
-      positionTimelineSpan(span, focusTimeMs, visibleDurationMs, {
-        className: [
-          leadingCalendarSystemId === 'hebrew'
-            ? 'hebrew-structural-span structural-span structural-span-leading'
-            : 'hebrew-structural-span structural-span structural-span-supporting',
-          stripeClass,
-        ].join(' '),
-        side: leadingCalendarSystemId === 'hebrew' ? 'leading' : 'supporting',
-        labelTheme: 'hebrew',
-      }),
-    )
+  const spanPlan = HEBREW_SPAN_EMISSION_PLAN[activeScaleLevel]
+  const family = getHebrewPeriodFamily(spanPlan.familyId)
+  const decision = getStructuralExpressionDecision(family, {
+    activeScaleLevel,
+    visibleDurationMs,
+    leadingCalendarSystemId,
+    environment,
+  })
+
+  if (decision.spanState === 'hidden') {
+    return []
   }
 
-  const boundaries = collectHebrewBoundaries(activeScaleLevel, focusTimeMs, visibleDurationMs, environment)
-  const spans: TimelineSpan[] = []
-
-  for (let i = 0; i < boundaries.length - 1; i++) {
-    const start = boundaries[i]
-    const end = boundaries[i + 1]
-
-    if (end.timeMs <= start.timeMs) {
-      continue
-    }
-
-    spans.push({
-      id: `hebrew-span-${start.timeMs}`,
-      kind: 'structural-period',
-      startTimeMs: start.timeMs,
-      endTimeMs: end.timeMs,
-      label: start.label,
-    })
-  }
-
-  return spans.map((span) =>
+  return spanPlan.collectSpanSeeds(
+    focusTimeMs,
+    visibleDurationMs,
+    environment,
+  ).map(({ span, stripeClass }) =>
     positionTimelineSpan(span, focusTimeMs, visibleDurationMs, {
+      opacity: getStructuralSpanOpacity(decision),
       className: [
         leadingCalendarSystemId === 'hebrew'
           ? 'hebrew-structural-span structural-span structural-span-leading'
           : 'hebrew-structural-span structural-span structural-span-supporting',
-        getHebrewSpanStripeClass(activeScaleLevel, span.startTimeMs, environment),
+        stripeClass,
       ].join(' '),
       side: leadingCalendarSystemId === 'hebrew' ? 'leading' : 'supporting',
       labelTheme: 'hebrew',

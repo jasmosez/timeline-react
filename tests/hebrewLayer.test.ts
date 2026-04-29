@@ -3,6 +3,7 @@ import {
   createHebrewStructuralSpans,
 } from '../src/timeline/hebrew'
 import { getDayViewIntradaySpans, getHebrewIntradayDayPoints } from '../src/timeline/hebrewIntraday'
+import { HEBREW_PERIOD_FAMILY_IDS } from '../src/timeline/structuralPeriodFamilies'
 import type { TimelineEnvironment } from '../src/timeline/layers'
 import { proportionalHoursLayer } from '../src/timeline/proportionalHours'
 import { getHebrewDayInfo, getHebrewWeekdayName } from '../src/timeline/hebrewTime'
@@ -254,6 +255,234 @@ describe('hebrew structural layer', () => {
     expect(hourPoints).toEqual([])
   })
 
+  it('attaches structural period family metadata to hebrew ticks across scales', () => {
+    const dayPoints = createHebrewStructuralPoints({
+      leadingCalendarSystemId: 'hebrew',
+      activeScaleLevel: 2,
+      focusTimeMs: new Date('2026-04-18T12:00:00-04:00').getTime(),
+      visibleDurationMs: 8 * 24 * 60 * 60 * 1000,
+      environment: TEST_ENVIRONMENT,
+    })
+
+    expect(
+      dayPoints.some((point) =>
+        point.structuralMetadata?.structuralPeriodFamilyId === HEBREW_PERIOD_FAMILY_IDS.month
+        && point.className?.includes('tick-rank-primary'),
+      ),
+    ).toBe(true)
+    expect(
+      dayPoints.some((point) =>
+        point.structuralMetadata?.structuralPeriodFamilyId === HEBREW_PERIOD_FAMILY_IDS.week
+        && point.className?.includes('tick-rank-secondary'),
+      ),
+    ).toBe(true)
+    expect(
+      dayPoints.some((point) =>
+        point.structuralMetadata?.structuralPeriodFamilyId === HEBREW_PERIOD_FAMILY_IDS.day
+        && point.className?.includes('tick-rank-ordinary'),
+      ),
+    ).toBe(true)
+
+    const denseDayPoints = createHebrewStructuralPoints({
+      leadingCalendarSystemId: 'hebrew',
+      activeScaleLevel: 1,
+      focusTimeMs: new Date('2026-04-01T12:00:00-04:00').getTime(),
+      visibleDurationMs: 25 * 60 * 60 * 1000,
+      environment: TEST_ENVIRONMENT,
+    })
+
+    expect(
+      denseDayPoints.some((point) =>
+        point.label?.includes('Shkiah')
+        && point.structuralMetadata?.structuralPeriodFamilyId === HEBREW_PERIOD_FAMILY_IDS.day
+        && point.className?.includes('tick-rank-secondary'),
+      ),
+    ).toBe(true)
+
+    const shabbatDensePoints = createHebrewStructuralPoints({
+      leadingCalendarSystemId: 'hebrew',
+      activeScaleLevel: 1,
+      focusTimeMs: new Date('2026-04-04T12:00:00-04:00').getTime(),
+      visibleDurationMs: 25 * 60 * 60 * 1000,
+      environment: TEST_ENVIRONMENT,
+    })
+
+    expect(
+      shabbatDensePoints.some((point) =>
+        point.label?.startsWith('Shabbat Ends / Tzeit 8.5°')
+        && point.structuralMetadata?.structuralPeriodFamilyId === HEBREW_PERIOD_FAMILY_IDS.week
+        && point.className?.includes('tick-rank-primary'),
+      ),
+    ).toBe(true)
+
+    const yearPoints = createHebrewStructuralPoints({
+      leadingCalendarSystemId: 'hebrew',
+      activeScaleLevel: 5,
+      focusTimeMs: new Date('2026-04-20T12:00:00-04:00').getTime(),
+      visibleDurationMs: 400 * 24 * 60 * 60 * 1000,
+      environment: TEST_ENVIRONMENT,
+    })
+
+    expect(
+      yearPoints.some((point) =>
+        point.label === 'Q3, Nisan'
+        && point.structuralMetadata?.structuralPeriodFamilyId === HEBREW_PERIOD_FAMILY_IDS.quarter,
+      ),
+    ).toBe(true)
+  })
+
+  it('preserves hebrew week-scale labels and ranks under policy-driven label intent', () => {
+    const points = createHebrewStructuralPoints({
+      leadingCalendarSystemId: 'hebrew',
+      activeScaleLevel: 2,
+      focusTimeMs: new Date('2026-04-18T12:00:00-04:00').getTime(),
+      visibleDurationMs: 8 * 24 * 60 * 60 * 1000,
+      environment: TEST_ENVIRONMENT,
+    })
+
+    expect(points.some((point) => point.label === 'Iyyar, Shabbat 1')).toBe(true)
+    expect(points.some((point) => point.label === 'Shabbat 8')).toBe(true)
+    expect(points.some((point) => point.label === 'Rishon 9')).toBe(true)
+    expect(
+      points.some((point) =>
+        point.label === 'Iyyar, Shabbat 1'
+        && point.className?.includes('tick-rank-primary'),
+      ),
+    ).toBe(true)
+    expect(
+      points.some((point) =>
+        point.label === 'Rishon 9'
+        && point.className?.includes('tick-rank-secondary'),
+      ),
+    ).toBe(true)
+  })
+
+  it('preserves hebrew quarter-scale labels and ranks under policy-driven label intent', () => {
+    const points = createHebrewStructuralPoints({
+      leadingCalendarSystemId: 'hebrew',
+      activeScaleLevel: 4,
+      focusTimeMs: new Date('2026-04-01T12:00:00-04:00').getTime(),
+      visibleDurationMs: 120 * 24 * 60 * 60 * 1000,
+      environment: TEST_ENVIRONMENT,
+    })
+
+    expect(points.some((point) => point.label === 'Q3, Nisan')).toBe(true)
+    expect(points.some((point) => point.label === 'Iyyar')).toBe(true)
+    expect(
+      points.some((point) =>
+        point.label === 'Q3, Nisan'
+        && point.className?.includes('tick-rank-primary'),
+      ),
+    ).toBe(true)
+    expect(
+      points.some((point) =>
+        point.label === 'Iyyar'
+        && point.className?.includes('tick-rank-secondary'),
+      ),
+    ).toBe(true)
+  })
+
+  it('preserves hebrew year-scale labels and quarter ownership under policy-driven label intent', () => {
+    const points = createHebrewStructuralPoints({
+      leadingCalendarSystemId: 'hebrew',
+      activeScaleLevel: 5,
+      focusTimeMs: new Date('2026-04-01T12:00:00-04:00').getTime(),
+      visibleDurationMs: 366 * 24 * 60 * 60 * 1000,
+      environment: TEST_ENVIRONMENT,
+    })
+
+    expect(points.some((point) => point.label === '5786, Tishrei')).toBe(true)
+    expect(points.some((point) => point.label === 'Nisan')).toBe(false)
+    expect(points.some((point) => point.label === 'Q3, Nisan')).toBe(true)
+    expect(
+      points.some((point) =>
+        point.label === 'Q3, Nisan'
+        && point.className?.includes('tick-rank-secondary')
+        && point.structuralMetadata?.structuralPeriodFamilyId === HEBREW_PERIOD_FAMILY_IDS.quarter,
+      ),
+    ).toBe(true)
+    expect(
+      points.some((point) =>
+        point.label === '5786, Tishrei'
+        && point.className?.includes('tick-rank-primary'),
+      ),
+    ).toBe(true)
+  })
+
+  it('attaches structural period family metadata to hebrew spans', () => {
+    const intradaySpans = createHebrewStructuralSpans({
+      leadingCalendarSystemId: 'hebrew',
+      activeScaleLevel: 1,
+      focusTimeMs: new Date('2026-04-01T12:00:00-04:00').getTime(),
+      visibleDurationMs: 25 * 60 * 60 * 1000,
+      environment: TEST_ENVIRONMENT,
+    })
+
+    expect(
+      intradaySpans.every((span) =>
+        span.structuralMetadata?.structuralPeriodFamilyId === HEBREW_PERIOD_FAMILY_IDS.zmanim,
+      ),
+    ).toBe(true)
+
+    const monthScaleSpans = createHebrewStructuralSpans({
+      leadingCalendarSystemId: 'hebrew',
+      activeScaleLevel: 4,
+      focusTimeMs: new Date('2026-04-20T12:00:00-04:00').getTime(),
+      visibleDurationMs: 18 * 7 * 24 * 60 * 60 * 1000,
+      environment: TEST_ENVIRONMENT,
+    })
+
+    expect(
+      monthScaleSpans.every((span) =>
+        span.structuralMetadata?.structuralPeriodFamilyId === HEBREW_PERIOD_FAMILY_IDS.month,
+      ),
+    ).toBe(true)
+    expect(
+      monthScaleSpans.every((span) =>
+        getHebrewDayInfo(new Date(span.startTimeMs), TEST_ENVIRONMENT).hebrewDate.day === 1,
+      ),
+    ).toBe(true)
+
+    const yearScaleSpans = createHebrewStructuralSpans({
+      leadingCalendarSystemId: 'hebrew',
+      activeScaleLevel: 5,
+      focusTimeMs: new Date('2026-04-20T12:00:00-04:00').getTime(),
+      visibleDurationMs: 420 * 24 * 60 * 60 * 1000,
+      environment: TEST_ENVIRONMENT,
+    })
+
+    expect(
+      yearScaleSpans.every((span) =>
+        span.structuralMetadata?.structuralPeriodFamilyId === HEBREW_PERIOD_FAMILY_IDS.month,
+      ),
+    ).toBe(true)
+    expect(
+      yearScaleSpans.every((span) =>
+        getHebrewDayInfo(new Date(span.startTimeMs), TEST_ENVIRONMENT).hebrewDate.day === 1,
+      ),
+    ).toBe(true)
+
+    const decadeScaleSpans = createHebrewStructuralSpans({
+      leadingCalendarSystemId: 'hebrew',
+      activeScaleLevel: 6,
+      focusTimeMs: new Date('2026-04-20T12:00:00-04:00').getTime(),
+      visibleDurationMs: 8 * 365 * 24 * 60 * 60 * 1000,
+      environment: TEST_ENVIRONMENT,
+    })
+
+    expect(
+      decadeScaleSpans.every((span) =>
+        span.structuralMetadata?.structuralPeriodFamilyId === HEBREW_PERIOD_FAMILY_IDS.year,
+      ),
+    ).toBe(true)
+    expect(
+      decadeScaleSpans.every((span) => {
+        const dayInfo = getHebrewDayInfo(new Date(span.startTimeMs), TEST_ENVIRONMENT)
+        return dayInfo.hebrewDate.day === 1 && dayInfo.hebrewDate.month === 7
+      }),
+    ).toBe(true)
+  })
+
   it('keeps intraday spans available when the viewport is fully inside a named interval', () => {
     const focusTimeMs = new Date('2026-04-01T12:30:00-04:00').getTime()
     const visibleDurationMs = 61 * 1000
@@ -362,7 +591,7 @@ describe('hebrew structural layer', () => {
     expect(decadePoints.some((point) => point.label === '5783' && point.className?.includes('tick-rank-primary'))).toBe(true)
   })
 
-  it('adds unlabeled hebrew quarter ticks in year view', () => {
+  it('adds quarter-owned hebrew labels in year view', () => {
     const points = createHebrewStructuralPoints({
       leadingCalendarSystemId: 'hebrew',
       activeScaleLevel: 5,
@@ -371,6 +600,11 @@ describe('hebrew structural layer', () => {
       environment: TEST_ENVIRONMENT,
     })
 
-    expect(points.some((point) => point.label === '' && point.className?.includes('tick-rank-secondary'))).toBe(true)
+    expect(
+      points.some((point) =>
+        point.label === 'Q3, Nisan'
+        && point.className?.includes('tick-rank-secondary'),
+      ),
+    ).toBe(true)
   })
 })

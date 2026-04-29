@@ -28,6 +28,15 @@ export const SCALE_LEVEL_CONFIG = DEFAULT_SCALE_LEVEL_CONFIG
 
 export type ScaleLevel = keyof typeof SCALE_LEVEL_CONFIG
 
+export const SCALE_MINUTE = -1 as ScaleLevel
+export const SCALE_HOUR = 0 as ScaleLevel
+export const SCALE_DAY = 1 as ScaleLevel
+export const SCALE_WEEK = 2 as ScaleLevel
+export const SCALE_MONTH = 3 as ScaleLevel
+export const SCALE_QUARTER = 4 as ScaleLevel
+export const SCALE_YEAR = 5 as ScaleLevel
+export const SCALE_DECADE = 6 as ScaleLevel
+
 export const scaleLevelMax = Math.max(...Object.keys(SCALE_LEVEL_CONFIG).map(Number))
 export const scaleLevelMin = Math.min(...Object.keys(SCALE_LEVEL_CONFIG).map(Number))
 const SCALE_LEVEL_ORDER = Object.keys(SCALE_LEVEL_CONFIG)

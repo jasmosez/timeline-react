@@ -1,6 +1,18 @@
 import type { HebrewDayInfo } from './hebrewTime'
 import { getHebrewDayInfo } from './hebrewTime'
 import type { TimelineEnvironment } from './layers'
+import {
+  SCALE_DAY,
+  SCALE_DECADE,
+  SCALE_HOUR,
+  SCALE_MINUTE,
+  SCALE_MONTH,
+  SCALE_QUARTER,
+  SCALE_WEEK,
+  SCALE_YEAR,
+} from './scales'
+import type { HebrewStructuralLabelStrategy } from './structuralExpressionPolicy'
+import type { HebrewIntradayPointData } from './hebrewIntraday'
 
 const HEBREW_WEEKDAY_NAMES = [
   'Rishon',
@@ -61,15 +73,15 @@ export const getHebrewTickLabel = (
   const weekdayName = getHebrewWeekdayName(dayInfo)
   const boundaryTime = new Date(boundaryTimeMs)
 
-  if (activeScaleLevel === -1) {
+  if (activeScaleLevel === SCALE_MINUTE) {
     return `${formatCivilTimeWithSeconds(boundaryTime)}, ${weekdayName} ${dayInfo.hebrewDate.day}`
   }
 
-  if (activeScaleLevel === 0 || activeScaleLevel === 1) {
+  if (activeScaleLevel === SCALE_HOUR || activeScaleLevel === SCALE_DAY) {
     return `${formatCivilTime(boundaryTime)}, ${weekdayName} ${dayInfo.hebrewDate.day}`
   }
 
-  if (activeScaleLevel === 2) {
+  if (activeScaleLevel === SCALE_WEEK) {
     if (dayInfo.hebrewDate.day === 1) {
       return isPrimary
         ? `${dayInfo.hebrewDate.monthName}, ${weekdayName} 1`
@@ -81,7 +93,7 @@ export const getHebrewTickLabel = (
       : `${dayInfo.hebrewDate.day}, ${weekdayName}`
   }
 
-  if (activeScaleLevel === 3) {
+  if (activeScaleLevel === SCALE_MONTH) {
     if (dayInfo.hebrewDate.day === 1) {
       if (weekdayName === 'Shabbat') {
         return isPrimary
@@ -103,7 +115,7 @@ export const getHebrewTickLabel = (
     return String(dayInfo.hebrewDate.day)
   }
 
-  if (activeScaleLevel === 4) {
+  if (activeScaleLevel === SCALE_QUARTER) {
     if (dayInfo.hebrewDate.day === 1) {
       const quarterNumber = getHebrewQuarterNumber(dayInfo.hebrewDate.month)
       const quarterStartMonths = new Set([7, 10, 1, 4])
@@ -124,7 +136,7 @@ export const getHebrewTickLabel = (
     return undefined
   }
 
-  if (activeScaleLevel === 5) {
+  if (activeScaleLevel === SCALE_YEAR) {
     if (dayInfo.hebrewDate.day === 1) {
       if (dayInfo.hebrewDate.month === 7) {
         return isPrimary
@@ -138,7 +150,7 @@ export const getHebrewTickLabel = (
     return undefined
   }
 
-  if (activeScaleLevel === 6) {
+  if (activeScaleLevel === SCALE_DECADE) {
     if (dayInfo.hebrewDate.year % 7 === 0) {
       return isPrimary
         ? `Shmita ${dayInfo.hebrewDate.year}`
@@ -151,6 +163,46 @@ export const getHebrewTickLabel = (
   return dayInfo.hebrewDate.label
 }
 
+export const renderHebrewStructuralLabelStrategy = (
+  labelStrategy: HebrewStructuralLabelStrategy,
+  dayInfo: HebrewDayInfo,
+  boundaryTimeMs: number,
+  isPrimary: boolean,
+  intradayPoint?: HebrewIntradayPointData,
+  intradayLabel?: string,
+) => {
+  switch (labelStrategy) {
+    case 'hebrew-minute-view-zman':
+    case 'hebrew-minute-view-day-boundary':
+    case 'hebrew-minute-view-week-boundary':
+    case 'hebrew-hour-view-zman':
+    case 'hebrew-hour-view-day-boundary':
+    case 'hebrew-hour-view-week-boundary':
+    case 'hebrew-day-view-zman':
+    case 'hebrew-day-view-day-boundary':
+    case 'hebrew-day-view-week-boundary':
+      return intradayLabel ?? intradayPoint?.label ?? ''
+    case 'hebrew-week-view-boundary':
+      return getHebrewTickLabel(SCALE_WEEK, dayInfo, boundaryTimeMs, isPrimary) ?? ''
+    case 'hebrew-month-view-boundary':
+      return getHebrewTickLabel(SCALE_MONTH, dayInfo, boundaryTimeMs, isPrimary) ?? ''
+    case 'hebrew-quarter-view-boundary-leading':
+      return getHebrewTickLabel(SCALE_QUARTER, dayInfo, boundaryTimeMs, true) ?? ''
+    case 'hebrew-quarter-view-boundary-supporting':
+      return getHebrewTickLabel(SCALE_QUARTER, dayInfo, boundaryTimeMs, false) ?? ''
+    case 'hebrew-year-view-quarter-boundary-leading':
+      return getHebrewTickLabel(SCALE_QUARTER, dayInfo, boundaryTimeMs, true) ?? ''
+    case 'hebrew-year-view-quarter-boundary-supporting':
+      return getHebrewTickLabel(SCALE_QUARTER, dayInfo, boundaryTimeMs, false) ?? ''
+    case 'hebrew-year-view-boundary':
+      return getHebrewTickLabel(SCALE_YEAR, dayInfo, boundaryTimeMs, isPrimary) ?? ''
+    case 'hebrew-decade-view-boundary':
+      return getHebrewTickLabel(SCALE_DECADE, dayInfo, boundaryTimeMs, isPrimary) ?? ''
+    default:
+      return ''
+  }
+}
+
 export const getHebrewContextLabel = (
   activeScaleLevel: number,
   timeMs: number,
@@ -160,24 +212,24 @@ export const getHebrewContextLabel = (
   const dayInfo = getHebrewDayInfo(time, environment)
   const weekdayName = getHebrewWeekdayName(dayInfo)
 
-  if (activeScaleLevel === -1) {
+  if (activeScaleLevel === SCALE_MINUTE) {
     return `${weekdayName}, ${dayInfo.hebrewDate.day} ${dayInfo.hebrewDate.monthName}, ${formatCivilTime(time)}`
   }
 
-  if (activeScaleLevel === 0) {
+  if (activeScaleLevel === SCALE_HOUR) {
     return `${weekdayName}, ${dayInfo.hebrewDate.day} ${dayInfo.hebrewDate.monthName}, ${formatCivilHour(time)}`
   }
 
-  if (activeScaleLevel === 1) {
+  if (activeScaleLevel === SCALE_DAY) {
     return `${weekdayName}, ${dayInfo.hebrewDate.day} ${dayInfo.hebrewDate.monthName} ${dayInfo.hebrewDate.year}`
   }
 
-  if (activeScaleLevel === 2 || activeScaleLevel === 3) {
+  if (activeScaleLevel === SCALE_WEEK || activeScaleLevel === SCALE_MONTH) {
     return `${dayInfo.hebrewDate.monthName} ${dayInfo.hebrewDate.year}`
   }
 
-  if (activeScaleLevel === 4 || activeScaleLevel === 5) {
-    if (activeScaleLevel === 4) {
+  if (activeScaleLevel === SCALE_QUARTER || activeScaleLevel === SCALE_YEAR) {
+    if (activeScaleLevel === SCALE_QUARTER) {
       return `Q${getHebrewQuarterNumber(dayInfo.hebrewDate.month)}, ${dayInfo.hebrewDate.year}`
     }
 

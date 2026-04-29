@@ -1,5 +1,15 @@
 import { LOCALE } from '../config'
+import type { GregorianStructuralLabelStrategy } from './structuralExpressionPolicy'
 import type { ScaleLevel } from './scales'
+
+const SCALE_MINUTE: ScaleLevel = -1
+const SCALE_HOUR: ScaleLevel = 0
+const SCALE_DAY: ScaleLevel = 1
+const SCALE_WEEK: ScaleLevel = 2
+const SCALE_MONTH: ScaleLevel = 3
+const SCALE_QUARTER: ScaleLevel = 4
+const SCALE_YEAR: ScaleLevel = 5
+const SCALE_DECADE: ScaleLevel = 6
 
 const MINUTE: Intl.DateTimeFormatOptions = { minute: '2-digit' }
 const HOUR: Intl.DateTimeFormatOptions = { hour: 'numeric', hour12: true }
@@ -155,6 +165,39 @@ export const getGregorianMonthTickLabel = (tickTime: number, _isFirstTick: boole
   return quarterLabel && showMonth ? `${quarterLabel}, ${label}` : label
 }
 
+export const getGregorianSupportingMonthTickLabel = (
+  tickTime: number,
+  isFirstTick: boolean,
+) => {
+  const tickDate = new Date(tickTime)
+  const showMonth = is1stOfMonth(tickDate)
+  const isSunday = tickDate.getDay() === 0
+  const quarterLabel = isStartOfQuarter(tickDate) ? formatQuarterNumber(tickDate) : undefined
+
+  if (isFirstTick && !showMonth && !isSunday) {
+    return tickDate.toLocaleDateString(LOCALE, DAY)
+  }
+
+  if (isSunday && showMonth) {
+    const label = `${tickDate.toLocaleDateString(LOCALE, {
+      ...DAY,
+      ...MONTH,
+    })}, ${formatWeekNumber(tickDate)}`
+    return quarterLabel ? `${label}, ${quarterLabel}` : label
+  }
+
+  if (isSunday) {
+    return `${tickDate.toLocaleDateString(LOCALE, DAY)}, ${formatWeekNumber(tickDate)}`
+  }
+
+  if (showMonth) {
+    const label = `${tickDate.toLocaleDateString(LOCALE, DAY)} ${tickDate.toLocaleDateString(LOCALE, MONTH)}`
+    return quarterLabel ? `${label}, ${quarterLabel}` : label
+  }
+
+  return tickDate.toLocaleDateString(LOCALE, DAY)
+}
+
 export const getGregorianQuarterWeekTickLabel = (tickTime: number) => {
   return formatWeekNumber(new Date(tickTime))
 }
@@ -182,105 +225,30 @@ export const getGregorianQuarterBoundaryLabel = (tickTime: number, isPrimary = t
   return monthLabel
 }
 
-export const getGregorianStructuralTickLabel = (
-  scaleLevel: ScaleLevel,
+export const getGregorianYearBoundaryLabel = (
   tickTime: number,
-  isFirstTick: boolean,
   isPrimary = true,
 ) => {
   const tickDate = new Date(tickTime)
+  const monthLabel = tickDate.toLocaleDateString(LOCALE, MONTH)
 
-  if (scaleLevel === -1) {
-    if (!isPrimary && isMidnight(tickDate)) {
-      return `${tickDate.toLocaleTimeString(LOCALE, HOUR_MINUTE)}, ${tickDate.toLocaleDateString(LOCALE, DAY)} ${tickDate.toLocaleDateString(LOCALE, WEEKDAY)}`
-    }
-
-    return getGregorianMinuteTickLabel(tickTime, isFirstTick)
+  if (is1stOfYear(tickDate)) {
+    const yearLabel = tickDate.toLocaleDateString(LOCALE, YEAR)
+    return isPrimary ? `${yearLabel}, ${monthLabel}` : `${monthLabel} ${yearLabel}`
   }
 
-  if (scaleLevel === 0) {
-    if (!isPrimary && isMidnight(tickDate)) {
-      return `${tickDate.toLocaleTimeString(LOCALE, HOUR_MINUTE)}, ${tickDate.toLocaleDateString(LOCALE, DAY)} ${tickDate.toLocaleDateString(LOCALE, WEEKDAY)}`
-    }
+  return monthLabel
+}
 
-    return getGregorianHourTickLabel(tickTime)
-  }
+export const getGregorianYearQuarterLabel = (
+  tickTime: number,
+  isPrimary = true,
+) => {
+  const tickDate = new Date(tickTime)
+  const monthLabel = tickDate.toLocaleDateString(LOCALE, MONTH)
+  const quarterLabel = formatQuarterNumber(tickDate)
 
-  if (scaleLevel === 1) {
-    if (tickDate.getHours() === 0 && tickDate.getDay() === 0) {
-      const timeLabel = tickDate.toLocaleTimeString(LOCALE, HOUR)
-      const dayLabel = tickDate.toLocaleDateString(LOCALE, DAY)
-      const weekdayLabel = tickDate.toLocaleDateString(LOCALE, WEEKDAY)
-      const weekLabel = formatWeekNumber(tickDate)
-
-      return isPrimary
-        ? `${weekLabel}, ${weekdayLabel} ${dayLabel}, ${timeLabel}`
-        : `${timeLabel}, ${dayLabel} ${weekdayLabel}, ${weekLabel}`
-    }
-
-    if (!isPrimary && isMidnight(tickDate)) {
-      return `${tickDate.toLocaleTimeString(LOCALE, HOUR)}, ${tickDate.toLocaleDateString(LOCALE, DAY)} ${tickDate.toLocaleDateString(LOCALE, WEEKDAY)}`
-    }
-
-    return getGregorianDayTickLabel(tickTime)
-  }
-
-  if (scaleLevel === 2) {
-    if (!isPrimary && tickDate.getDay() === 0) {
-      return `${tickDate.toLocaleDateString(LOCALE, DAY)} ${tickDate.toLocaleDateString(LOCALE, WEEKDAY)}, ${formatWeekNumber(tickDate)}`
-    }
-
-    if (!isPrimary) {
-      return `${tickDate.toLocaleDateString(LOCALE, DAY)} ${tickDate.toLocaleDateString(LOCALE, WEEKDAY)}`
-    }
-
-    return getGregorianWeekTickLabel(tickTime)
-  }
-
-  if (scaleLevel === 3) {
-    const showMonth = is1stOfMonth(tickDate)
-    const isSunday = tickDate.getDay() === 0
-    const quarterLabel = isStartOfQuarter(tickDate) ? formatQuarterNumber(tickDate) : undefined
-
-    if (!isPrimary && isSunday && showMonth) {
-      const label = `${tickDate.toLocaleDateString(LOCALE, {
-        ...DAY,
-        ...MONTH,
-      })}, ${formatWeekNumber(tickDate)}`
-      return quarterLabel ? `${label}, ${quarterLabel}` : label
-    }
-
-    if (!isPrimary && isSunday) {
-      return `${tickDate.toLocaleDateString(LOCALE, DAY)}, ${formatWeekNumber(tickDate)}`
-    }
-
-    if (!isPrimary && showMonth) {
-      const label = `${tickDate.toLocaleDateString(LOCALE, DAY)} ${tickDate.toLocaleDateString(LOCALE, MONTH)}`
-      return quarterLabel ? `${label}, ${quarterLabel}` : label
-    }
-
-    return getGregorianMonthTickLabel(tickTime, isFirstTick)
-  }
-
-  if (scaleLevel === 4) {
-    return getGregorianQuarterWeekTickLabel(tickTime)
-  }
-
-  if (scaleLevel === 5) {
-    const monthLabel = tickDate.toLocaleDateString(LOCALE, MONTH)
-    if (is1stOfYear(tickDate)) {
-      const yearLabel = tickDate.toLocaleDateString(LOCALE, YEAR)
-      return isPrimary ? `${yearLabel}, ${monthLabel}` : `${monthLabel} ${yearLabel}`
-    }
-
-    return monthLabel
-  }
-
-  if (scaleLevel === 6) {
-    return getGregorianDecadeTickLabel(tickTime)
-  }
-
-  return undefined
+  return isPrimary ? `${quarterLabel}, ${monthLabel}` : `${monthLabel}, ${quarterLabel}`
 }
 
 export const getGregorianYearTickLabel = (tickTime: number, _isFirstTick: boolean) => {
@@ -293,44 +261,130 @@ export const getGregorianDecadeTickLabel = (tickTime: number) => {
   return tickDate.toLocaleDateString(LOCALE, YEAR)
 }
 
+export const renderGregorianStructuralLabelStrategy = (
+  labelStrategy: GregorianStructuralLabelStrategy,
+  tickTime: number,
+  isPrimary: boolean,
+) => {
+  const tickDate = new Date(tickTime)
+
+  switch (labelStrategy) {
+    case 'minute-view-five-second':
+      return `:${String(tickDate.getSeconds()).padStart(2, '0')}`
+    case 'minute-view-minute-boundary':
+      return tickDate.toLocaleTimeString(LOCALE, { ...HOUR, ...MINUTE })
+    case 'minute-view-hour-boundary':
+      return tickDate.toLocaleTimeString(LOCALE, HOUR)
+    case 'minute-view-day-boundary':
+      return isPrimary
+        ? tickDate.toLocaleDateString(LOCALE, { ...WEEKDAY, ...DAY, ...HOUR })
+        : `${tickDate.toLocaleTimeString(LOCALE, HOUR_MINUTE)}, ${tickDate.toLocaleDateString(LOCALE, DAY)} ${tickDate.toLocaleDateString(LOCALE, WEEKDAY)}`
+    case 'hour-view-five-minute':
+      return `:${String(tickDate.getMinutes()).padStart(2, '0')}`
+    case 'hour-view-hour-boundary':
+      return formatHourMinuteWithOptionalTimezone(tickDate)
+    case 'hour-view-day-boundary':
+      return isPrimary
+        ? `${tickDate.toLocaleDateString(LOCALE, WEEKDAY)} ${tickDate.toLocaleDateString(LOCALE, DAY)}, ${tickDate.toLocaleTimeString(LOCALE, HOUR_MINUTE)}`
+        : `${tickDate.toLocaleTimeString(LOCALE, HOUR_MINUTE)}, ${tickDate.toLocaleDateString(LOCALE, DAY)} ${tickDate.toLocaleDateString(LOCALE, WEEKDAY)}`
+    case 'day-view-third-hour':
+      return formatHourWithOptionalTimezone(tickDate)
+    case 'day-view-day-boundary':
+      return isPrimary
+        ? `${tickDate.toLocaleDateString(LOCALE, WEEKDAY)} ${tickDate.toLocaleDateString(LOCALE, DAY)}, ${tickDate.toLocaleTimeString(LOCALE, HOUR)}`
+        : `${tickDate.toLocaleTimeString(LOCALE, HOUR)}, ${tickDate.toLocaleDateString(LOCALE, DAY)} ${tickDate.toLocaleDateString(LOCALE, WEEKDAY)}`
+    case 'day-view-week-boundary': {
+      const timeLabel = tickDate.toLocaleTimeString(LOCALE, HOUR)
+      const dayLabel = tickDate.toLocaleDateString(LOCALE, DAY)
+      const weekdayLabel = tickDate.toLocaleDateString(LOCALE, WEEKDAY)
+      const weekLabel = formatWeekNumber(tickDate)
+
+      return isPrimary
+        ? `${weekLabel}, ${weekdayLabel} ${dayLabel}, ${timeLabel}`
+        : `${timeLabel}, ${dayLabel} ${weekdayLabel}, ${weekLabel}`
+    }
+    case 'week-view-ordinary-day':
+      return isPrimary
+        ? `${tickDate.toLocaleDateString(LOCALE, WEEKDAY)} ${tickDate.toLocaleDateString(LOCALE, DAY)}`
+        : `${tickDate.toLocaleDateString(LOCALE, DAY)} ${tickDate.toLocaleDateString(LOCALE, WEEKDAY)}`
+    case 'week-view-week-boundary':
+      return isPrimary
+        ? `${formatWeekNumber(tickDate)}, ${tickDate.toLocaleDateString(LOCALE, WEEKDAY)} ${tickDate.toLocaleDateString(LOCALE, DAY)}`
+        : `${tickDate.toLocaleDateString(LOCALE, DAY)} ${tickDate.toLocaleDateString(LOCALE, WEEKDAY)}, ${formatWeekNumber(tickDate)}`
+    case 'week-view-month-boundary':
+      if (isPrimary) {
+        return tickDate.getDay() === 0
+          ? `${formatWeekNumber(tickDate)}, ${tickDate.toLocaleDateString(LOCALE, WEEKDAY)} ${tickDate.toLocaleDateString(LOCALE, DAY)}`
+          : `${tickDate.toLocaleDateString(LOCALE, WEEKDAY)} ${tickDate.toLocaleDateString(LOCALE, DAY)}`
+      }
+
+      return tickDate.getDay() === 0
+        ? `${tickDate.toLocaleDateString(LOCALE, DAY)} ${tickDate.toLocaleDateString(LOCALE, WEEKDAY)}, ${formatWeekNumber(tickDate)}`
+        : `${tickDate.toLocaleDateString(LOCALE, DAY)} ${tickDate.toLocaleDateString(LOCALE, WEEKDAY)}`
+    case 'month-view-context-boundary':
+      return isPrimary
+        ? getGregorianMonthTickLabel(tickTime, false) ?? ''
+        : getGregorianSupportingMonthTickLabel(tickTime, false) ?? ''
+    case 'quarter-view-week-boundary':
+      return getGregorianQuarterWeekTickLabel(tickTime)
+    case 'quarter-view-month-boundary-leading':
+      return getGregorianQuarterBoundaryLabel(tickTime, true)
+    case 'quarter-view-month-boundary-supporting':
+      return getGregorianQuarterBoundaryLabel(tickTime, false)
+    case 'year-view-quarter-boundary-leading':
+      return getGregorianYearQuarterLabel(tickTime, true)
+    case 'year-view-quarter-boundary-supporting':
+      return getGregorianYearQuarterLabel(tickTime, false)
+    case 'year-view-year-boundary':
+      return getGregorianYearBoundaryLabel(tickTime, isPrimary)
+    case 'year-view-month-boundary':
+      return new Date(tickTime).toLocaleDateString(LOCALE, MONTH)
+    case 'decade-view-year-boundary':
+    case 'decade-view-decade-boundary':
+      return getGregorianDecadeTickLabel(tickTime)
+    default:
+      return ''
+  }
+}
+
 export const getGregorianContextLabel = (scaleLevel: ScaleLevel, timeMs: number) => {
   const contextDate = new Date(timeMs)
 
   switch (scaleLevel) {
-    case -1:
+    case SCALE_MINUTE:
       return contextDate.toLocaleDateString(LOCALE, {
         ...WEEKDAY,
         ...MONTH,
         ...DAY,
       }) + `, ${contextDate.toLocaleTimeString(LOCALE, { ...HOUR, ...MINUTE })}`
-    case 0:
+    case SCALE_HOUR:
       return contextDate.toLocaleDateString(LOCALE, {
         ...WEEKDAY,
         ...MONTH,
         ...DAY,
       }) + `, ${contextDate.toLocaleTimeString(LOCALE, HOUR)}`
-    case 1:
+    case SCALE_DAY:
       return contextDate.toLocaleDateString(LOCALE, {
         ...WEEKDAY,
         ...MONTH,
         ...DAY,
         ...YEAR,
       })
-    case 2:
+    case SCALE_WEEK:
       return `${formatWeekNumber(contextDate)}, ${contextDate.toLocaleDateString(LOCALE, {
         ...MONTH,
         ...YEAR,
       })}`
-    case 3:
+    case SCALE_MONTH:
       return contextDate.toLocaleDateString(LOCALE, {
         ...MONTH,
         ...YEAR,
       })
-    case 4:
+    case SCALE_QUARTER:
       return `${formatQuarterNumber(contextDate)}, ${contextDate.toLocaleDateString(LOCALE, YEAR)}`
-    case 5:
+    case SCALE_YEAR:
       return contextDate.toLocaleDateString(LOCALE, YEAR)
-    case 6:
+    case SCALE_DECADE:
       return undefined
     default:
       return undefined
