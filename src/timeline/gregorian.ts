@@ -1,4 +1,17 @@
-import { SCALE_LEVEL_CONFIG, getVisibleRangeStartTickDate, getVisibleTimeRange, type ScaleLevel } from './scales'
+import {
+  SCALE_DAY,
+  SCALE_DECADE,
+  SCALE_HOUR,
+  SCALE_LEVEL_CONFIG,
+  SCALE_MINUTE,
+  SCALE_MONTH,
+  SCALE_QUARTER,
+  SCALE_WEEK,
+  SCALE_YEAR,
+  getVisibleRangeStartTickDate,
+  getVisibleTimeRange,
+  type ScaleLevel,
+} from './scales'
 import { createStructuralSpansForRange, positionTimelinePoint, positionTimelineSpan } from './layout'
 import type { LeadingCalendarSystemId, TimelineEnvironment, TimelineLayer } from './layers'
 import { renderGregorianStructuralLabelStrategy } from './gregorianLabels'
@@ -48,6 +61,10 @@ type GregorianFamilyEmitter = {
   familyId: string
   startTickDateFunc: (date: Date) => Date
   calculateTickTimeFunc: (date: Date, amount: number) => number
+}
+
+type GregorianSpanEmissionPlan = {
+  familyId: string
 }
 
 const DAY_IN_MS = 24 * 60 * 60 * 1000
@@ -120,34 +137,34 @@ const getGregorianSpanStripeClass = (scaleLevel: ScaleLevel, startTimeMs: number
   let stripeIndex = 0
 
   switch (scaleLevel) {
-    case -1:
+    case SCALE_MINUTE:
       stripeIndex = Math.floor(startTimeMs / 1000)
       break
-    case 0:
+    case SCALE_HOUR:
       stripeIndex = Math.floor(startTimeMs / (60 * 1000))
       break
-    case 1:
+    case SCALE_DAY:
       stripeIndex = Math.floor(startTimeMs / (60 * 60 * 1000))
       break
-    case 2:
-    case 3:
+    case SCALE_WEEK:
+    case SCALE_MONTH:
       stripeIndex = Math.floor(Date.UTC(
         startDate.getFullYear(),
         startDate.getMonth(),
         startDate.getDate(),
       ) / DAY_IN_MS)
       break
-    case 4:
+    case SCALE_QUARTER:
       stripeIndex = Math.floor(Date.UTC(
         startDate.getFullYear(),
         startDate.getMonth(),
         startDate.getDate(),
       ) / (7 * DAY_IN_MS))
       break
-    case 5:
+    case SCALE_YEAR:
       stripeIndex = startDate.getFullYear() * 12 + startDate.getMonth()
       break
-    case 6:
+    case SCALE_DECADE:
       stripeIndex = startDate.getFullYear()
       break
     default:
@@ -183,7 +200,7 @@ const resolveGregorianTickFamilyId = (scaleLevel: ScaleLevel, tickTime: number) 
   const tickDate = new Date(tickTime)
 
   switch (scaleLevel) {
-    case -1:
+    case SCALE_MINUTE:
       if (tickDate.getHours() === 0 && tickDate.getMinutes() === 0 && tickDate.getSeconds() === 0) {
         return GREGORIAN_PERIOD_FAMILY_IDS.day
       }
@@ -194,7 +211,7 @@ const resolveGregorianTickFamilyId = (scaleLevel: ScaleLevel, tickTime: number) 
         return GREGORIAN_PERIOD_FAMILY_IDS.minute
       }
       return GREGORIAN_PERIOD_FAMILY_IDS.second
-    case 0:
+    case SCALE_HOUR:
       if (tickDate.getHours() === 0 && tickDate.getMinutes() === 0) {
         return GREGORIAN_PERIOD_FAMILY_IDS.day
       }
@@ -202,7 +219,7 @@ const resolveGregorianTickFamilyId = (scaleLevel: ScaleLevel, tickTime: number) 
         return GREGORIAN_PERIOD_FAMILY_IDS.hour
       }
       return GREGORIAN_PERIOD_FAMILY_IDS.minute
-    case 1:
+    case SCALE_DAY:
       if (tickDate.getHours() === 0 && tickDate.getDay() === 0) {
         return GREGORIAN_PERIOD_FAMILY_IDS.week
       }
@@ -210,7 +227,7 @@ const resolveGregorianTickFamilyId = (scaleLevel: ScaleLevel, tickTime: number) 
         return GREGORIAN_PERIOD_FAMILY_IDS.day
       }
       return GREGORIAN_PERIOD_FAMILY_IDS.hour
-    case 2:
+    case SCALE_WEEK:
       if (tickDate.getDate() === 1) {
         return GREGORIAN_PERIOD_FAMILY_IDS.month
       }
@@ -218,7 +235,7 @@ const resolveGregorianTickFamilyId = (scaleLevel: ScaleLevel, tickTime: number) 
         return GREGORIAN_PERIOD_FAMILY_IDS.week
       }
       return GREGORIAN_PERIOD_FAMILY_IDS.day
-    case 3:
+    case SCALE_MONTH:
       if (tickDate.getDate() === 1 && tickDate.getMonth() % 3 === 0) {
         return GREGORIAN_PERIOD_FAMILY_IDS.quarter
       }
@@ -229,7 +246,7 @@ const resolveGregorianTickFamilyId = (scaleLevel: ScaleLevel, tickTime: number) 
         return GREGORIAN_PERIOD_FAMILY_IDS.week
       }
       return GREGORIAN_PERIOD_FAMILY_IDS.day
-    case 4:
+    case SCALE_QUARTER:
       if (tickDate.getDate() === 1 && tickDate.getMonth() % 3 === 0) {
         return GREGORIAN_PERIOD_FAMILY_IDS.quarter
       }
@@ -237,7 +254,7 @@ const resolveGregorianTickFamilyId = (scaleLevel: ScaleLevel, tickTime: number) 
         return GREGORIAN_PERIOD_FAMILY_IDS.month
       }
       return GREGORIAN_PERIOD_FAMILY_IDS.week
-    case 5:
+    case SCALE_YEAR:
       if (tickDate.getMonth() === 0) {
         return GREGORIAN_PERIOD_FAMILY_IDS.year
       }
@@ -245,35 +262,10 @@ const resolveGregorianTickFamilyId = (scaleLevel: ScaleLevel, tickTime: number) 
         return GREGORIAN_PERIOD_FAMILY_IDS.quarter
       }
       return GREGORIAN_PERIOD_FAMILY_IDS.month
-    case 6:
+    case SCALE_DECADE:
       if (tickDate.getFullYear() % 10 === 0) {
         return GREGORIAN_PERIOD_FAMILY_IDS.decade
       }
-      if (tickDate.getFullYear() % 5 === 0) {
-        return GREGORIAN_PERIOD_FAMILY_IDS.year
-      }
-      return GREGORIAN_PERIOD_FAMILY_IDS.year
-    default:
-      return GREGORIAN_PERIOD_FAMILY_IDS.day
-  }
-}
-
-const getGregorianSpanFamilyId = (scaleLevel: ScaleLevel) => {
-  switch (scaleLevel) {
-    case -1:
-      return GREGORIAN_PERIOD_FAMILY_IDS.second
-    case 0:
-      return GREGORIAN_PERIOD_FAMILY_IDS.minute
-    case 1:
-      return GREGORIAN_PERIOD_FAMILY_IDS.hour
-    case 2:
-    case 3:
-      return GREGORIAN_PERIOD_FAMILY_IDS.day
-    case 4:
-      return GREGORIAN_PERIOD_FAMILY_IDS.week
-    case 5:
-      return GREGORIAN_PERIOD_FAMILY_IDS.month
-    case 6:
       return GREGORIAN_PERIOD_FAMILY_IDS.year
     default:
       return GREGORIAN_PERIOD_FAMILY_IDS.day
@@ -308,24 +300,24 @@ const getRegularTickPersonalCounterKinds = (scaleLevel: ScaleLevel, tickTime: nu
   const tickDate = new Date(tickTime)
 
   switch (scaleLevel) {
-    case -1:
-    case 0:
+    case SCALE_MINUTE:
+    case SCALE_HOUR:
       return {
         includeDayOfLife: tickDate.getHours() === 0 && tickDate.getMinutes() === 0 && tickDate.getSeconds() === 0,
         includeWeekOfLife: false,
       }
-    case 1:
+    case SCALE_DAY:
       return {
         includeDayOfLife: tickDate.getHours() === 0 && tickDate.getMinutes() === 0,
         includeWeekOfLife: tickDate.getHours() === 0 && tickDate.getMinutes() === 0 && tickDate.getDay() === 0,
       }
-    case 2:
-    case 3:
+    case SCALE_WEEK:
+    case SCALE_MONTH:
       return {
         includeDayOfLife: true,
         includeWeekOfLife: tickDate.getDay() === 0,
       }
-    case 4:
+    case SCALE_QUARTER:
       return {
         includeDayOfLife: false,
         includeWeekOfLife: true,
@@ -350,47 +342,58 @@ const addMonths = (date: Date, months: number) => {
 }
 
 const GREGORIAN_TICK_EMISSION_PLAN: Record<ScaleLevel, GregorianFamilyEmitter[]> = {
-  [-1]: [
+  [SCALE_MINUTE]: [
     { familyId: GREGORIAN_PERIOD_FAMILY_IDS.second, startTickDateFunc: startOfMinute, calculateTickTimeFunc: addSeconds },
     { familyId: GREGORIAN_PERIOD_FAMILY_IDS.minute, startTickDateFunc: startOfMinuteBoundary, calculateTickTimeFunc: addMinutes },
     { familyId: GREGORIAN_PERIOD_FAMILY_IDS.hour, startTickDateFunc: startOfHour, calculateTickTimeFunc: addHours },
     { familyId: GREGORIAN_PERIOD_FAMILY_IDS.day, startTickDateFunc: startOfDay, calculateTickTimeFunc: addDays },
   ],
-  0: [
+  [SCALE_HOUR]: [
     { familyId: GREGORIAN_PERIOD_FAMILY_IDS.minute, startTickDateFunc: startOfMinuteBoundary, calculateTickTimeFunc: addMinutes },
     { familyId: GREGORIAN_PERIOD_FAMILY_IDS.hour, startTickDateFunc: startOfHour, calculateTickTimeFunc: addHours },
     { familyId: GREGORIAN_PERIOD_FAMILY_IDS.day, startTickDateFunc: startOfDay, calculateTickTimeFunc: addDays },
   ],
-  1: [
+  [SCALE_DAY]: [
     { familyId: GREGORIAN_PERIOD_FAMILY_IDS.hour, startTickDateFunc: startOfHour, calculateTickTimeFunc: addHours },
     { familyId: GREGORIAN_PERIOD_FAMILY_IDS.day, startTickDateFunc: startOfDay, calculateTickTimeFunc: addDays },
     { familyId: GREGORIAN_PERIOD_FAMILY_IDS.week, startTickDateFunc: startOfWeek, calculateTickTimeFunc: (date, amount) => addDays(date, amount * 7) },
   ],
-  2: [
+  [SCALE_WEEK]: [
     { familyId: GREGORIAN_PERIOD_FAMILY_IDS.day, startTickDateFunc: startOfDay, calculateTickTimeFunc: addDays },
     { familyId: GREGORIAN_PERIOD_FAMILY_IDS.week, startTickDateFunc: startOfWeek, calculateTickTimeFunc: (date, amount) => addDays(date, amount * 7) },
     { familyId: GREGORIAN_PERIOD_FAMILY_IDS.month, startTickDateFunc: startOfMonth, calculateTickTimeFunc: addMonths },
   ],
-  3: [
+  [SCALE_MONTH]: [
     { familyId: GREGORIAN_PERIOD_FAMILY_IDS.day, startTickDateFunc: startOfDay, calculateTickTimeFunc: addDays },
     { familyId: GREGORIAN_PERIOD_FAMILY_IDS.week, startTickDateFunc: startOfWeek, calculateTickTimeFunc: (date, amount) => addDays(date, amount * 7) },
     { familyId: GREGORIAN_PERIOD_FAMILY_IDS.month, startTickDateFunc: startOfMonth, calculateTickTimeFunc: addMonths },
     { familyId: GREGORIAN_PERIOD_FAMILY_IDS.quarter, startTickDateFunc: startOfYear, calculateTickTimeFunc: (date, amount) => addMonths(date, amount * 3) },
   ],
-  4: [
+  [SCALE_QUARTER]: [
     { familyId: GREGORIAN_PERIOD_FAMILY_IDS.week, startTickDateFunc: startOfWeek, calculateTickTimeFunc: (date, amount) => addDays(date, amount * 7) },
     { familyId: GREGORIAN_PERIOD_FAMILY_IDS.month, startTickDateFunc: startOfMonth, calculateTickTimeFunc: addMonths },
     { familyId: GREGORIAN_PERIOD_FAMILY_IDS.quarter, startTickDateFunc: startOfYear, calculateTickTimeFunc: (date, amount) => addMonths(date, amount * 3) },
   ],
-  5: [
+  [SCALE_YEAR]: [
     { familyId: GREGORIAN_PERIOD_FAMILY_IDS.month, startTickDateFunc: startOfMonth, calculateTickTimeFunc: addMonths },
     { familyId: GREGORIAN_PERIOD_FAMILY_IDS.quarter, startTickDateFunc: startOfYear, calculateTickTimeFunc: (date, amount) => addMonths(date, amount * 3) },
     { familyId: GREGORIAN_PERIOD_FAMILY_IDS.year, startTickDateFunc: startOfYear, calculateTickTimeFunc: addYears },
   ],
-  6: [
+  [SCALE_DECADE]: [
     { familyId: GREGORIAN_PERIOD_FAMILY_IDS.year, startTickDateFunc: startOfYear, calculateTickTimeFunc: addYears },
     { familyId: GREGORIAN_PERIOD_FAMILY_IDS.decade, startTickDateFunc: startOfDecade, calculateTickTimeFunc: (date, amount) => addYears(date, amount * 10) },
   ],
+}
+
+const GREGORIAN_SPAN_EMISSION_PLAN: Record<ScaleLevel, GregorianSpanEmissionPlan> = {
+  [SCALE_MINUTE]: { familyId: GREGORIAN_PERIOD_FAMILY_IDS.second },
+  [SCALE_HOUR]: { familyId: GREGORIAN_PERIOD_FAMILY_IDS.minute },
+  [SCALE_DAY]: { familyId: GREGORIAN_PERIOD_FAMILY_IDS.hour },
+  [SCALE_WEEK]: { familyId: GREGORIAN_PERIOD_FAMILY_IDS.day },
+  [SCALE_MONTH]: { familyId: GREGORIAN_PERIOD_FAMILY_IDS.day },
+  [SCALE_QUARTER]: { familyId: GREGORIAN_PERIOD_FAMILY_IDS.week },
+  [SCALE_YEAR]: { familyId: GREGORIAN_PERIOD_FAMILY_IDS.month },
+  [SCALE_DECADE]: { familyId: GREGORIAN_PERIOD_FAMILY_IDS.year },
 }
 
 const getGregorianFamilyPrecedence = (
@@ -456,9 +459,9 @@ const getGregorianTickPolicyEvaluationForFamily = (
   })
 
   const decision = family && (
-    scaleLevel === -1
-    || (scaleLevel === 0 && family.kind === 'minute')
-    || (scaleLevel === 1 && family.kind === 'hour')
+    scaleLevel === SCALE_MINUTE
+    || (scaleLevel === SCALE_HOUR && family.kind === 'minute')
+    || (scaleLevel === SCALE_DAY && family.kind === 'hour')
   )
     ? getStructuralTickInstanceDecision(family, tickTime, baseDecision)
     : baseDecision
@@ -521,7 +524,7 @@ const createGregorianPositionedTickPoint = (
           timeMs: tickTime,
           environment,
           isLeading,
-          ...(scaleLevel === 4 || (scaleLevel === 5 && familyId === GREGORIAN_PERIOD_FAMILY_IDS.quarter)
+          ...(scaleLevel === SCALE_QUARTER || (scaleLevel === SCALE_YEAR && familyId === GREGORIAN_PERIOD_FAMILY_IDS.quarter)
             ? getQuarterBoundaryPersonalCounterKinds(tickTime)
             : getRegularTickPersonalCounterKinds(scaleLevel, tickTime)),
         })
@@ -641,8 +644,8 @@ export const createGregorianStructuralSpans = (
   const bufferedRange = getVisibleTimeRange(focusTimeMs, visibleDurationMs)
   const bufferedStartMs = bufferedRange.startTimeMs - visibleDurationMs * 0.5
   const bufferedEndMs = bufferedRange.endTimeMs + visibleDurationMs * 0.5
-  const familyId = getGregorianSpanFamilyId(activeScaleLevel)
-  const family = getGregorianPeriodFamily(familyId)
+  const spanPlan = GREGORIAN_SPAN_EMISSION_PLAN[activeScaleLevel]
+  const family = getGregorianPeriodFamily(spanPlan.familyId)
   const decision = getStructuralExpressionDecision(family, {
     activeScaleLevel,
     visibleDurationMs,
@@ -658,7 +661,7 @@ export const createGregorianStructuralSpans = (
     positionTimelineSpan(
       {
         ...span,
-        structuralMetadata: getGregorianStructuralMetadata(familyId),
+        structuralMetadata: getGregorianStructuralMetadata(spanPlan.familyId),
       },
       focusTimeMs,
       visibleDurationMs,

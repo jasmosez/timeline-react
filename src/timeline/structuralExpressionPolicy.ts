@@ -157,7 +157,7 @@ type StructuralFamilyPolicy = StructuralFamilyDecisionOverrides & {
 type StructuralFamilyPolicyByKind = Partial<Record<string, StructuralFamilyPolicy>>
 
 type StructuralCalendarExpressionDeclaration = {
-  activeSpanKindByScale: Partial<Record<ScaleLevel, string>>
+  spanFamilyKindByScale: Partial<Record<ScaleLevel, string>>
   tickPolicyByScale: Partial<Record<ScaleLevel, StructuralFamilyPolicyByKind>>
 }
 
@@ -196,7 +196,7 @@ const unlabeledTickPolicy = (
 })
 
 const GREGORIAN_EXPRESSION_DECLARATION: StructuralCalendarExpressionDeclaration = {
-  activeSpanKindByScale: {
+  spanFamilyKindByScale: {
     [SCALE_MINUTE]: 'second',
     [SCALE_HOUR]: 'minute',
     [SCALE_DAY]: 'hour',
@@ -276,7 +276,7 @@ const GREGORIAN_EXPRESSION_DECLARATION: StructuralCalendarExpressionDeclaration 
 }
 
 const HEBREW_EXPRESSION_DECLARATION: StructuralCalendarExpressionDeclaration = {
-  activeSpanKindByScale: {
+  spanFamilyKindByScale: {
     [SCALE_MINUTE]: 'zmanim',
     [SCALE_HOUR]: 'zmanim',
     [SCALE_DAY]: 'zmanim',
@@ -431,9 +431,9 @@ const getCalendarStructuralExpressionDecision = (
   family: StructuralPeriodFamilyDefinition,
   input: StructuralExpressionPolicyInput,
 ): StructuralExpressionDecision => {
-  const activeSpanKind = declaration.activeSpanKindByScale[input.activeScaleLevel] ?? null
+  const activeSpanFamilyKind = declaration.spanFamilyKindByScale[input.activeScaleLevel] ?? null
   const tickPolicyForScale = declaration.tickPolicyByScale[input.activeScaleLevel]
-  const isActiveSpanFamily = family.supportsIntervalExpression && family.kind === activeSpanKind
+  const isActiveSpanFamily = family.supportsIntervalExpression && family.kind === activeSpanFamilyKind
   const tickOverrides = tickPolicyForScale?.[family.kind]
   const hasExplicitTickPolicy = tickOverrides !== undefined
   const usesGovernedTickPolicy = tickPolicyForScale !== undefined

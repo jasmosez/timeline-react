@@ -2,6 +2,15 @@ import { LOCALE } from '../config'
 import type { GregorianStructuralLabelStrategy } from './structuralExpressionPolicy'
 import type { ScaleLevel } from './scales'
 
+const SCALE_MINUTE: ScaleLevel = -1
+const SCALE_HOUR: ScaleLevel = 0
+const SCALE_DAY: ScaleLevel = 1
+const SCALE_WEEK: ScaleLevel = 2
+const SCALE_MONTH: ScaleLevel = 3
+const SCALE_QUARTER: ScaleLevel = 4
+const SCALE_YEAR: ScaleLevel = 5
+const SCALE_DECADE: ScaleLevel = 6
+
 const MINUTE: Intl.DateTimeFormatOptions = { minute: '2-digit' }
 const HOUR: Intl.DateTimeFormatOptions = { hour: 'numeric', hour12: true }
 const HOUR_MINUTE: Intl.DateTimeFormatOptions = { hour: 'numeric', minute: '2-digit', hour12: true }
@@ -342,40 +351,40 @@ export const getGregorianContextLabel = (scaleLevel: ScaleLevel, timeMs: number)
   const contextDate = new Date(timeMs)
 
   switch (scaleLevel) {
-    case -1:
+    case SCALE_MINUTE:
       return contextDate.toLocaleDateString(LOCALE, {
         ...WEEKDAY,
         ...MONTH,
         ...DAY,
       }) + `, ${contextDate.toLocaleTimeString(LOCALE, { ...HOUR, ...MINUTE })}`
-    case 0:
+    case SCALE_HOUR:
       return contextDate.toLocaleDateString(LOCALE, {
         ...WEEKDAY,
         ...MONTH,
         ...DAY,
       }) + `, ${contextDate.toLocaleTimeString(LOCALE, HOUR)}`
-    case 1:
+    case SCALE_DAY:
       return contextDate.toLocaleDateString(LOCALE, {
         ...WEEKDAY,
         ...MONTH,
         ...DAY,
         ...YEAR,
       })
-    case 2:
+    case SCALE_WEEK:
       return `${formatWeekNumber(contextDate)}, ${contextDate.toLocaleDateString(LOCALE, {
         ...MONTH,
         ...YEAR,
       })}`
-    case 3:
+    case SCALE_MONTH:
       return contextDate.toLocaleDateString(LOCALE, {
         ...MONTH,
         ...YEAR,
       })
-    case 4:
+    case SCALE_QUARTER:
       return `${formatQuarterNumber(contextDate)}, ${contextDate.toLocaleDateString(LOCALE, YEAR)}`
-    case 5:
+    case SCALE_YEAR:
       return contextDate.toLocaleDateString(LOCALE, YEAR)
-    case 6:
+    case SCALE_DECADE:
       return undefined
     default:
       return undefined
