@@ -437,6 +437,50 @@ describe('hebrew structural layer', () => {
         span.structuralMetadata?.structuralPeriodFamilyId === HEBREW_PERIOD_FAMILY_IDS.month,
       ),
     ).toBe(true)
+    expect(
+      monthScaleSpans.every((span) =>
+        getHebrewDayInfo(new Date(span.startTimeMs), TEST_ENVIRONMENT).hebrewDate.day === 1,
+      ),
+    ).toBe(true)
+
+    const yearScaleSpans = createHebrewStructuralSpans({
+      leadingCalendarSystemId: 'hebrew',
+      activeScaleLevel: 5,
+      focusTimeMs: new Date('2026-04-20T12:00:00-04:00').getTime(),
+      visibleDurationMs: 420 * 24 * 60 * 60 * 1000,
+      environment: TEST_ENVIRONMENT,
+    })
+
+    expect(
+      yearScaleSpans.every((span) =>
+        span.structuralMetadata?.structuralPeriodFamilyId === HEBREW_PERIOD_FAMILY_IDS.month,
+      ),
+    ).toBe(true)
+    expect(
+      yearScaleSpans.every((span) =>
+        getHebrewDayInfo(new Date(span.startTimeMs), TEST_ENVIRONMENT).hebrewDate.day === 1,
+      ),
+    ).toBe(true)
+
+    const decadeScaleSpans = createHebrewStructuralSpans({
+      leadingCalendarSystemId: 'hebrew',
+      activeScaleLevel: 6,
+      focusTimeMs: new Date('2026-04-20T12:00:00-04:00').getTime(),
+      visibleDurationMs: 8 * 365 * 24 * 60 * 60 * 1000,
+      environment: TEST_ENVIRONMENT,
+    })
+
+    expect(
+      decadeScaleSpans.every((span) =>
+        span.structuralMetadata?.structuralPeriodFamilyId === HEBREW_PERIOD_FAMILY_IDS.year,
+      ),
+    ).toBe(true)
+    expect(
+      decadeScaleSpans.every((span) => {
+        const dayInfo = getHebrewDayInfo(new Date(span.startTimeMs), TEST_ENVIRONMENT)
+        return dayInfo.hebrewDate.day === 1 && dayInfo.hebrewDate.month === 7
+      }),
+    ).toBe(true)
   })
 
   it('keeps intraday spans available when the viewport is fully inside a named interval', () => {

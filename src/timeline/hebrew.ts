@@ -321,6 +321,29 @@ const collectHebrewBoundaryEvents = (
   return boundaries
 }
 
+const getHebrewSpanBoundaryEvents = (
+  activeScaleLevel: ScaleLevel,
+  focusTimeMs: number,
+  visibleDurationMs: number,
+  environment: HebrewLayerParams['environment'],
+) => {
+  const spanFamilyId = getHebrewSpanFamilyId(activeScaleLevel)
+
+  if (spanFamilyId === HEBREW_PERIOD_FAMILY_IDS.day) {
+    return collectHebrewBoundaryEvents(focusTimeMs, visibleDurationMs, environment)
+  }
+
+  const spanEmitters = (HEBREW_BOUNDARY_EMISSION_PLAN[activeScaleLevel] ?? [])
+    .filter((emitter) => emitter.familyId === spanFamilyId)
+
+  if (spanEmitters.length === 0) {
+    return []
+  }
+
+  return collectHebrewBoundaryEvents(focusTimeMs, visibleDurationMs, environment)
+    .filter(({ dayInfo }) => spanEmitters.some((emitter) => emitter.matches(dayInfo)))
+}
+
 const resolveHebrewBoundaryFamilyId = (
   activeScaleLevel: ScaleLevel,
   dayInfo: ReturnType<typeof getHebrewDayInfo>,
@@ -510,7 +533,12 @@ export const createHebrewStructuralSpans = ({
     )
   }
 
-  const boundaries = collectHebrewBoundaryEvents(focusTimeMs, visibleDurationMs, environment)
+  const boundaries = getHebrewSpanBoundaryEvents(
+    activeScaleLevel,
+    focusTimeMs,
+    visibleDurationMs,
+    environment,
+  )
   const spans: TimelineSpan[] = []
 
   for (let i = 0; i < boundaries.length - 1; i++) {
